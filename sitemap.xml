@@ -2,10 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://paskn.github.io/cta-with-python/index.html</loc>
-    <lastmod>2025-10-18T16:31:35.824Z</lastmod>
+    <lastmod>2025-10-18T16:38:15.137Z</lastmod>
   </url>
   <url>
     <loc>https://paskn.github.io/cta-with-python/about.html</loc>
-    <lastmod>2025-10-18T16:31:35.824Z</lastmod>
+    <lastmod>2025-10-18T16:38:15.137Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paskn.github.io/cta-with-python/basic-python.html</loc>
+    <lastmod>2025-10-18T16:38:15.137Z</lastmod>
   </url>
 </urlset>
