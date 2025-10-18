@@ -2,4 +2,10 @@
 title: "About"
 ---
 
-About this site
+Code and other materials for 1MEWI3647V Computational text analysis:
+An Introduction to text as data (WiSe25-26)
+
+Questions, comments, suggestions? -> Open an issue
+[https://github.com/paskn/cta-with-python/issues](https://github.com/paskn/cta-with-python/issues)
+
+Or email: sergei.pashakhin@uni-siegen.de
