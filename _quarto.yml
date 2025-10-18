@@ -10,9 +10,9 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
       - href: basic-python.qmd
         text: Python Basics
+      - about.qmd
 
 format:
   html:
