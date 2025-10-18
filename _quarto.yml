@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "Computational Text Analysis with Python"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme:
+      - flatly
+    css: styles.css
+    toc: true
+
+
+
