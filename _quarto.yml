@@ -12,7 +12,7 @@ website:
         text: Home
       - about.qmd
       - href: basic-python.qmd
-      - text: Basics of Python
+        text: Python Basics
 
 format:
   html:
