@@ -1,0 +1,2028 @@
+---
+title: "Introduction to Python for Text and Data Analysis"
+format: html
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+toc: true
+execute:
+  error: true
+---
+
+## Learning Outcomes
+
+After completing this tutorial, you will be able to:
+
+- ✓ Run Python code in Google Colab
+- ✓ Read and understand Python code
+- ✓ Work with strings for text analysis
+- ✓ Use basic data structures (lists, dictionaries)
+- ✓ Write simple functions and control flow
+- ✓ Find help and documentation online
+- ✓ Understand cloud vs. local Python environments
+- ✓ (Optional) Debug common errors
+
+---
+
+## 1. Getting Started with Google Colab
+
+### What is Google Colab?
+
+Google Colab (short for Colaboratory) is a free cloud service that lets you write and run Python code in your web browser. You don't need to install anything on your computer - everything runs in the cloud. This makes it perfect for getting started with Python.
+
+### Accessing Google Colab
+
+1. Go to [https://colab.research.google.com](https://colab.research.google.com)
+2. Sign in with your Google account
+3. Click on "New Notebook" to create a new Python notebook
+
+![Creating a new notebook](img/colab-new-notebook.png)
+
+### Understanding the Colab Interface
+
+A Colab notebook consists of **cells**. There are two main types:
+
+- **Code cells**: Where you write Python code
+- **Text cells**: Where you write notes and explanations (using Markdown)
+
+![Colab interface](img/colab-interface.png)
+
+### Running Code
+
+To run code in a cell:
+
+- Click the **Play button** (▶) on the left side of the cell, OR
+- Press **Shift + Enter** on your keyboard
+
+The output will appear below the cell.
+
+![Running a code cell](img/colab-run-cell.png)
+
+### Saving Your Work
+
+Your notebooks are automatically saved to your Google Drive in a folder called "Colab Notebooks". You can also:
+
+- Rename your notebook by clicking on the title at the top
+- Download your notebook (File → Download → Download .ipynb)
+- Share it with others (Share button in top right)
+
+::: {.callout-note}
+## 📌 Key Point
+Your Colab notebooks are saved to Google Drive, so they count toward your Drive storage quota. We'll discuss local alternatives later in this tutorial.
+:::
+
+---
+
+## 2. Your First Python Code
+
+Let's start by looking at some Python code. Don't worry if you don't understand it yet - that's what we're here to learn!
+
+```{python}
+message = "Hello, World!"
+print(message)
+```
+
+### What Just Happened?
+
+Let's break down this code:
+
+1. `message = "Hello, World!"` - This creates a **variable** named `message` and stores the text "Hello, World!" in it
+2. `print(message)` - This tells Python to display the contents of the `message` variable
+
+Think of a variable like a labeled box where you can store information. The `=` sign means "store the value on the right into the variable on the left".
+
+### Exercise 2.1
+
+**Copy the following code into Google Colab and run it:**
+
+```{python}
+message = "Hello, World!"
+print(message)
+```
+
+**Now modify it:**
+
+1. Change `"Hello, World!"` to `"Python is fun!"` and run the code again
+2. Change the variable name from `message` to `greeting` (remember to change it in both places!)
+3. Add another line: `print("My first Python program")` and run the code
+
+::: {.callout-tip}
+## 💡 Tip
+Variable names can contain letters, numbers, and underscores, but they must start with a letter or underscore. Use descriptive names that help you remember what the variable contains.
+:::
+
+---
+
+## 3. Getting Help and Finding Information
+
+Before we dive deeper into Python, let's learn how to find help when you're stuck. This is one of the most important skills for working with Python!
+
+### Using Python's Built-in Help
+
+Python has a built-in `help()` function that shows you information about functions and objects.
+
+```{python}
+#| eval: false
+help(print)
+```
+
+This will display documentation about the `print` function, including how to use it.
+
+![Using the help() function](img/help-function.png)
+
+### Using dir() to Explore
+
+The `dir()` function shows you what methods and attributes are available for an object:
+
+```{python}
+text = "hello"
+dir(text)
+```
+
+This shows all the things you can do with a string. Methods that start with `_` are internal - focus on the others like `upper`, `lower`, `split`, etc.
+
+### Reading Official Python Documentation
+
+The official Python documentation is at [https://docs.python.org](https://docs.python.org). It's comprehensive and well-organized.
+
+For beginners, the Python Tutorial section is especially helpful: [https://docs.python.org/3/tutorial/](https://docs.python.org/3/tutorial/)
+
+![Python documentation](img/python-docs.png)
+
+### Searching Online Effectively
+
+When you have a question or encounter an error:
+
+1. **Google your question** - Include "python" in your search
+   - Good: "python how to convert string to lowercase"
+   - Bad: "make text smaller"
+
+2. **Stack Overflow** - A Q&A site where programmers help each other
+   - Look for questions with many upvotes and accepted answers (green checkmark)
+   - Read the question to make sure it matches your problem
+
+3. **Read the error message** - Python error messages often tell you exactly what's wrong
+   - We'll cover this in detail in the optional debugging section
+
+::: {.callout-tip}
+## 💡 Tip
+When searching for help, include the Python version you're using. Google Colab typically uses Python 3, so add "python 3" to your searches.
+:::
+
+### Exercise 3.1
+
+**In Google Colab, try the following:**
+
+1. Run `help(len)` - what does the `len()` function do?
+2. Create a variable: `word = "Python"`, then run `dir(word)`
+3. Find a method in the output that sounds interesting (like `upper` or `lower`)
+4. Try using it: `word.upper()` or `word.lower()`
+5. Use `help(word.upper)` to learn more about that method
+
+---
+
+## 4. Basic Data Types
+
+Python works with different types of data. Let's explore the most important ones for text and data analysis.
+
+### Strings
+
+Strings are text data - anything you can type. They're enclosed in quotes (either `"` or `'`).
+
+```{python}
+author = "Virginia Woolf"
+title = 'Mrs Dalloway'
+sentence = "She said, 'I love Python!'"
+```
+
+#### String Operations
+
+**Concatenation** (joining strings):
+
+```{python}
+first_name = "Ada"
+last_name = "Lovelace"
+full_name = first_name + " " + last_name
+print(full_name)
+```
+
+**Getting string length**:
+
+```{python}
+text = "Hello"
+length = len(text)
+print(length)
+```
+
+```{python}
+text = "Python"
+print(text[0])      # First character
+print(text[1])      # Second character
+print(text[-1])     # Last character
+print(text[0:3])    # Characters 0, 1, 2 (not 3)
+print(text[2:])     # From character 2 to the end
+```
+
+#### String Methods
+
+Strings have many built-in methods (functions that belong to strings):
+
+**Changing case**:
+
+```{python}
+text = "Hello World"
+print(text.lower())
+print(text.upper())
+```
+
+```{python}
+sentence = "Python is great for text analysis"
+words = sentence.split()
+print(words)
+```
+
+```{python}
+text = "I like cats"
+new_text = text.replace("cats", "dogs")
+print(new_text)
+```
+
+```{python}
+text = "   hello   "
+print(text.strip())
+```
+
+```{python}
+sentence = "Python is amazing"
+position = sentence.find("is")
+print(position)
+```
+
+```{python}
+text = "how much wood would a woodchuck chuck"
+count = text.count("wood")
+print(count)
+```
+
+#### String Formatting with f-strings
+
+F-strings let you insert variable values into strings easily:
+
+```{python}
+name = "Alice"
+age = 25
+message = f"My name is {name} and I am {age} years old"
+print(message)
+```
+
+### Exercise 4.1
+
+**Copy this code into Colab:**
+
+```{python}
+book_title = "pride and prejudice"
+author = "Jane Austen"
+```
+
+**Modify the code to:**
+
+1. Convert `book_title` to title case using `.title()` and print it
+2. Make `author` all uppercase and print it
+3. Create a sentence using an f-string: `"The book {book_title} was written by {author}"`
+4. Use `.split()` on `book_title` to separate it into words and print the result
+5. Count how many times the letter "e" appears in `book_title`
+
+### Numbers
+
+Python works with two main types of numbers:
+
+**Integers** (whole numbers):
+
+```{python}
+pages = 324
+chapters = 12
+```
+
+**Floats** (decimal numbers):
+
+```{python}
+price = 19.99
+rating = 4.5
+```
+
+#### Arithmetic Operations
+
+```{python}
+# Basic arithmetic
+print(10 + 5)      # Addition: 15
+print(10 - 5)      # Subtraction: 5
+print(10 * 5)      # Multiplication: 50
+print(10 / 5)      # Division: 2.0 (always returns float)
+print(10 // 3)     # Integer division: 3 (rounds down)
+print(10 % 3)      # Modulo (remainder): 1
+print(10 ** 2)     # Exponentiation: 100
+```
+
+#### Type Conversion
+
+Sometimes you need to convert between strings and numbers:
+
+```{python}
+# String to number
+text_number = "42"
+number = int(text_number)
+print(number + 8)  # Output: 50
+
+# Number to string
+age = 25
+message = "I am " + str(age) + " years old"
+print(message)
+```
+
+::: {.callout-warning}
+## ⚠️ Warning
+You cannot directly concatenate strings and numbers. You'll get an error if you try `"Age: " + 25`. Convert the number to a string first: `"Age: " + str(25)`, or use an f-string: `f"Age: {25}"`.
+:::
+
+### Exercise 4.2
+
+**Copy this code into Colab:**
+
+```{python}
+total_words = 1000
+pages = 5
+```
+
+**Modify the code to:**
+
+1. Calculate words per page by dividing `total_words` by `pages` and print it
+2. Create a variable `additional_pages = 3` and calculate the new total pages
+3. Convert the result to a string and create a message: `"The document has X pages"` (use f-string)
+4. Calculate how many pages you'd have if you doubled the current number
+
+### Booleans
+
+Booleans represent True or False values. They're essential for making decisions in code.
+
+```{python}
+is_published = True
+is_draft = False
+```
+
+#### Comparison Operators
+
+These operators compare values and return True or False:
+
+```{python}
+x = 10
+y = 5
+
+print(x > y)       # Greater than: True
+print(x < y)       # Less than: False
+print(x == y)      # Equal to: False
+print(x != y)      # Not equal to: True
+print(x >= 10)     # Greater than or equal: True
+print(x <= 5)      # Less than or equal: False
+```
+
+::: {.callout-note}
+## 📌 Key Point
+Use `==` to compare values (equality test) and `=` to assign values to variables. This is a common source of confusion!
+:::
+
+You can also compare strings:
+
+```{python}
+word1 = "apple"
+word2 = "banana"
+print(word1 == word2)    # False
+print(word1 < word2)     # True (alphabetical order)
+```
+
+### Exercise 4.3
+
+**Copy this code into Colab:**
+
+```{python}
+word_count = 150
+minimum_required = 100
+```
+
+**Modify the code to:**
+
+1. Check if `word_count` is greater than `minimum_required` and print the result
+2. Check if `word_count` equals 150 and print the result
+3. Check if `word_count` is not equal to 200 and print the result
+4. Change `word_count` to 75 and run the comparisons again
+
+---
+
+## 5. Data Structures
+
+Data structures let you organize and store multiple pieces of information together.
+
+### Lists
+
+Lists are ordered collections of items. They're perfect for storing sequences of data.
+
+```{python}
+authors = ["Virginia Woolf", "James Joyce", "Marcel Proust"]
+word_counts = [150, 200, 175, 300]
+mixed_data = ["Python", 3, True, 19.99]
+```
+
+#### Accessing List Items
+
+Lists use zero-based indexing, just like strings:
+
+```{python}
+fruits = ["apple", "banana", "cherry", "date"]
+print(fruits[0])      # First item: apple
+print(fruits[1])      # Second item: banana
+print(fruits[-1])     # Last item: date
+print(fruits[-2])     # Second to last: cherry
+```
+
+#### Slicing Lists
+
+```{python}
+numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+print(numbers[2:5])    # Items 2, 3, 4: [2, 3, 4]
+print(numbers[:3])     # First 3 items: [0, 1, 2]
+print(numbers[7:])     # From index 7 to end: [7, 8, 9]
+print(numbers[::2])    # Every other item: [0, 2, 4, 6, 8]
+```
+
+#### Modifying Lists
+
+**Adding items**:
+
+```{python}
+books = ["1984", "Brave New World"]
+books.append("Fahrenheit 451")
+print(books)
+```
+
+```{python}
+books = ["1984", "Brave New World", "Fahrenheit 451"]
+books.remove("Brave New World")
+print(books)
+```
+
+```{python}
+books = ["1984", "Brave New World", "Fahrenheit 451"]
+last_book = books.pop()
+print(last_book)
+print(books)
+```
+
+#### List Methods
+
+**Getting list length**:
+
+```{python}
+words = ["the", "quick", "brown", "fox"]
+print(len(words))
+```
+
+```{python}
+numbers = [3, 1, 4, 1, 5, 9, 2, 6]
+numbers.sort()
+print(numbers)
+```
+
+```{python}
+letters = ["a", "b", "c", "d"]
+letters.reverse()
+print(letters)
+```
+
+```{python}
+fruits = ["apple", "banana", "cherry"]
+print("banana" in fruits)
+print("grape" in fruits)
+```
+
+#### Lists of Strings (Text Analysis)
+
+Lists are especially useful for working with text data:
+
+```{python}
+sentence = "Python is great for text analysis"
+words = sentence.split()
+print(words)
+print(f"Number of words: {len(words)}")
+print(f"First word: {words[0]}")
+print(f"Last word: {words[-1]}")
+```
+
+### Exercise 5.1
+
+**Copy this code into Colab:**
+
+```{python}
+text = "to be or not to be that is the question"
+words = text.split()
+```
+
+**Modify the code to:**
+
+1. Print the length of the `words` list
+2. Print the first word and the last word
+3. Use `.append()` to add the word "indeed" to the end of the list
+4. Use `.remove()` to remove the first occurrence of "to"
+5. Sort the words alphabetically and print the result
+
+### Dictionaries
+
+Dictionaries store data as **key-value pairs**. They're like a real dictionary where you look up a word (key) to find its definition (value).
+
+```{python}
+book = {
+    "title": "1984",
+    "author": "George Orwell",
+    "year": 1949,
+    "pages": 328
+}
+```
+
+#### Accessing Dictionary Values
+
+Use keys to access values:
+
+```{python}
+book = {
+    "title": "1984",
+    "author": "George Orwell",
+    "year": 1949
+}
+
+print(book["title"])
+print(book["author"])
+```
+
+#### Adding or Modifying Entries
+
+```{python}
+book = {"title": "1984", "author": "George Orwell"}
+
+# Add a new entry
+book["year"] = 1949
+print(book)
+
+# Modify an existing entry
+book["year"] = 1950
+print(book)
+```
+
+#### Dictionary Methods
+
+**Getting all keys**:
+
+```{python}
+book = {"title": "1984", "author": "George Orwell", "year": 1949}
+print(book.keys())
+```
+
+```{python}
+print(book.values())
+```
+
+```{python}
+print(book.items())
+```
+
+```{python}
+print("author" in book)
+print("publisher" in book)
+```
+
+#### Dictionaries for Text Analysis
+
+Dictionaries are useful for counting and organizing text data:
+
+```{python}
+word_frequencies = {
+    "the": 150,
+    "and": 89,
+    "to": 76,
+    "of": 72
+}
+
+print(f"The word 'the' appears {word_frequencies['the']} times")
+```
+
+### Exercise 5.2
+
+**Copy this code into Colab:**
+
+```{python}
+poem = {
+    "title": "The Road Not Taken",
+    "author": "Robert Frost",
+    "year": 1916
+}
+```
+
+**Modify the code to:**
+
+1. Print the poem's title
+2. Add a new key "lines" with the value 20
+3. Change the year to 1915
+4. Print all the keys in the dictionary
+5. Print all the values in the dictionary
+6. Check if "publisher" is a key in the dictionary and print the result
+
+---
+
+## 6. Control Flow
+
+Control flow lets you make decisions and repeat actions in your code.
+
+### If Statements
+
+If statements let your code make decisions based on conditions.
+
+```{python}
+word_count = 150
+minimum = 100
+
+if word_count >= minimum:
+    print("You have enough words!")
+    print("Good job!")
+```
+
+Output (if word_count is 150):
+```
+You have enough words!
+Good job!
+```
+
+::: {.callout-note}
+## 📌 Key Point
+Notice the **indentation** (spaces at the start of lines). Python uses indentation to group code together. Everything indented under the `if` statement runs only if the condition is True.
+:::
+
+#### If-Else
+
+```{python}
+word_count = 75
+minimum = 100
+
+if word_count >= minimum:
+    print("You have enough words!")
+else:
+    print("You need more words")
+    words_needed = minimum - word_count
+    print(f"You need {words_needed} more words")
+```
+
+#### If-Elif-Else
+
+Use `elif` (else-if) for multiple conditions:
+
+```{python}
+score = 85
+
+if score >= 90:
+    grade = "A"
+elif score >= 80:
+    grade = "B"
+elif score >= 70:
+    grade = "C"
+else:
+    grade = "F"
+
+print(f"Your grade is: {grade}")
+```
+
+### Exercise 6.1
+
+**Copy this code into Colab:**
+
+```{python}
+text = "Python"
+```
+
+**Modify the code to:**
+
+1. Check if the length of `text` is greater than 5. If it is, print "Long word", otherwise print "Short word"
+2. Change `text` to different words and test your code
+3. Modify your code to handle three cases: length > 8 (print "Very long"), length > 5 (print "Medium"), otherwise (print "Short")
+
+### Loops
+
+Loops let you repeat actions multiple times.
+
+#### For Loops
+
+For loops iterate over sequences (lists, strings, etc.):
+
+**Looping over a list**:
+
+```{python}
+words = ["Python", "is", "great"]
+for word in words:
+    print(word)
+```
+
+```{python}
+text = "Python"
+for letter in text:
+    print(letter)
+```
+
+```{python}
+for i in range(5):
+    print(i)
+```
+
+```{python}
+# From 1 to 5
+for i in range(1, 6):
+    print(i)
+
+# From 0 to 10, counting by 2
+for i in range(0, 11, 2):
+    print(i)
+```
+
+**Combining loops and if statements**:
+
+```{python}
+words = ["apple", "banana", "cherry", "date"]
+for word in words:
+    if len(word) > 5:
+        print(f"{word} is a long word")
+```
+
+```{python}
+word_counts = {"the": 150, "and": 89, "to": 76}
+
+# Loop over keys
+for word in word_counts:
+    print(word)
+
+# Loop over keys and values
+for word, count in word_counts.items():
+    print(f"{word}: {count}")
+```
+
+#### While Loops
+
+While loops repeat as long as a condition is True:
+
+```{python}
+count = 0
+while count < 5:
+    print(count)
+    count = count + 1
+```
+
+### Exercise 6.2
+
+**Copy this code into Colab:**
+
+```{python}
+sentence = "the quick brown fox jumps over the lazy dog"
+words = sentence.split()
+```
+
+**Modify the code to:**
+
+1. Use a for loop to print each word in `words`
+2. Use a for loop with an if statement to print only words with more than 3 letters
+3. Use a for loop to count how many words start with the letter "t" (use `.startswith("t")`)
+4. Use `range()` to print the first 5 numbers (0-4)
+5. Change the range to print numbers from 1 to 10
+
+---
+
+## 7. Functions
+
+Functions are reusable blocks of code that perform specific tasks.
+
+### Looking at Function Code First
+
+```{python}
+def greet(name):
+    message = f"Hello, {name}!"
+    return message
+
+result = greet("Alice")
+print(result)
+```
+
+### What Are Functions?
+
+Let's break down that code:
+
+1. `def greet(name):` - This **defines** a function named `greet` that takes one **parameter** called `name`
+2. The indented code is the **function body** - what the function does
+3. `return message` - This sends the result back to whoever called the function
+4. `greet("Alice")` - This **calls** (runs) the function with the argument `"Alice"`
+
+Think of functions like recipes: you define the recipe once, then you can follow it many times with different ingredients.
+
+### Built-in Functions Review
+
+We've already been using Python's built-in functions:
+
+```{python}
+#| eval: false
+# len() - get length
+text = "Python"
+print(len(text))  # 6
+
+# type() - check data type
+print(type(42))        # <class 'int'>
+print(type("hello"))   # <class 'str'>
+print(type([1, 2, 3])) # <class 'list'>
+
+# print() - display output
+print("Hello, World!")
+
+# input() - get user input (works in Colab!)
+name = input("What is your name? ")
+print(f"Hello, {name}")
+```
+
+### Creating Custom Functions
+
+**Function without parameters**:
+
+```{python}
+def say_hello():
+    print("Hello, World!")
+    
+say_hello()
+```
+
+```{python}
+def create_greeting(first_name, last_name):
+    full_name = f"{first_name} {last_name}"
+    greeting = f"Welcome, {full_name}!"
+    return greeting
+
+message = create_greeting("Ada", "Lovelace")
+print(message)
+```
+
+```{python}
+def greet(name, greeting="Hello"):
+    return f"{greeting}, {name}!"
+
+print(greet("Alice"))
+print(greet("Bob", "Hi"))
+```
+
+```{python}
+def count_words(text):
+    words = text.split()
+    return len(words)
+
+sentence = "Python is great for text analysis"
+num_words = count_words(sentence)
+print(f"The sentence has {num_words} words")
+```
+
+```{python}
+def analyze_text(text):
+    num_chars = len(text)
+    num_words = len(text.split())
+    return num_chars, num_words
+
+text = "Hello, World!"
+chars, words = analyze_text(text)
+print(f"Characters: {chars}, Words: {words}")
+```
+
+### Exercise 7.1
+
+**Copy this code into Colab:**
+
+```{python}
+def process_word(word):
+    return word.upper()
+
+result = process_word("python")
+print(result)
+```
+
+**Modify the code to:**
+
+1. Change the function to return `word.lower()` instead
+2. Add a second parameter `case_type` and use an if statement to return either uppercase or lowercase based on the parameter
+3. Create a new function `count_letter(text, letter)` that counts how many times a specific letter appears in text
+4. Test your function with different texts and letters
+
+---
+
+## 8. Working with Files
+
+Working with files lets you read and write data stored on your computer (or in Colab's temporary storage).
+
+### Reading Text Files
+
+```{python}
+# Open and read a file
+file = open("sample.txt", "r")
+content = file.read()
+print(content)
+file.close()
+```
+
+::: {.callout-note}
+## 📌 Key Point
+The `"r"` means "read mode". Always close files when you're done with `file.close()` to free up resources.
+:::
+
+**Better way: Using `with` statement** (automatically closes the file):
+
+```{python}
+with open("sample.txt", "r") as file:
+    content = file.read()
+    print(content)
+# File is automatically closed here
+```
+
+**Reading line by line**:
+
+```{python}
+with open("sample.txt", "r") as file:
+    for line in file:
+        print(line.strip())  # strip() removes extra whitespace/newlines
+```
+
+**Reading all lines into a list**:
+
+```{python}
+with open("sample.txt", "r") as file:
+    lines = file.readlines()
+    print(f"Number of lines: {len(lines)}")
+    print(f"First line: {lines[0].strip()}")
+```
+
+### Writing to Text Files
+
+```{python}
+# Writing to a file (creates new file or overwrites existing)
+with open("output.txt", "w") as file:
+    file.write("Hello, World!\n")
+    file.write("This is a new line.\n")
+```
+
+::: {.callout-warning}
+## ⚠️ Warning
+Using `"w"` mode will **overwrite** the entire file if it exists. Use `"a"` (append mode) to add to the end of an existing file instead.
+:::
+
+**Appending to a file**:
+
+```{python}
+with open("output.txt", "a") as file:
+    file.write("This line is added to the end.\n")
+```
+
+**Writing multiple lines**:
+
+```{python}
+lines = ["First line\n", "Second line\n", "Third line\n"]
+with open("output.txt", "w") as file:
+    file.writelines(lines)
+```
+
+### File Paths in Google Colab
+
+In Google Colab, you can:
+
+1. **Upload files** using the file browser on the left (folder icon)
+2. **Create files** in code cells
+3. **Mount Google Drive** to access your Drive files
+
+
+![Uploading files in Colab. (1) Press "folder" icon. (2) The upload button.](img/colab-files.png)
+
+**Creating a sample file in Colab**:
+
+```{python}
+# Create a sample file to practice with
+with open("sample.txt", "w") as file:
+    file.write("This is line 1\n")
+    file.write("This is line 2\n")
+    file.write("This is line 3\n")
+
+# Now read it back
+with open("sample.txt", "r") as file:
+    content = file.read()
+    print(content)
+```
+
+### Text Analysis Example
+
+```{python}
+# Count word frequencies in a file
+word_counts = {}
+
+with open("sample.txt", "r") as file:
+    for line in file:
+        words = line.lower().split()
+        for word in words:
+            if word in word_counts:
+                word_counts[word] += 1
+            else:
+                word_counts[word] = 1
+
+print(word_counts)
+```
+
+### Exercise 8.1
+
+**Copy this code into Colab to create a sample file:**
+
+```{python}
+with open("poem.txt", "w") as file:
+    file.write("Roses are red\n")
+    file.write("Violets are blue\n")
+    file.write("Python is fun\n")
+    file.write("And so are you\n")
+```
+
+**Now modify the code to:**
+
+1. Read the file and print its contents
+2. Read the file and print only the first two lines
+3. Read the file and count the total number of words across all lines
+4. Read the file and create a list of all words (split each line and combine)
+5. Write a new file called "output.txt" with all the words in uppercase
+
+---
+
+## 9. Introduction to Packages
+
+So far, we've used Python's built-in features. But Python's real power comes from **packages** (also called libraries) - collections of pre-written code that add new capabilities.
+
+### What Are Packages?
+
+Packages are like toolboxes. Each package contains functions and tools for specific tasks:
+
+- **pandas** - working with tabular data (like spreadsheets)
+- **numpy** - numerical computing and arrays
+- **matplotlib** - creating visualizations and charts
+- **nltk** - natural language processing and text analysis
+- **scikit-learn** - machine learning
+
+### Importing Packages
+
+To use a package, you **import** it:
+
+```{python}
+import math
+
+# Now you can use functions from the math package
+result = math.sqrt(16)
+print(result)
+```
+
+```{python}
+import math as m
+
+result = m.sqrt(25)
+print(result)
+```
+
+```{python}
+from math import sqrt, pi
+
+print(sqrt(9))
+print(pi)
+```
+
+### Installing Packages in Colab
+
+Most common packages are already installed in Google Colab. If you need to install a package, use:
+
+```python
+!pip install package-name
+```
+
+The `!` tells Colab to run this as a shell command, not Python code.
+
+::: {.callout-note}
+## 📌 Key Point
+In Colab, you usually don't need to install packages. Just import them! We'll discuss installing packages locally in the next section.
+:::
+
+### Example: Reading CSV with Pandas
+
+Let's see a quick example using **pandas** to work with tabular data:
+
+```{python}
+import pandas as pd
+
+# Create a sample dataset
+data = {
+    "book": ["1984", "Brave New World", "Fahrenheit 451"],
+    "author": ["George Orwell", "Aldous Huxley", "Ray Bradbury"],
+    "year": [1949, 1932, 1953],
+    "pages": [328, 311, 249]
+}
+
+# Create a DataFrame (pandas' table structure)
+df = pd.DataFrame(data)
+
+# Display the data
+print(df)
+```
+
+```{python}
+print(df["book"])
+print(df["year"])
+```
+
+**Filtering data**:
+
+```{python}
+# Books published after 1940
+recent_books = df[df["year"] > 1940]
+print(recent_books)
+```
+
+**Basic statistics**:
+
+```{python}
+print(f"Average pages: {df['pages'].mean()}")
+print(f"Earliest year: {df['year'].min()}")
+```
+
+**Reading from a CSV file**:
+
+```{python}
+# Create a sample CSV file first
+with open("books.csv", "w") as file:
+    file.write("book,author,year,pages\n")
+    file.write("1984,George Orwell,1949,328\n")
+    file.write("Brave New World,Aldous Huxley,1932,311\n")
+
+# Read it with pandas
+df = pd.read_csv("books.csv")
+print(df)
+```
+
+::: {.callout-tip}
+## 💡 Tip
+Pandas is incredibly powerful for data analysis. We'll explore it more deeply when working with real datasets. For now, just know that it exists and can read CSV files easily!
+:::
+
+### Exercise 9.1
+
+**Copy this code into Colab:**
+
+```{python}
+import pandas as pd
+
+data = {
+    "word": ["the", "and", "to", "of"],
+    "count": [150, 89, 76, 72]
+}
+
+df = pd.DataFrame(data)
+```
+
+**Modify the code to:**
+
+1. Print the entire DataFrame
+2. Print only the "word" column
+3. Print only the "count" column
+4. Find the maximum count using `df["count"].max()`
+5. Find the minimum count using `df["count"].min()`
+
+---
+
+## 10. Local Python Environments
+
+So far, we've been using Google Colab, which runs Python in the cloud. But you might want to run Python on your own computer. Let's explore why and how.
+
+### Cloud vs. Local Development
+
+**Google Colab (Cloud)**:
+
+- ✓ No installation needed
+- ✓ Works on any computer with a browser
+- ✓ Free access to computing resources
+- ✗ Requires internet connection
+- ✗ Sessions timeout after inactivity
+- ✗ Uses your Google Drive storage
+- ✗ Some packages may not work
+
+**Local Python (Your Computer)**:
+
+- ✓ Works offline
+- ✓ Full control over environment
+- ✓ No session timeouts
+- ✓ All packages available
+- ✗ Requires installation and setup
+- ✗ Uses your computer's resources
+
+::: {.callout-note}
+## 📌 Key Point
+For learning and quick experiments, Colab is perfect. For larger projects or when you need specific packages, local Python is better.
+:::
+
+### Introduction to uv (Recommended)
+
+**uv** is a modern, fast Python package and project manager. We recommend it because it's:
+
+- Very fast (much faster than traditional tools)
+- Easy to use
+- Handles both Python installation and package management
+- Becoming the industry standard
+
+Lear more about uv here: [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
+
+#### Installing uv
+
+**On macOS and Linux:**
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**On Windows:**
+
+```powershell
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+After installation, close and reopen your terminal.
+
+#### Using uv
+
+**Create a new Python project:**
+
+```bash
+uv init my-project
+cd my-project
+```
+
+This creates a new directory with a basic Python project structure.
+
+**Install a package:**
+
+```bash
+uv add pandas
+```
+
+This installs pandas and adds it to your project's dependencies.
+
+**Run Python:**
+
+```bash
+uv run python
+```
+
+This starts a Python interpreter with your project's packages available.
+
+**Run a Python script:**
+
+```bash
+uv run python my_script.py
+```
+
+**Install a specific Python version:**
+
+```bash
+uv python install 3.11
+```
+
+::: {.callout-tip}
+## 💡 Tip
+uv automatically creates isolated environments for each project, so different projects can use different package versions without conflicts.
+:::
+
+### Introduction to Conda (Fallback Option)
+
+**Conda** is a more established tool that also manages Python environments and packages. It's widely used in data science.
+
+#### Installing Conda
+
+Download and install Miniconda (a minimal conda installation) from:
+[https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+
+Choose the installer for your operating system and follow the installation instructions.
+
+![Miniconda download page. At the bottom of
+[https://www.anaconda.com/download](https://www.anaconda.com/download)](img/miniconda-download.png)
+
+![Miniconda download page. Then choose "Miniconda Installers"](img/miniconda-download-2.png)
+
+#### Using Conda
+
+**Create a new environment:**
+
+```bash
+conda create -n my-env python=3.11
+```
+
+This creates a new environment named "my-env" with Python 3.11.
+
+**Activate the environment:**
+
+```bash
+conda activate my-env
+```
+
+**Install packages:**
+
+```bash
+conda install pandas
+```
+
+**Deactivate the environment:**
+
+```bash
+conda deactivate
+```
+
+**List all environments:**
+
+```bash
+conda env list
+```
+
+**Remove an environment:**
+
+```bash
+conda remove -n my-env --all
+```
+
+### Using Jupyter Locally
+
+Once you have Python installed locally (with either uv or conda), you can run Jupyter notebooks on your computer.
+
+**With uv:**
+
+```bash
+uv add jupyter
+uv run jupyter notebook
+```
+
+**With conda:**
+
+```bash
+conda install jupyter
+jupyter notebook
+```
+
+This opens Jupyter in your web browser, running locally on your computer.
+
+![Jupyter running locally](img/jupyter-local.png)
+
+![Jupyter running locally. A new notebook](img/jupyter-local-2.png)
+
+![Jupyter running locally. Always have a Python kernel selected.](img/jupyter-local-3.png)
+
+![Jupyter running locally. Some useful UI elements.](img/jupyter-local-4.png)
+
+
+
+### When to Use Which Tool
+
+**Use uv when:**
+
+- Starting a new project
+- You want the fastest tool
+- You're working on modern Python projects
+- You want the latest features
+
+**Use conda when:**
+
+- Working with data science packages (it handles dependencies well)
+- You need packages that aren't on PyPI (Python Package Index)
+- You're following tutorials that use conda
+- You need packages that require complex non-Python dependencies
+
+**Use Colab when:**
+
+- Learning and experimenting
+- You don't have Python installed locally
+- You need quick access from any computer
+- You're sharing code with others who may not have Python
+
+::: {.callout-tip}
+## 💡 Tip
+Many people use multiple tools: Colab for quick experiments and learning, uv for new projects, and conda for data science work. You don't have to choose just one!
+:::
+
+### Exercise 10.1
+
+**This exercise requires setting up on your local computer (optional):**
+
+1. Install uv following the instructions for your operating system
+2. Create a new project called "python-practice"
+3. Add the pandas package to your project
+4. Create a file called `test.py` with this code:
+   ```{python}
+   import pandas as pd
+   print("Pandas version:", pd.__version__)
+   ```
+5. Run the file using `uv run python test.py`
+
+**Alternative exercise with conda:**
+
+1. Install Miniconda following the instructions for your operating system
+2. Create a new environment called "test-env" with Python 3.11
+3. Activate the environment
+4. Install pandas
+5. Run Python and import pandas to verify it works
+
+---
+
+## 11. Conclusion
+
+Congratulations! You've completed this introduction to Python for text and data analysis.
+
+### What You've Learned
+
+You can now:
+
+- ✓ **Run Python code** in Google Colab
+- ✓ **Read and understand** Python code by recognizing variables, data types, functions, and control flow
+- ✓ **Work with strings** using methods like `.lower()`, `.split()`, `.replace()`, and string formatting
+- ✓ **Use data structures** (lists and dictionaries) to organize data
+- ✓ **Control program flow** with if statements and loops
+- ✓ **Create functions** to organize reusable code
+- ✓ **Read and write files** for data persistence
+- ✓ **Use packages** like pandas for data analysis
+- ✓ **Find help** using `help()`, documentation, and online resources
+- ✓ **Understand the difference** between cloud (Colab) and local Python environments
+- ✓ **Set up local Python** using uv or conda (optional)
+
+### Next Steps
+
+1. **Practice regularly** - The best way to learn programming is by doing. Try writing small programs to solve problems you encounter.
+
+2. **Work with real data** - Apply these skills to actual text or datasets that interest you.
+
+3. **Learn more packages** - Explore packages like:
+   - **nltk** or **spaCy** for natural language processing
+   - **matplotlib** or **seaborn** for data visualization
+   - **numpy** for numerical computing
+   - **scikit-learn** for machine learning
+
+4. **Read other people's code** - Since you're learning to read code, study examples from tutorials and open-source projects.
+
+5. **Debug and experiment** - Don't be afraid of errors! They're a natural part of programming. See the optional debugging section for help.
+
+6. **Join communities** - Consider joining Python forums, Reddit's r/learnpython, or Stack Overflow to ask questions and learn from others.
+
+### Resources for Continued Learning
+
+- **Official Python Tutorial**: [https://docs.python.org/3/tutorial/](https://docs.python.org/3/tutorial/)
+- **Python for Data Analysis** by Wes McKinney (pandas creator)
+- **Real Python**: [https://realpython.com](https://realpython.com) - excellent tutorials
+- **Automate the Boring Stuff with Python**: Free online book at [https://automatetheboringstuff.com](https://automatetheboringstuff.com)
+
+### Keep Learning!
+
+Remember: everyone who programs started as a beginner. The key is persistence and practice. You've taken the first important steps, and you have all the foundational knowledge you need to continue learning.
+
+Good luck with your Python journey!
+
+---
+
+## Appendix A: Debugging and Error Messages (Optional)
+
+This section is optional but important. Understanding errors will help you fix problems faster and become more independent in your learning.
+
+### Why Errors Are Helpful
+
+Errors are not failures - they're feedback! Python is telling you exactly what went wrong. Learning to read error messages is a crucial skill.
+
+### Common Error Types
+
+#### SyntaxError
+
+**What it means**: You wrote code that doesn't follow Python's grammar rules.
+
+```{python}
+#| error: true
+print("Hello"
+```
+
+Error:
+```
+SyntaxError: unexpected EOF while parsing
+```
+
+**What went wrong**: Missing closing parenthesis.
+
+**How to fix**: Add the closing `)`:
+```{python}
+print("Hello")
+```
+
+**Another example**:
+```{python}
+#| error: true
+if x > 5
+    print("Big")
+```
+
+Error:
+```
+SyntaxError: invalid syntax
+```
+
+**What went wrong**: Missing colon after `if` statement.
+
+**How to fix**:
+```{python}
+if x > 5:
+    print("Big")
+```
+
+#### NameError
+
+**What it means**: You're trying to use a variable or function that doesn't exist.
+
+```{python}
+#| echo: false
+del message
+```
+
+```{python}
+#| error: true
+print(message)
+```
+
+Error:
+```
+NameError: name 'message' is not defined
+```
+
+**What went wrong**: The variable `message` was never created.
+
+**How to fix**: Define the variable first:
+```{python}
+message = "Hello"
+print(message)
+```
+
+**Common cause**: Typos in variable names
+```{python}
+#| error: true
+my_name = "Alice"
+print(my_nane)  # Typo: 'nane' instead of 'name'
+```
+
+#### TypeError
+
+**What it means**: You're using a value in a way that doesn't work with its type.
+
+```{python}
+#| error: true
+age = 25
+message = "I am " + age
+```
+
+Error:
+```
+TypeError: can only concatenate str (not "int") to str
+```
+
+**What went wrong**: Can't directly add a string and a number.
+
+**How to fix**: Convert the number to a string:
+```{python}
+age = 25
+message = "I am " + str(age)
+# OR use an f-string:
+message = f"I am {age}"
+```
+
+```{python}
+#| echo: false
+del message
+```
+
+
+**Another example**:
+```{python}
+#| error: true
+text = "Python"
+print(text[0:3])
+text[0] = "p"  # Trying to change a character
+```
+
+Error:
+```
+TypeError: 'str' object does not support item assignment
+```
+
+**What went wrong**: Strings are immutable (can't be changed).
+
+**How to fix**: Create a new string:
+```{python}
+text = "Python"
+text = "p" + text[1:]
+```
+
+#### IndexError
+
+**What it means**: You're trying to access a list/string position that doesn't exist.
+
+```{python}
+#| error: true
+words = ["apple", "banana", "cherry"]
+print(words[5])
+```
+
+Error:
+```
+IndexError: list index out of range
+```
+
+**What went wrong**: The list only has indices 0, 1, 2 (three items), but we tried to access index 5.
+
+**How to fix**: Use a valid index:
+```{python}
+words = ["apple", "banana", "cherry"]
+print(words[2])  # The last item
+```
+
+#### KeyError
+
+**What it means**: You're trying to access a dictionary key that doesn't exist.
+
+```{python}
+#| error: true
+book = {"title": "1984", "author": "George Orwell"}
+print(book["year"])
+```
+
+Error:
+```
+KeyError: 'year'
+```
+
+**What went wrong**: The dictionary doesn't have a "year" key.
+
+**How to fix**: Use an existing key or check if the key exists first:
+```{python}
+# Option 1: Use get() method (returns None if key doesn't exist)
+print(book.get("year"))
+
+# Option 2: Check if key exists
+if "year" in book:
+    print(book["year"])
+else:
+    print("Year not found")
+```
+
+#### IndentationError
+
+**What it means**: Your code indentation is inconsistent or incorrect.
+
+```{python}
+#| error: true
+def greet():
+print("Hello")
+```
+
+Error:
+```
+IndentationError: expected an indented block
+```
+
+**What went wrong**: The function body needs to be indented.
+
+**How to fix**:
+```{python}
+def greet():
+    print("Hello")
+```
+
+**Another example** (mixing tabs and spaces):
+```{python}
+#| error: true
+if True:
+    print("First line")
+        print("Second line")  # Too much indentation
+```
+
+Error:
+```
+IndentationError: unexpected indent
+```
+
+::: {.callout-warning}
+## ⚠️ Warning
+Always use spaces for indentation in Python (4 spaces is the standard). Don't mix tabs and spaces!
+:::
+
+#### ValueError
+
+**What it means**: You passed a value of the right type but inappropriate value.
+
+```{python}
+#| error: true
+number = int("hello")
+```
+
+Error:
+```
+ValueError: invalid literal for int() with base 10: 'hello'
+```
+
+**What went wrong**: "hello" can't be converted to an integer.
+
+**How to fix**: Use a string that represents a number:
+```{python}
+number = int("42")
+```
+
+#### AttributeError
+
+**What it means**: You're trying to use a method or attribute that doesn't exist for that type.
+
+```{python}
+#| error: true
+number = 42
+result = number.upper()
+```
+
+Error:
+```
+AttributeError: 'int' object has no attribute 'upper'
+```
+
+**What went wrong**: Numbers don't have an `.upper()` method (only strings do).
+
+**How to fix**: Use the correct type:
+```{python}
+text = "hello"
+result = text.upper()
+```
+
+### How to Read Error Messages
+
+Python error messages have a standard format:
+
+```
+Traceback (most recent call last):
+  File "script.py", line 3, in <module>
+    print(message)
+NameError: name 'message' is not defined
+```
+
+Reading from bottom to top:
+
+1. **Error type and description** (`NameError: name 'message' is not defined`) - What went wrong
+2. **Line number** (`line 3`) - Where it happened
+3. **Code snippet** (`print(message)`) - The actual problematic line
+4. **Traceback** - The sequence of function calls leading to the error
+
+::: {.callout-tip}
+## 💡 Tip
+Always read error messages from the bottom up. The last line tells you what went wrong, and the lines above show you where.
+:::
+
+### Common Beginner Mistakes
+
+#### 1. Forgetting Colons
+
+```{python}
+#| error: true
+# Wrong
+if x > 5
+    print("Big")
+
+# Right
+if x > 5:
+    print("Big")
+```
+
+#### 2. Inconsistent Indentation
+
+```{python}
+#| error: true
+# Wrong
+def greet():
+print("Hello")
+    print("Welcome")
+
+# Right
+def greet():
+    print("Hello")
+    print("Welcome")
+```
+
+#### 3. Using = Instead of ==
+
+```{python}
+#| error: true
+# Wrong (assignment, not comparison)
+if x = 5:
+    print("Five")
+
+# Right
+if x == 5:
+    print("Five")
+```
+
+#### 4. Forgetting Quotes Around Strings
+
+```{python}
+#| error: true
+# Wrong
+message = Hello
+
+# Right
+message = "Hello"
+```
+
+#### 5. Modifying a List While Iterating
+
+```{python}
+#| error: true
+# Problematic
+numbers = [1, 2, 3, 4, 5]
+for num in numbers:
+    if num % 2 == 0:
+        numbers.remove(num)  # Modifying while iterating!
+
+# Better
+numbers = [1, 2, 3, 4, 5]
+numbers = [num for num in numbers if num % 2 != 0]
+```
+
+#### 6. Not Converting Types
+
+```{python}
+#| eval: false
+# Wrong
+age = input("Enter age: ")
+if age > 18:  # Comparing string to number!
+    print("Adult")
+
+# Right
+age = int(input("Enter age: "))
+if age > 18:
+    print("Adult")
+```
+
+### Debugging Strategies
+
+#### 1. Print Debugging
+
+Add print statements to see what's happening:
+
+```{python}
+def calculate(x, y):
+    print(f"x = {x}, y = {y}")  # Debug print
+    result = x * y
+    print(f"result = {result}")  # Debug print
+    return result
+```
+
+#### 2. Check Variable Types
+
+Use `type()` to verify types:
+
+```{python}
+x = "42"
+print(type(x))  # <class 'str'>
+x = int(x)
+print(type(x))  # <class 'int'>
+```
+
+#### 3. Test Small Parts
+
+Break your code into smaller pieces and test each part:
+
+```python
+# Instead of this all at once:
+result = data.split()[0].upper().replace("X", "Y")
+
+# Test step by step:
+step1 = data.split()
+print(step1)
+step2 = step1[0]
+print(step2)
+step3 = step2.upper()
+print(step3)
+result = step3.replace("X", "Y")
+print(result)
+```
+
+#### 4. Use Try-Except (Advanced)
+
+Handle errors gracefully:
+
+```{python}
+#| eval: false
+try:
+    number = int(input("Enter a number: "))
+    result = 100 / number
+    print(result)
+except ValueError:
+    print("That's not a valid number!")
+except ZeroDivisionError:
+    print("Cannot divide by zero!")
+```
+
+#### 5. Read Documentation
+
+Use `help()` to understand how functions work:
+
+```{python}
+#| eval: false
+help(str.split)
+```
+
+#### 6. Search the Error
+
+Copy the error message (without your specific variable names) and search online:
+
+- Good search: "python NameError name not defined"
+- Less helpful: "my code doesn't work"
+
+### Exercise A.1
+
+**Each code snippet below has an error. Copy them into Colab one at a time and:**
+
+1. Run the code and read the error message
+2. Identify what type of error it is
+3. Fix the error
+
+**Code snippets:**
+
+```{python}
+#| error: true
+# Error 1
+print("Hello World"
+```
+
+```{python}
+#| error: true
+# Error 2
+age = 25
+message = "I am " + age + " years old"
+```
+
+```{python}
+#| error: true
+# Error 3
+words = ["apple", "banana", "cherry"]
+print(words[3])
+```
+
+```{python}
+#| error: true
+# Error 4
+def greet():
+print("Hello")
+```
+
+```{python}
+#| error: true
+# Error 5
+x = 10
+if x > 5
+    print("Big number")
+```
+
+```{python}
+#| error: true
+# Error 6
+book = {"title": "1984", "author": "Orwell"}
+print(book["year"])
+```
+
+```{python}
+#| error: true
+# Error 7
+text = "Python"
+result = text.find()
+```
+
+### Final Debugging Tips
+
+::: {.callout-tip}
+## 💡 Tips for Effective Debugging
+
+1. **Read the error message carefully** - Python tells you exactly what's wrong
+2. **Check line numbers** - But remember, the actual error might be on a previous line
+3. **Look for typos** - Variable names, function names, syntax
+4. **Verify your assumptions** - Use print() to check what values variables actually have
+5. **Search for help** - You're probably not the first person with this error
+6. **Take breaks** - Sometimes stepping away helps you see the problem fresh
+7. **Start simple** - Comment out code to isolate the problem
+8. **Don't panic** - Every programmer deals with errors constantly. It's normal!
+:::
+
+---
+
+**End of Tutorial**
+
+You now have a comprehensive reference for Python basics, from running your first code to debugging errors. Return to this document whenever you need to refresh your knowledge!

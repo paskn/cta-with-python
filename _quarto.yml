@@ -11,6 +11,8 @@ website:
       - href: index.qmd
         text: Home
       - about.qmd
+      - href: basic-python.qmd
+      - text: Basics of Python
 
 format:
   html:
