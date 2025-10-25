@@ -2,4 +2,5 @@
 title: "Computational Text Analysis with Python"
 ---
 
-1. Start here: [Python Basics](basic-python.qmd) 
+1. Start here: [Python Basics](basic-python.qmd)
+2. [Lab 01: Words as data points I](lab_01.qmd)
