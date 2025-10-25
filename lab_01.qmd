@@ -1,0 +1,767 @@
+---
+title: "Lab 01: Words as data points I"
+subtitle: "Zipf's law, stop words and stylometry"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+## Learning Objectives
+
+By the end of this lab, you will understand:
+
+- How to transform unstructured text into structured data
+- What tokenization is and why it matters
+- How word frequencies reveal patterns in text
+- Zipf's Law and its implications for text analysis
+- What stop words are and when to remove them
+- The basics of text preprocessing
+- What stylometry is and how function words reveal authorship
+- How to use Python and pandas for basic text analysis
+
+---
+
+## Introduction: Why Text as Data?
+
+Text is everywhere: social media posts, news articles, scientific papers, government documents, customer reviews. But text in its raw form is **unstructured** - it's just sequences of characters. To analyze text computationally, we need to transform it into **structured data** that computers can process mathematically.
+
+Think of it this way: if you wanted to compare two novels, you could read both and form an impression. But what if you had 1,000 novels? Or 100,000 tweets? This is where computational text analysis becomes essential.
+
+### Our Dataset: State of the Union Addresses
+
+Today we'll work with a collection of State of the Union addresses - speeches given by US presidents from the 18th century to 2018. These speeches are:
+
+- **Historical**: Spanning over 200 years
+- **Political**: Reflecting different eras and priorities
+- **Comparable**: Same genre, same occasion, different authors
+
+This makes them perfect for learning text analysis techniques.
+
+**Data source**: [Brian Weinstein's State of the Union corpus](https://github.com/BrianWeinstein/state-of-the-union)
+
+---
+
+## Setup: Loading Packages
+
+First, let's load the Python packages we'll need:
+
+```bash
+# you will need to run it once after installing spaCy
+!python -m spacy download en_core_web_sm
+```
+
+```{python}
+# Data manipulation
+import pandas as pd
+
+# Text processing
+import spacy
+from collections import Counter
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# For word clouds
+from wordcloud import WordCloud
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+
+print("✓ Packages loaded successfully")
+```
+
+::: {.callout-note}
+## 📌 About these packages
+
+- **pandas**: Works with tabular data (like spreadsheets)
+- **spaCy**: Processes natural language text
+- **matplotlib/seaborn**: Create visualizations
+- **wordcloud**: Generate word cloud visualizations
+:::
+
+---
+
+## Loading and Exploring the Data
+
+Let's load our dataset:
+
+```{python}
+# Load the data
+speeches = pd.read_csv("data/transcripts.csv")
+
+# Display first few rows
+print("Dataset shape:", speeches.shape)
+print("\nFirst few rows:")
+speeches.head()
+```
+
+### Understanding the Data Structure
+
+Our data is in **tabular format** - like a spreadsheet with rows and columns:
+
+```{python}
+# Check column names and types
+print("Columns:")
+print(speeches.dtypes)
+
+# Basic statistics
+print("\nNumber of speeches:", len(speeches))
+print("Number of presidents:", speeches['president'].nunique())
+print("\nDate range:")
+print("  Earliest:", speeches['date'].min())
+print("  Latest:", speeches['date'].max())
+```
+
+Each row represents **one speech**. The columns contain:
+
+- **date**: When the speech was given
+- **president**: Who gave it
+- **title**: The speech's official title
+- **url**: Where the transcript came from
+- **transcript**: The actual text of the speech
+
+Let's look at a short excerpt:
+
+```{python}
+# Display a snippet of one speech
+sample_text = speeches.loc[0, 'transcript'][:500]  # First 500 characters
+print("Sample from first speech:")
+print(sample_text)
+print("...")
+```
+
+::: {.callout-tip}
+## 💡 Why This Structure?
+
+Text data commonly comes with **metadata** (data about data):
+
+- Author, date, source, title, etc.
+- This metadata helps us compare and analyze texts
+- We keep text and metadata together in a table
+:::
+
+---
+
+## From Text to Tokens - The Bag of Words Model
+
+### The Challenge: Text is Unstructured
+
+Right now, our `transcript` column contains long strings of text. How do we measure or compare them? We can't easily do math on text!
+
+### The Solution: Tokenization
+
+**Tokenization** is the process of splitting text into smaller units called **tokens**. Usually, tokens are words, but they could also be:
+
+- Characters (letters)
+- Sentences
+- N-grams (sequences of N words)
+
+Let's see this in action:
+
+```{python}
+# Simple example: split text into words
+example = "Python is great for text analysis"
+words = example.split()
+print("Original text:", example)
+print("Tokens (words):", words)
+print("Number of tokens:", len(words))
+```
+
+### Tokenizing Our Speeches
+
+Now let's tokenize one full speech:
+
+```{python}
+# Get one speech
+speech_text = speeches.loc[0, 'transcript']
+
+# Simple tokenization (just splitting on spaces)
+simple_tokens = speech_text.split()
+
+print(f"Speech length: {len(speech_text)} characters")
+print(f"Number of tokens: {len(simple_tokens)}")
+print(f"\nFirst 20 tokens:")
+print(simple_tokens[:20])
+```
+
+### The Bag of Words Model
+
+Once we have tokens, we can treat text as a "**bag of words**" - we:
+
+1. **Ignore word order** ("cat dog" = "dog cat")
+2. **Count word frequencies**
+3. **Represent text as numbers**
+
+This might seem like we're throwing away information (word order matters!), but this simple model is surprisingly powerful for many tasks.
+
+Let's create a bag of words for one speech:
+
+```{python}
+# Count word frequencies
+word_counts = Counter(simple_tokens)
+
+# Show most common words
+print("Top 15 most frequent words:")
+for word, count in word_counts.most_common(15):
+    print(f"  {word}: {count}")
+```
+
+### Two Data Formats: Long vs Wide
+
+We can represent tokenized text in two ways:
+
+**Long format**: One row per word occurrence
+```
+president    word
+Trump        the
+Trump        economy
+Trump        is
+Trump        strong
+```
+
+**Wide format**: One row per document, one column per unique word
+```
+president    the    economy    is    strong
+Trump        150    12         89    5
+```
+
+For now, we'll work with long format because it's easier to understand and manipulate.
+
+---
+
+## Tokenizing All Speeches
+
+Let's tokenize all speeches and create a long-format dataset:
+
+```{python}
+# Initialize empty list to store results
+all_tokens = []
+
+# Process each speech
+for idx, row in speeches.iterrows():
+    president = row['president']
+    text = row['transcript']
+    
+    # Simple tokenization
+    tokens = text.lower().split()  # Convert to lowercase
+    
+    # Add each token to our list
+    for token in tokens:
+        all_tokens.append({
+            'president': president,
+            'word': token
+        })
+
+# Convert to DataFrame
+tokens_df = pd.DataFrame(all_tokens)
+
+print(f"Total number of tokens: {len(tokens_df):,}")
+print(f"\nFirst few rows:")
+tokens_df.head(10)
+```
+
+### How many unique words?
+
+```{python}
+unique_words = tokens_df['word'].nunique()
+print(f"Number of unique words: {unique_words:,}")
+```
+
+That's a lot of unique words! But are they all useful?
+
+---
+
+## Word Frequencies
+
+Now let's count how often each word appears:
+
+```{python}
+# Count word frequencies
+word_freq = tokens_df['word'].value_counts().reset_index()
+word_freq.columns = ['word', 'count']
+
+print("Top 20 most frequent words:")
+print(word_freq.head(20))
+```
+
+### Visualizing Frequency
+
+```{python}
+# Plot top 15 words
+top_15 = word_freq.head(15)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(data=top_15, y='word', x='count', palette='viridis')
+plt.title('Top 15 Most Frequent Words in State of the Union Addresses', fontsize=14, fontweight='bold')
+plt.xlabel('Frequency (count)', fontsize=12)
+plt.ylabel('Word', fontsize=12)
+plt.tight_layout()
+plt.show()
+```
+
+### What do we notice?
+
+The most frequent words are:
+- Articles: "the", "a", "an"
+- Prepositions: "of", "to", "in", "for"
+- Conjunctions: "and", "but", "or"
+
+These are **grammatical words** that appear in almost any English text. They don't tell us much about the *content* of the speeches!
+
+This observation leads us to an important concept...
+
+---
+
+## Zipf's Law - A Fundamental Pattern
+
+### What is Zipf's Law?
+
+If you count word frequencies in *any* large collection of text and rank words by frequency, you'll observe something remarkable:
+
+**The most common word appears roughly twice as often as the second most common word, three times as often as the third most common, and so on.**
+
+This is called **Zipf's Law** (named after linguist George Kingsley Zipf).
+
+### Why Does This Matter?
+
+Zipf's Law tells us that:
+
+1. **A few words are very common** ("the", "of", "and")
+2. **Most words are very rare** (appear only once or twice)
+3. **This pattern is universal** - it appears in all languages and genres
+
+This has practical implications:
+- Most words provide little statistical power (they're too rare)
+- A small vocabulary covers most of any text
+- We need strategies to deal with this imbalance
+
+### Visualizing Zipf's Law
+
+Let's see if our data follows Zipf's Law:
+
+```{python}
+# Add rank to our frequency table
+word_freq['rank'] = range(1, len(word_freq) + 1)
+
+# Create log-log plot
+plt.figure(figsize=(10, 6))
+plt.loglog(word_freq['rank'], word_freq['count'], 'b.')
+plt.xlabel('Rank (log scale)', fontsize=12)
+plt.ylabel('Frequency (log scale)', fontsize=12)
+plt.title("Zipf's Law in State of the Union Addresses", fontsize=14, fontweight='bold')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+The nearly straight line on a log-log plot confirms Zipf's Law!
+
+### The Long Tail
+
+Let's look at how many words appear only once or twice:
+
+```{python}
+# Count words by frequency
+freq_distribution = word_freq['count'].value_counts().sort_index()
+
+print("Distribution of word frequencies:")
+print(f"  Words appearing once: {freq_distribution.get(1, 0):,}")
+print(f"  Words appearing twice: {freq_distribution.get(2, 0):,}")
+print(f"  Words appearing 3-5 times: {freq_distribution.loc[3:5].sum():,}")
+print(f"  Words appearing 6-10 times: {freq_distribution.loc[6:10].sum():,}")
+print(f"  Words appearing > 100 times: {(word_freq['count'] > 100).sum():,}")
+```
+
+This is the "**long tail**" - many rare words, few common words.
+
+::: {.callout-important}
+## 🎯 Key Insight
+
+Zipf's Law means that word frequencies are **highly skewed**. This affects how we:
+
+- Build statistical models
+- Select features for machine learning
+- Preprocess text
+- Interpret results
+:::
+
+---
+
+## Stop Words and Preprocessing
+
+### What are Stop Words?
+
+**Stop words** are extremely common words that appear frequently in almost any text:
+
+- Articles: the, a, an
+- Prepositions: in, on, at, to, from
+- Pronouns: I, you, he, she, it
+- Conjunctions: and, but, or
+- Auxiliary verbs: is, are, was, were
+
+### Why Remove Stop Words?
+
+There are two main perspectives:
+
+**Reasons to remove stop words:**
+
+1. **Content analysis**: They don't tell us about the topic
+2. **Computational efficiency**: Fewer words = faster processing
+3. **Signal-to-noise**: They can overwhelm more informative words
+
+**Reasons to keep stop words:**
+
+1. **Stylometry**: They reveal personal writing style
+2. **Syntax**: Needed for parsing sentence structure
+3. **Meaning**: Sometimes they matter ("not good" ≠ "good")
+
+### Stop Words in Our Data
+
+Let's see what Python's spaCy library considers stop words:
+
+```{python}
+# Load English language model (small version)
+try:
+    nlp = spacy.load("en_core_web_sm")
+except:
+    # If not installed, show installation instructions
+    print("Please install spaCy model:")
+    print("!python -m spacy download en_core_web_sm")
+    # For now, use a simple stopword list
+    from spacy.lang.en.stop_words import STOP_WORDS
+    stopwords_set = STOP_WORDS
+else:
+    stopwords_set = nlp.Defaults.stop_words
+
+print(f"Number of stop words: {len(stopwords_set)}")
+print(f"\nFirst 30 stop words (alphabetically):")
+print(sorted(list(stopwords_set))[:30])
+```
+
+### Comparing with Our Most Frequent Words
+
+```{python}
+# Check which top words are stop words
+top_30 = word_freq.head(30).copy()
+top_30['is_stopword'] = top_30['word'].isin(stopwords_set)
+
+print("Top 30 words with stop word labels:")
+print(top_30[['word', 'count', 'is_stopword']])
+```
+
+Notice how most of the top frequent words are stop words!
+
+### Removing Stop Words
+
+```{python}
+# Filter out stop words
+content_words = word_freq[~word_freq['word'].isin(stopwords_set)].copy()
+
+print(f"Words before removing stop words: {len(word_freq):,}")
+print(f"Words after removing stop words: {len(content_words):,}")
+print(f"\nTop 30 content words:")
+print(content_words.head(30))
+```
+
+Now we see more **content-bearing words**: government, states, congress, country, people, etc.
+
+### Visualizing Content Words
+
+```{python}
+# Create word cloud from content words
+wordcloud_dict = dict(zip(content_words['word'].head(100), 
+                          content_words['count'].head(100)))
+
+wordcloud = WordCloud(width=800, height=400, 
+                      background_color='white',
+                      colormap='viridis').generate_from_frequencies(wordcloud_dict)
+
+plt.figure(figsize=(14, 7))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.title('Most Frequent Content Words in State of the Union Addresses', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-tip}
+## 💡 Preprocessing is a Choice
+
+Whether to remove stop words depends on your research question:
+
+- **Topic modeling**: Usually remove
+- **Sentiment analysis**: Keep (negations matter!)
+- **Stylometry**: Keep (they reveal style!)
+- **Document classification**: Test both
+:::
+
+---
+
+## Introduction to Stylometry
+
+### What is Stylometry?
+
+**Stylometry** is the statistical analysis of writing style. It's used to:
+
+- **Attribute authorship**: Who wrote this anonymous text?
+- **Detect plagiarism**: Did someone copy another's style?
+- **Study literary history**: How did an author's style evolve?
+- **Forensics**: Analyze threatening letters or disputed documents
+
+### The Surprising Power of Function Words
+
+You might think content words (nouns, verbs) reveal writing style. But actually, **function words** (the stop words we just removed!) are more revealing because:
+
+1. **Unconscious use**: Authors don't think about them
+2. **High frequency**: Provide strong statistical signal  
+3. **Stable patterns**: Less affected by topic
+4. **Individual variation**: People use them differently
+
+### A Simple Example
+
+Different presidents might discuss the same topics but use different grammatical structures:
+
+- "**We** must ensure..." vs "**I** believe we must..."
+- "This **is** important" vs "This **has been** important"
+- "**The** people" vs "**Our** people"
+
+These tiny differences add up to distinctive "stylistic fingerprints."
+
+### Analyzing Presidential Style
+
+Let's look at how often different presidents use personal pronouns:
+
+```{python}
+# Define personal pronouns
+personal_pronouns = ['i', 'me', 'my', 'we', 'us', 'our', 'you', 'your']
+
+# Filter for pronouns only
+pronoun_df = tokens_df[tokens_df['word'].isin(personal_pronouns)].copy()
+
+# Count by president
+pronoun_by_president = (pronoun_df.groupby(['president', 'word'])
+                        .size()
+                        .reset_index(name='count'))
+
+# Calculate total words per president for normalization
+words_per_president = tokens_df.groupby('president').size()
+
+# Normalize (calculate rate per 1000 words)
+pronoun_by_president = pronoun_by_president.merge(
+    words_per_president.reset_index(name='total_words'),
+    on='president'
+)
+pronoun_by_president['rate_per_1000'] = (
+    (pronoun_by_president['count'] / pronoun_by_president['total_words']) * 1000
+)
+
+# Show some examples
+print("Sample of pronoun usage rates (per 1000 words):")
+print(pronoun_by_president[pronoun_by_president['president'].isin(
+    ['Donald J. Trump', 'Barack Obama', 'George W. Bush']
+)].head(15))
+```
+
+### Visualizing Style Differences
+
+Let's compare how different presidents use "I" vs "we":
+
+```{python}
+# Focus on 'I' and 'we'
+i_we_df = pronoun_by_president[pronoun_by_president['word'].isin(['i', 'we'])].copy()
+
+# Pivot for easier plotting
+i_we_pivot = i_we_df.pivot(index='president', columns='word', values='rate_per_1000').fillna(0)
+
+# Get presidents with most speeches for clearer visualization
+top_presidents = (tokens_df['president']
+                  .value_counts()
+                  .head(10)
+                  .index)
+
+i_we_plot = i_we_pivot.loc[i_we_pivot.index.isin(top_presidents)]
+
+# Create scatter plot
+plt.figure(figsize=(10, 8))
+plt.scatter(i_we_plot['i'], i_we_plot['we'], s=100, alpha=0.6)
+
+# Label points
+for idx, row in i_we_plot.iterrows():
+    # Shorten long names
+    name = idx.split()[-1]  # Just last name
+    plt.annotate(name, (row['i'], row['we']), 
+                xytext=(5, 5), textcoords='offset points', fontsize=9)
+
+plt.xlabel('Rate of "I" (per 1000 words)', fontsize=12)
+plt.ylabel('Rate of "we" (per 1000 words)', fontsize=12)
+plt.title('Presidential Pronoun Usage: "I" vs "We"', fontsize=14, fontweight='bold')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-note}
+## 📌 What This Tells Us
+
+Presidents who use "I" more often might be:
+
+- Speaking in a more personal style
+- Taking individual responsibility
+- Modern era (contemporary style)
+
+Presidents who use "we" more might be:
+
+- Emphasizing collective action
+- Speaking for the nation
+- Earlier era (formal style)
+
+These patterns can distinguish authors even when topics overlap!
+:::
+
+### The Role of PCA (Principal Component Analysis)
+
+In a full stylometric analysis, we would:
+
+1. Count many function words (not just pronouns)
+2. Have dozens or hundreds of features
+3. Need to reduce complexity to visualize patterns
+
+**PCA** (Principal Component Analysis) helps by:
+
+- Finding the main "directions" of variation
+- Reducing many features to 2-3 dimensions
+- Allowing us to plot and compare texts
+
+**What PCA gives us (practically):**
+
+- A 2D plot where similar authors cluster together
+- Ability to spot outliers or disputed authorship
+- Quantified measure of stylistic distance
+
+We won't dive into the mathematics here, but know that PCA is a standard tool for reducing complex data to interpretable patterns.
+
+---
+
+## Summary and Key Takeaways
+
+### What We Learned
+
+Today we covered the fundamental workflow of computational text analysis:
+
+1. **Load text data** → Working with structured formats (CSV, DataFrame)
+2. **Tokenize** → Split text into words (or other units)
+3. **Count frequencies** → Transform text into numbers
+4. **Explore patterns** → Zipf's Law, frequency distributions
+5. **Preprocess** → Remove stop words (when appropriate)
+6. **Analyze style** → Use function words for stylometry
+
+### Key Concepts
+
+**Tokenization**
+: Splitting text into units (words, characters, sentences)
+
+**Bag of Words**
+: Treating text as unordered collection of words
+
+**Zipf's Law**
+: Word frequency follows power law distribution (few common, many rare)
+
+**Stop Words**
+: High-frequency grammatical words with little content
+
+**Stylometry**
+: Statistical analysis of writing style using function words
+
+**Preprocessing**
+: Transforming raw text for analysis (lowercase, remove punctuation, etc.)
+
+### Tools in Your Toolkit
+
+| Task | Python Tool |
+|------|-------------|
+| Load data | `pandas.read_csv()` |
+| Tokenize | `str.split()` or spaCy |
+| Count frequencies | `Counter()` or `value_counts()` |
+| Remove stop words | spaCy stop word list |
+| Visualize | matplotlib, seaborn, wordcloud |
+
+### Next Steps
+
+In future labs, we'll explore:
+
+- More sophisticated tokenization (handling punctuation, contractions)
+- N-grams (sequences of words)
+- TF-IDF weighting (smarter than raw counts)
+
+---
+
+## Exercises
+
+### Exercise 1: Basic Frequency Analysis
+
+Pick any president from the dataset and:
+
+1. Extract all their speeches
+2. Tokenize and count word frequencies
+3. Create a bar plot of their top 20 words
+4. Create a word cloud
+
+### Exercise 2: Stop Word Impact
+
+Compare word frequencies with and without stop words:
+
+1. Calculate top 50 words with stop words
+2. Calculate top 50 words without stop words
+3. How many overlap? What changes?
+
+### Exercise 3: Pronoun Style
+
+Choose three presidents and compare their use of:
+
+- First person singular ("I", "me", "my")
+- First person plural ("we", "us", "our")
+
+Create a visualization showing the differences.
+
+### Exercise 4: Historical Change (Advanced)
+
+Compare speeches before and after 1950:
+
+1. Split the dataset into two time periods
+2. Calculate word frequencies for each period
+3. Identify words that became more/less common
+4. Create a Zipf's Law plot for each period
+
+---
+
+## References and Further Reading
+
+### Academic Papers
+- Piantadosi, S. T. (2014). Zipf’s word frequency law in natural language: A critical review and future directions. Psychonomic Bulletin & Review, 21(5), 1112–1130. [https://doi.org/10.3758/s13423-014-0585-6](https://doi.org/10.3758/s13423-014-0585-6)
+- Jurafsky, D., & Martin, J. H. (2023). *Speech and Language Processing* (3rd ed., draft) [https://web.stanford.edu/~jurafsky/slp3/](https://web.stanford.edu/~jurafsky/slp3/)
+
+### Tutorials and Books
+- Silge, J., & Robinson, D. (2017). *Text Mining with R* (applicable
+  concepts) [https://www.tidytextmining.com/](https://www.tidytextmining.com/)
+- Bird, S., Klein, E., & Loper, E. (2009). *Natural Language
+  Processing with Python*. [https://www.nltk.org/book/](https://www.nltk.org/book/) (a bit dated,
+  but good)
+
+### Documentation
+- [pandas documentation](https://pandas.pydata.org/)
+- [spaCy documentation](https://spacy.io/)
+- [seaborn documentation](https://seaborn.pydata.org/)
+
+---
+
+**End of Lab 01**
