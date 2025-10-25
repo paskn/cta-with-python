@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lab 01: Words as data points I – Computational Text Analysis with Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-960d9d362f81d399278ec3e29b622b37.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Computational Text Analysis with Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./basic-python.html"> 
+<span class="menu-text">Python Basics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">1</span> Learning Objectives</a></li>
+  <li><a href="#introduction-why-text-as-data" id="toc-introduction-why-text-as-data" class="nav-link" data-scroll-target="#introduction-why-text-as-data"><span class="header-section-number">2</span> Introduction: Why Text as Data?</a>
+  <ul>
+  <li><a href="#our-dataset-state-of-the-union-addresses" id="toc-our-dataset-state-of-the-union-addresses" class="nav-link" data-scroll-target="#our-dataset-state-of-the-union-addresses"><span class="header-section-number">2.1</span> Our Dataset: State of the Union Addresses</a></li>
+  </ul></li>
+  <li><a href="#setup-loading-packages" id="toc-setup-loading-packages" class="nav-link" data-scroll-target="#setup-loading-packages"><span class="header-section-number">3</span> Setup: Loading Packages</a></li>
+  <li><a href="#loading-and-exploring-the-data" id="toc-loading-and-exploring-the-data" class="nav-link" data-scroll-target="#loading-and-exploring-the-data"><span class="header-section-number">4</span> Loading and Exploring the Data</a>
+  <ul>
+  <li><a href="#understanding-the-data-structure" id="toc-understanding-the-data-structure" class="nav-link" data-scroll-target="#understanding-the-data-structure"><span class="header-section-number">4.1</span> Understanding the Data Structure</a></li>
+  </ul></li>
+  <li><a href="#from-text-to-tokens---the-bag-of-words-model" id="toc-from-text-to-tokens---the-bag-of-words-model" class="nav-link" data-scroll-target="#from-text-to-tokens---the-bag-of-words-model"><span class="header-section-number">5</span> From Text to Tokens - The Bag of Words Model</a>
+  <ul>
+  <li><a href="#the-challenge-text-is-unstructured" id="toc-the-challenge-text-is-unstructured" class="nav-link" data-scroll-target="#the-challenge-text-is-unstructured"><span class="header-section-number">5.1</span> The Challenge: Text is Unstructured</a></li>
+  <li><a href="#the-solution-tokenization" id="toc-the-solution-tokenization" class="nav-link" data-scroll-target="#the-solution-tokenization"><span class="header-section-number">5.2</span> The Solution: Tokenization</a></li>
+  <li><a href="#tokenizing-our-speeches" id="toc-tokenizing-our-speeches" class="nav-link" data-scroll-target="#tokenizing-our-speeches"><span class="header-section-number">5.3</span> Tokenizing Our Speeches</a></li>
+  <li><a href="#the-bag-of-words-model" id="toc-the-bag-of-words-model" class="nav-link" data-scroll-target="#the-bag-of-words-model"><span class="header-section-number">5.4</span> The Bag of Words Model</a></li>
+  <li><a href="#two-data-formats-long-vs-wide" id="toc-two-data-formats-long-vs-wide" class="nav-link" data-scroll-target="#two-data-formats-long-vs-wide"><span class="header-section-number">5.5</span> Two Data Formats: Long vs Wide</a></li>
+  </ul></li>
+  <li><a href="#tokenizing-all-speeches" id="toc-tokenizing-all-speeches" class="nav-link" data-scroll-target="#tokenizing-all-speeches"><span class="header-section-number">6</span> Tokenizing All Speeches</a>
+  <ul>
+  <li><a href="#how-many-unique-words" id="toc-how-many-unique-words" class="nav-link" data-scroll-target="#how-many-unique-words"><span class="header-section-number">6.1</span> How many unique words?</a></li>
+  </ul></li>
+  <li><a href="#word-frequencies" id="toc-word-frequencies" class="nav-link" data-scroll-target="#word-frequencies"><span class="header-section-number">7</span> Word Frequencies</a>
+  <ul>
+  <li><a href="#visualizing-frequency" id="toc-visualizing-frequency" class="nav-link" data-scroll-target="#visualizing-frequency"><span class="header-section-number">7.1</span> Visualizing Frequency</a></li>
+  <li><a href="#what-do-we-notice" id="toc-what-do-we-notice" class="nav-link" data-scroll-target="#what-do-we-notice"><span class="header-section-number">7.2</span> What do we notice?</a></li>
+  </ul></li>
+  <li><a href="#zipfs-law---a-fundamental-pattern" id="toc-zipfs-law---a-fundamental-pattern" class="nav-link" data-scroll-target="#zipfs-law---a-fundamental-pattern"><span class="header-section-number">8</span> Zipf’s Law - A Fundamental Pattern</a>
+  <ul>
+  <li><a href="#what-is-zipfs-law" id="toc-what-is-zipfs-law" class="nav-link" data-scroll-target="#what-is-zipfs-law"><span class="header-section-number">8.1</span> What is Zipf’s Law?</a></li>
+  <li><a href="#why-does-this-matter" id="toc-why-does-this-matter" class="nav-link" data-scroll-target="#why-does-this-matter"><span class="header-section-number">8.2</span> Why Does This Matter?</a></li>
+  <li><a href="#visualizing-zipfs-law" id="toc-visualizing-zipfs-law" class="nav-link" data-scroll-target="#visualizing-zipfs-law"><span class="header-section-number">8.3</span> Visualizing Zipf’s Law</a></li>
+  <li><a href="#the-long-tail" id="toc-the-long-tail" class="nav-link" data-scroll-target="#the-long-tail"><span class="header-section-number">8.4</span> The Long Tail</a></li>
+  </ul></li>
+  <li><a href="#stop-words-and-preprocessing" id="toc-stop-words-and-preprocessing" class="nav-link" data-scroll-target="#stop-words-and-preprocessing"><span class="header-section-number">9</span> Stop Words and Preprocessing</a>
+  <ul>
+  <li><a href="#what-are-stop-words" id="toc-what-are-stop-words" class="nav-link" data-scroll-target="#what-are-stop-words"><span class="header-section-number">9.1</span> What are Stop Words?</a></li>
+  <li><a href="#why-remove-stop-words" id="toc-why-remove-stop-words" class="nav-link" data-scroll-target="#why-remove-stop-words"><span class="header-section-number">9.2</span> Why Remove Stop Words?</a></li>
+  <li><a href="#stop-words-in-our-data" id="toc-stop-words-in-our-data" class="nav-link" data-scroll-target="#stop-words-in-our-data"><span class="header-section-number">9.3</span> Stop Words in Our Data</a></li>
+  <li><a href="#comparing-with-our-most-frequent-words" id="toc-comparing-with-our-most-frequent-words" class="nav-link" data-scroll-target="#comparing-with-our-most-frequent-words"><span class="header-section-number">9.4</span> Comparing with Our Most Frequent Words</a></li>
+  <li><a href="#removing-stop-words" id="toc-removing-stop-words" class="nav-link" data-scroll-target="#removing-stop-words"><span class="header-section-number">9.5</span> Removing Stop Words</a></li>
+  <li><a href="#visualizing-content-words" id="toc-visualizing-content-words" class="nav-link" data-scroll-target="#visualizing-content-words"><span class="header-section-number">9.6</span> Visualizing Content Words</a></li>
+  </ul></li>
+  <li><a href="#introduction-to-stylometry" id="toc-introduction-to-stylometry" class="nav-link" data-scroll-target="#introduction-to-stylometry"><span class="header-section-number">10</span> Introduction to Stylometry</a>
+  <ul>
+  <li><a href="#what-is-stylometry" id="toc-what-is-stylometry" class="nav-link" data-scroll-target="#what-is-stylometry"><span class="header-section-number">10.1</span> What is Stylometry?</a></li>
+  <li><a href="#the-surprising-power-of-function-words" id="toc-the-surprising-power-of-function-words" class="nav-link" data-scroll-target="#the-surprising-power-of-function-words"><span class="header-section-number">10.2</span> The Surprising Power of Function Words</a></li>
+  <li><a href="#a-simple-example" id="toc-a-simple-example" class="nav-link" data-scroll-target="#a-simple-example"><span class="header-section-number">10.3</span> A Simple Example</a></li>
+  <li><a href="#analyzing-presidential-style" id="toc-analyzing-presidential-style" class="nav-link" data-scroll-target="#analyzing-presidential-style"><span class="header-section-number">10.4</span> Analyzing Presidential Style</a></li>
+  <li><a href="#visualizing-style-differences" id="toc-visualizing-style-differences" class="nav-link" data-scroll-target="#visualizing-style-differences"><span class="header-section-number">10.5</span> Visualizing Style Differences</a></li>
+  <li><a href="#the-role-of-pca-principal-component-analysis" id="toc-the-role-of-pca-principal-component-analysis" class="nav-link" data-scroll-target="#the-role-of-pca-principal-component-analysis"><span class="header-section-number">10.6</span> The Role of PCA (Principal Component Analysis)</a></li>
+  </ul></li>
+  <li><a href="#summary-and-key-takeaways" id="toc-summary-and-key-takeaways" class="nav-link" data-scroll-target="#summary-and-key-takeaways"><span class="header-section-number">11</span> Summary and Key Takeaways</a>
+  <ul>
+  <li><a href="#what-we-learned" id="toc-what-we-learned" class="nav-link" data-scroll-target="#what-we-learned"><span class="header-section-number">11.1</span> What We Learned</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">11.2</span> Key Concepts</a></li>
+  <li><a href="#tools-in-your-toolkit" id="toc-tools-in-your-toolkit" class="nav-link" data-scroll-target="#tools-in-your-toolkit"><span class="header-section-number">11.3</span> Tools in Your Toolkit</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps"><span class="header-section-number">11.4</span> Next Steps</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">12</span> Exercises</a>
+  <ul>
+  <li><a href="#exercise-1-basic-frequency-analysis" id="toc-exercise-1-basic-frequency-analysis" class="nav-link" data-scroll-target="#exercise-1-basic-frequency-analysis"><span class="header-section-number">12.1</span> Exercise 1: Basic Frequency Analysis</a></li>
+  <li><a href="#exercise-2-stop-word-impact" id="toc-exercise-2-stop-word-impact" class="nav-link" data-scroll-target="#exercise-2-stop-word-impact"><span class="header-section-number">12.2</span> Exercise 2: Stop Word Impact</a></li>
+  <li><a href="#exercise-3-pronoun-style" id="toc-exercise-3-pronoun-style" class="nav-link" data-scroll-target="#exercise-3-pronoun-style"><span class="header-section-number">12.3</span> Exercise 3: Pronoun Style</a></li>
+  <li><a href="#exercise-4-historical-change-advanced" id="toc-exercise-4-historical-change-advanced" class="nav-link" data-scroll-target="#exercise-4-historical-change-advanced"><span class="header-section-number">12.4</span> Exercise 4: Historical Change (Advanced)</a></li>
+  </ul></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">13</span> References and Further Reading</a>
+  <ul>
+  <li><a href="#academic-papers" id="toc-academic-papers" class="nav-link" data-scroll-target="#academic-papers"><span class="header-section-number">13.1</span> Academic Papers</a></li>
+  <li><a href="#tutorials-and-books" id="toc-tutorials-and-books" class="nav-link" data-scroll-target="#tutorials-and-books"><span class="header-section-number">13.2</span> Tutorials and Books</a></li>
+  <li><a href="#documentation" id="toc-documentation" class="nav-link" data-scroll-target="#documentation"><span class="header-section-number">13.3</span> Documentation</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 01: Words as data points I</h1>
+<p class="subtitle lead">Zipf’s law, stop words and stylometry</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2025-10-25 11:59:06</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">1</span> Learning Objectives</h2>
+<p>By the end of this lab, you will understand:</p>
+<ul>
+<li>How to transform unstructured text into structured data</li>
+<li>What tokenization is and why it matters</li>
+<li>How word frequencies reveal patterns in text</li>
+<li>Zipf’s Law and its implications for text analysis</li>
+<li>What stop words are and when to remove them</li>
+<li>The basics of text preprocessing</li>
+<li>What stylometry is and how function words reveal authorship</li>
+<li>How to use Python and pandas for basic text analysis</li>
+</ul>
+<hr>
+</section>
+<section id="introduction-why-text-as-data" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="introduction-why-text-as-data"><span class="header-section-number">2</span> Introduction: Why Text as Data?</h2>
+<p>Text is everywhere: social media posts, news articles, scientific papers, government documents, customer reviews. But text in its raw form is <strong>unstructured</strong> - it’s just sequences of characters. To analyze text computationally, we need to transform it into <strong>structured data</strong> that computers can process mathematically.</p>
+<p>Think of it this way: if you wanted to compare two novels, you could read both and form an impression. But what if you had 1,000 novels? Or 100,000 tweets? This is where computational text analysis becomes essential.</p>
+<section id="our-dataset-state-of-the-union-addresses" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="our-dataset-state-of-the-union-addresses"><span class="header-section-number">2.1</span> Our Dataset: State of the Union Addresses</h3>
+<p>Today we’ll work with a collection of State of the Union addresses - speeches given by US presidents from the 18th century to 2018. These speeches are:</p>
+<ul>
+<li><strong>Historical</strong>: Spanning over 200 years</li>
+<li><strong>Political</strong>: Reflecting different eras and priorities</li>
+<li><strong>Comparable</strong>: Same genre, same occasion, different authors</li>
+</ul>
+<p>This makes them perfect for learning text analysis techniques.</p>
+<p><strong>Data source</strong>: <a href="https://github.com/BrianWeinstein/state-of-the-union">Brian Weinstein’s State of the Union corpus</a></p>
+<hr>
+</section>
+</section>
+<section id="setup-loading-packages" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="setup-loading-packages"><span class="header-section-number">3</span> Setup: Loading Packages</h2>
+<p>First, let’s load the Python packages we’ll need:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># you will need to run it once after installing spaCy</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">!python</span> <span class="at">-m</span> spacy download en_core_web_sm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="61887a1b" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Text processing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> spacy</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># For word clouds</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> wordcloud <span class="im">import</span> WordCloud</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Set visualization style</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> (<span class="dv">12</span>, <span class="dv">6</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✓ Packages loaded successfully"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✓ Packages loaded successfully</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>📌 About these packages
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>pandas</strong>: Works with tabular data (like spreadsheets)</li>
+<li><strong>spaCy</strong>: Processes natural language text</li>
+<li><strong>matplotlib/seaborn</strong>: Create visualizations</li>
+<li><strong>wordcloud</strong>: Generate word cloud visualizations</li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+<section id="loading-and-exploring-the-data" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="loading-and-exploring-the-data"><span class="header-section-number">4</span> Loading and Exploring the Data</h2>
+<p>Let’s load our dataset:</p>
+<div id="c0192f4b" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>speeches <span class="op">=</span> pd.read_csv(<span class="st">"data/transcripts.csv"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Display first few rows</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Dataset shape:"</span>, speeches.shape)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">First few rows:"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>speeches.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dataset shape: (244, 5)
+
+First few rows:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th">president</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">url</th>
+<th data-quarto-table-cell-role="th">transcript</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>2018-01-30</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>https://www.cnn.com/2018/01/30/politics/2018-s...</td>
+<td>\nMr. Speaker, Mr. Vice President, Members of ...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2017-02-28</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you very much. Mr. Speaker, Mr. Vice Pre...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2016-01-12</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you. Mr. Speaker, Mr. Vice President, Me...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>2015-01-20</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>2014-01-28</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="understanding-the-data-structure" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="understanding-the-data-structure"><span class="header-section-number">4.1</span> Understanding the Data Structure</h3>
+<p>Our data is in <strong>tabular format</strong> - like a spreadsheet with rows and columns:</p>
+<div id="8470b483" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check column names and types</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Columns:"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(speeches.dtypes)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Basic statistics</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Number of speeches:"</span>, <span class="bu">len</span>(speeches))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Number of presidents:"</span>, speeches[<span class="st">'president'</span>].nunique())</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Date range:"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"  Earliest:"</span>, speeches[<span class="st">'date'</span>].<span class="bu">min</span>())</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"  Latest:"</span>, speeches[<span class="st">'date'</span>].<span class="bu">max</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Columns:
+date          object
+president     object
+title         object
+url           object
+transcript    object
+dtype: object
+
+Number of speeches: 244
+Number of presidents: 42
+
+Date range:
+  Earliest: 1790-01-08
+  Latest: 2018-01-30</code></pre>
+</div>
+</div>
+<p>Each row represents <strong>one speech</strong>. The columns contain:</p>
+<ul>
+<li><strong>date</strong>: When the speech was given</li>
+<li><strong>president</strong>: Who gave it</li>
+<li><strong>title</strong>: The speech’s official title</li>
+<li><strong>url</strong>: Where the transcript came from</li>
+<li><strong>transcript</strong>: The actual text of the speech</li>
+</ul>
+<p>Let’s look at a short excerpt:</p>
+<div id="fe241d9c" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display a snippet of one speech</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sample_text <span class="op">=</span> speeches.loc[<span class="dv">0</span>, <span class="st">'transcript'</span>][:<span class="dv">500</span>]  <span class="co"># First 500 characters</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sample from first speech:"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sample_text)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"..."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sample from first speech:
+
+Mr. Speaker, Mr. Vice President, Members of Congress, the First Lady of the United States, and my fellow Americans:
+Less than 1 year has passed since I first stood at this podium, in this majestic chamber, to speak on behalf of the American People -- and to address their concerns, their hopes, and their dreams.  That night, our new Administration had already taken swift action.  A new tide of optimism was already sweeping across our land.
+Each day since, we have gone forward with a clear vision
+...</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>💡 Why This Structure?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Text data commonly comes with <strong>metadata</strong> (data about data):</p>
+<ul>
+<li>Author, date, source, title, etc.</li>
+<li>This metadata helps us compare and analyze texts</li>
+<li>We keep text and metadata together in a table</li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="from-text-to-tokens---the-bag-of-words-model" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="from-text-to-tokens---the-bag-of-words-model"><span class="header-section-number">5</span> From Text to Tokens - The Bag of Words Model</h2>
+<section id="the-challenge-text-is-unstructured" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="the-challenge-text-is-unstructured"><span class="header-section-number">5.1</span> The Challenge: Text is Unstructured</h3>
+<p>Right now, our <code>transcript</code> column contains long strings of text. How do we measure or compare them? We can’t easily do math on text!</p>
+</section>
+<section id="the-solution-tokenization" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="the-solution-tokenization"><span class="header-section-number">5.2</span> The Solution: Tokenization</h3>
+<p><strong>Tokenization</strong> is the process of splitting text into smaller units called <strong>tokens</strong>. Usually, tokens are words, but they could also be:</p>
+<ul>
+<li>Characters (letters)</li>
+<li>Sentences</li>
+<li>N-grams (sequences of N words)</li>
+</ul>
+<p>Let’s see this in action:</p>
+<div id="42579c25" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple example: split text into words</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>example <span class="op">=</span> <span class="st">"Python is great for text analysis"</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>words <span class="op">=</span> example.split()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Original text:"</span>, example)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Tokens (words):"</span>, words)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Number of tokens:"</span>, <span class="bu">len</span>(words))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Original text: Python is great for text analysis
+Tokens (words): ['Python', 'is', 'great', 'for', 'text', 'analysis']
+Number of tokens: 6</code></pre>
+</div>
+</div>
+</section>
+<section id="tokenizing-our-speeches" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="tokenizing-our-speeches"><span class="header-section-number">5.3</span> Tokenizing Our Speeches</h3>
+<p>Now let’s tokenize one full speech:</p>
+<div id="35614060" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get one speech</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>speech_text <span class="op">=</span> speeches.loc[<span class="dv">0</span>, <span class="st">'transcript'</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple tokenization (just splitting on spaces)</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>simple_tokens <span class="op">=</span> speech_text.split()</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Speech length: </span><span class="sc">{</span><span class="bu">len</span>(speech_text)<span class="sc">}</span><span class="ss"> characters"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Number of tokens: </span><span class="sc">{</span><span class="bu">len</span>(simple_tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">First 20 tokens:"</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(simple_tokens[:<span class="dv">20</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Speech length: 30354 characters
+Number of tokens: 5190
+
+First 20 tokens:
+['Mr.', 'Speaker,', 'Mr.', 'Vice', 'President,', 'Members', 'of', 'Congress,', 'the', 'First', 'Lady', 'of', 'the', 'United', 'States,', 'and', 'my', 'fellow', 'Americans:', 'Less']</code></pre>
+</div>
+</div>
+</section>
+<section id="the-bag-of-words-model" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="the-bag-of-words-model"><span class="header-section-number">5.4</span> The Bag of Words Model</h3>
+<p>Once we have tokens, we can treat text as a “<strong>bag of words</strong>” - we:</p>
+<ol type="1">
+<li><strong>Ignore word order</strong> (“cat dog” = “dog cat”)</li>
+<li><strong>Count word frequencies</strong></li>
+<li><strong>Represent text as numbers</strong></li>
+</ol>
+<p>This might seem like we’re throwing away information (word order matters!), but this simple model is surprisingly powerful for many tasks.</p>
+<p>Let’s create a bag of words for one speech:</p>
+<div id="d87db820" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count word frequencies</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>word_counts <span class="op">=</span> Counter(simple_tokens)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Show most common words</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 15 most frequent words:"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word, count <span class="kw">in</span> word_counts.most_common(<span class="dv">15</span>):</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>word<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>count<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 15 most frequent words:
+  the: 215
+  and: 184
+  to: 175
+  of: 121
+  our: 95
+  we: 88
+  a: 79
+  in: 72
+  is: 61
+  are: 48
+  that: 45
+  --: 44
+  have: 40
+  for: 34
+  will: 34</code></pre>
+</div>
+</div>
+</section>
+<section id="two-data-formats-long-vs-wide" class="level3" data-number="5.5">
+<h3 data-number="5.5" class="anchored" data-anchor-id="two-data-formats-long-vs-wide"><span class="header-section-number">5.5</span> Two Data Formats: Long vs Wide</h3>
+<p>We can represent tokenized text in two ways:</p>
+<p><strong>Long format</strong>: One row per word occurrence</p>
+<pre><code>president    word
+Trump        the
+Trump        economy
+Trump        is
+Trump        strong</code></pre>
+<p><strong>Wide format</strong>: One row per document, one column per unique word</p>
+<pre><code>president    the    economy    is    strong
+Trump        150    12         89    5</code></pre>
+<p>For now, we’ll work with long format because it’s easier to understand and manipulate.</p>
+<hr>
+</section>
+</section>
+<section id="tokenizing-all-speeches" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="tokenizing-all-speeches"><span class="header-section-number">6</span> Tokenizing All Speeches</h2>
+<p>Let’s tokenize all speeches and create a long-format dataset:</p>
+<div id="b941d6c3" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize empty list to store results</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>all_tokens <span class="op">=</span> []</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Process each speech</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, row <span class="kw">in</span> speeches.iterrows():</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    president <span class="op">=</span> row[<span class="st">'president'</span>]</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> row[<span class="st">'transcript'</span>]</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Simple tokenization</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> text.lower().split()  <span class="co"># Convert to lowercase</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add each token to our list</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> token <span class="kw">in</span> tokens:</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>        all_tokens.append({</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">'president'</span>: president,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">'word'</span>: token</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to DataFrame</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>tokens_df <span class="op">=</span> pd.DataFrame(all_tokens)</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total number of tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_df)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">First few rows:"</span>)</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>tokens_df.head(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total number of tokens: 3,947,946
+
+First few rows:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">president</th>
+<th data-quarto-table-cell-role="th">word</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Donald J. Trump</td>
+<td>mr.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Donald J. Trump</td>
+<td>speaker,</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Donald J. Trump</td>
+<td>mr.</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Donald J. Trump</td>
+<td>vice</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Donald J. Trump</td>
+<td>president,</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Donald J. Trump</td>
+<td>members</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>Donald J. Trump</td>
+<td>of</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>Donald J. Trump</td>
+<td>congress,</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>Donald J. Trump</td>
+<td>the</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>Donald J. Trump</td>
+<td>first</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="how-many-unique-words" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="how-many-unique-words"><span class="header-section-number">6.1</span> How many unique words?</h3>
+<div id="dc2db946" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>unique_words <span class="op">=</span> tokens_df[<span class="st">'word'</span>].nunique()</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Number of unique words: </span><span class="sc">{</span>unique_words<span class="sc">:,}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of unique words: 68,356</code></pre>
+</div>
+</div>
+<p>That’s a lot of unique words! But are they all useful?</p>
+<hr>
+</section>
+</section>
+<section id="word-frequencies" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="word-frequencies"><span class="header-section-number">7</span> Word Frequencies</h2>
+<p>Now let’s count how often each word appears:</p>
+<div id="c4597f1a" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count word frequencies</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>word_freq <span class="op">=</span> tokens_df[<span class="st">'word'</span>].value_counts().reset_index()</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>word_freq.columns <span class="op">=</span> [<span class="st">'word'</span>, <span class="st">'count'</span>]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 20 most frequent words:"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(word_freq.head(<span class="dv">20</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 20 most frequent words:
+     word   count
+0     the  326862
+1      of  212531
+2      to  135329
+3     and  133944
+4      in   85772
+5       a   61992
+6    that   47130
+7     for   43079
+8      be   40521
+9     our   38759
+10     is   36752
+11     by   32429
+12     it   29271
+13     we   27276
+14   have   26784
+15   this   26594
+16     as   26510
+17   with   26400
+18  which   26237
+19   will   21913</code></pre>
+</div>
+</div>
+<section id="visualizing-frequency" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="visualizing-frequency"><span class="header-section-number">7.1</span> Visualizing Frequency</h3>
+<div id="4557387e" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot top 15 words</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>top_15 <span class="op">=</span> word_freq.head(<span class="dv">15</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>top_15, y<span class="op">=</span><span class="st">'word'</span>, x<span class="op">=</span><span class="st">'count'</span>, palette<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Top 15 Most Frequent Words in State of the Union Addresses'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Frequency (count)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Word'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_1012969/2171022789.py:5: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
+
+  sns.barplot(data=top_15, y='word', x='count', palette='viridis')</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lab_01_files/figure-html/cell-12-output-2.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="what-do-we-notice" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="what-do-we-notice"><span class="header-section-number">7.2</span> What do we notice?</h3>
+<p>The most frequent words are: - Articles: “the”, “a”, “an” - Prepositions: “of”, “to”, “in”, “for” - Conjunctions: “and”, “but”, “or”</p>
+<p>These are <strong>grammatical words</strong> that appear in almost any English text. They don’t tell us much about the <em>content</em> of the speeches!</p>
+<p>This observation leads us to an important concept…</p>
+<hr>
+</section>
+</section>
+<section id="zipfs-law---a-fundamental-pattern" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="zipfs-law---a-fundamental-pattern"><span class="header-section-number">8</span> Zipf’s Law - A Fundamental Pattern</h2>
+<section id="what-is-zipfs-law" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="what-is-zipfs-law"><span class="header-section-number">8.1</span> What is Zipf’s Law?</h3>
+<p>If you count word frequencies in <em>any</em> large collection of text and rank words by frequency, you’ll observe something remarkable:</p>
+<p><strong>The most common word appears roughly twice as often as the second most common word, three times as often as the third most common, and so on.</strong></p>
+<p>This is called <strong>Zipf’s Law</strong> (named after linguist George Kingsley Zipf).</p>
+</section>
+<section id="why-does-this-matter" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="why-does-this-matter"><span class="header-section-number">8.2</span> Why Does This Matter?</h3>
+<p>Zipf’s Law tells us that:</p>
+<ol type="1">
+<li><strong>A few words are very common</strong> (“the”, “of”, “and”)</li>
+<li><strong>Most words are very rare</strong> (appear only once or twice)</li>
+<li><strong>This pattern is universal</strong> - it appears in all languages and genres</li>
+</ol>
+<p>This has practical implications: - Most words provide little statistical power (they’re too rare) - A small vocabulary covers most of any text - We need strategies to deal with this imbalance</p>
+</section>
+<section id="visualizing-zipfs-law" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="visualizing-zipfs-law"><span class="header-section-number">8.3</span> Visualizing Zipf’s Law</h3>
+<p>Let’s see if our data follows Zipf’s Law:</p>
+<div id="4d7ccbad" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add rank to our frequency table</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>word_freq[<span class="st">'rank'</span>] <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(word_freq) <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create log-log plot</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>plt.loglog(word_freq[<span class="st">'rank'</span>], word_freq[<span class="st">'count'</span>], <span class="st">'b.'</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Rank (log scale)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency (log scale)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Zipf's Law in State of the Union Addresses"</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lab_01_files/figure-html/cell-13-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The nearly straight line on a log-log plot confirms Zipf’s Law!</p>
+</section>
+<section id="the-long-tail" class="level3" data-number="8.4">
+<h3 data-number="8.4" class="anchored" data-anchor-id="the-long-tail"><span class="header-section-number">8.4</span> The Long Tail</h3>
+<p>Let’s look at how many words appear only once or twice:</p>
+<div id="aa0997ef" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count words by frequency</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>freq_distribution <span class="op">=</span> word_freq[<span class="st">'count'</span>].value_counts().sort_index()</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Distribution of word frequencies:"</span>)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Words appearing once: </span><span class="sc">{</span>freq_distribution<span class="sc">.</span>get(<span class="dv">1</span>, <span class="dv">0</span>)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Words appearing twice: </span><span class="sc">{</span>freq_distribution<span class="sc">.</span>get(<span class="dv">2</span>, <span class="dv">0</span>)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Words appearing 3-5 times: </span><span class="sc">{</span>freq_distribution<span class="sc">.</span>loc[<span class="dv">3</span>:<span class="dv">5</span>]<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Words appearing 6-10 times: </span><span class="sc">{</span>freq_distribution<span class="sc">.</span>loc[<span class="dv">6</span>:<span class="dv">10</span>]<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Words appearing &gt; 100 times: </span><span class="sc">{</span>(word_freq[<span class="st">'count'</span>] <span class="op">&gt;</span> <span class="dv">100</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Distribution of word frequencies:
+  Words appearing once: 9,835
+  Words appearing twice: 27,310
+  Words appearing 3-5 times: 8,157
+  Words appearing 6-10 times: 7,957
+  Words appearing &gt; 100 times: 3,484</code></pre>
+</div>
+</div>
+<p>This is the “<strong>long tail</strong>” - many rare words, few common words.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>🎯 Key Insight
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Zipf’s Law means that word frequencies are <strong>highly skewed</strong>. This affects how we:</p>
+<ul>
+<li>Build statistical models</li>
+<li>Select features for machine learning</li>
+<li>Preprocess text</li>
+<li>Interpret results</li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="stop-words-and-preprocessing" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="stop-words-and-preprocessing"><span class="header-section-number">9</span> Stop Words and Preprocessing</h2>
+<section id="what-are-stop-words" class="level3" data-number="9.1">
+<h3 data-number="9.1" class="anchored" data-anchor-id="what-are-stop-words"><span class="header-section-number">9.1</span> What are Stop Words?</h3>
+<p><strong>Stop words</strong> are extremely common words that appear frequently in almost any text:</p>
+<ul>
+<li>Articles: the, a, an</li>
+<li>Prepositions: in, on, at, to, from</li>
+<li>Pronouns: I, you, he, she, it</li>
+<li>Conjunctions: and, but, or</li>
+<li>Auxiliary verbs: is, are, was, were</li>
+</ul>
+</section>
+<section id="why-remove-stop-words" class="level3" data-number="9.2">
+<h3 data-number="9.2" class="anchored" data-anchor-id="why-remove-stop-words"><span class="header-section-number">9.2</span> Why Remove Stop Words?</h3>
+<p>There are two main perspectives:</p>
+<p><strong>Reasons to remove stop words:</strong></p>
+<ol type="1">
+<li><strong>Content analysis</strong>: They don’t tell us about the topic</li>
+<li><strong>Computational efficiency</strong>: Fewer words = faster processing</li>
+<li><strong>Signal-to-noise</strong>: They can overwhelm more informative words</li>
+</ol>
+<p><strong>Reasons to keep stop words:</strong></p>
+<ol type="1">
+<li><strong>Stylometry</strong>: They reveal personal writing style</li>
+<li><strong>Syntax</strong>: Needed for parsing sentence structure</li>
+<li><strong>Meaning</strong>: Sometimes they matter (“not good” ≠ “good”)</li>
+</ol>
+</section>
+<section id="stop-words-in-our-data" class="level3" data-number="9.3">
+<h3 data-number="9.3" class="anchored" data-anchor-id="stop-words-in-our-data"><span class="header-section-number">9.3</span> Stop Words in Our Data</h3>
+<p>Let’s see what Python’s spaCy library considers stop words:</p>
+<div id="ec0d33f0" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load English language model (small version)</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If not installed, show installation instructions</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Please install spaCy model:"</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"!python -m spacy download en_core_web_sm"</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># For now, use a simple stopword list</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> spacy.lang.en.stop_words <span class="im">import</span> STOP_WORDS</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    stopwords_set <span class="op">=</span> STOP_WORDS</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    stopwords_set <span class="op">=</span> nlp.Defaults.stop_words</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Number of stop words: </span><span class="sc">{</span><span class="bu">len</span>(stopwords_set)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">First 30 stop words (alphabetically):"</span>)</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">sorted</span>(<span class="bu">list</span>(stopwords_set))[:<span class="dv">30</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of stop words: 326
+
+First 30 stop words (alphabetically):
+["'d", "'ll", "'m", "'re", "'s", "'ve", 'a', 'about', 'above', 'across', 'after', 'afterwards', 'again', 'against', 'all', 'almost', 'alone', 'along', 'already', 'also', 'although', 'always', 'am', 'among', 'amongst', 'amount', 'an', 'and', 'another', 'any']</code></pre>
+</div>
+</div>
+</section>
+<section id="comparing-with-our-most-frequent-words" class="level3" data-number="9.4">
+<h3 data-number="9.4" class="anchored" data-anchor-id="comparing-with-our-most-frequent-words"><span class="header-section-number">9.4</span> Comparing with Our Most Frequent Words</h3>
+<div id="9e5beffe" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which top words are stop words</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>top_30 <span class="op">=</span> word_freq.head(<span class="dv">30</span>).copy()</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>top_30[<span class="st">'is_stopword'</span>] <span class="op">=</span> top_30[<span class="st">'word'</span>].isin(stopwords_set)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 30 words with stop word labels:"</span>)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(top_30[[<span class="st">'word'</span>, <span class="st">'count'</span>, <span class="st">'is_stopword'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 30 words with stop word labels:
+     word   count  is_stopword
+0     the  326862         True
+1      of  212531         True
+2      to  135329         True
+3     and  133944         True
+4      in   85772         True
+5       a   61992         True
+6    that   47130         True
+7     for   43079         True
+8      be   40521         True
+9     our   38759         True
+10     is   36752         True
+11     by   32429         True
+12     it   29271         True
+13     we   27276         True
+14   have   26784         True
+15   this   26594         True
+16     as   26510         True
+17   with   26400         True
+18  which   26237         True
+19   will   21913         True
+20     on   20689         True
+21      i   20687         True
+22    has   19896         True
+23    are   19619         True
+24   been   19135         True
+25    not   18597         True
+26  their   16784         True
+27   from   16055         True
+28     at   14991         True
+29    all   13608         True</code></pre>
+</div>
+</div>
+<p>Notice how most of the top frequent words are stop words!</p>
+</section>
+<section id="removing-stop-words" class="level3" data-number="9.5">
+<h3 data-number="9.5" class="anchored" data-anchor-id="removing-stop-words"><span class="header-section-number">9.5</span> Removing Stop Words</h3>
+<div id="78bea96f" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out stop words</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>content_words <span class="op">=</span> word_freq[<span class="op">~</span>word_freq[<span class="st">'word'</span>].isin(stopwords_set)].copy()</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Words before removing stop words: </span><span class="sc">{</span><span class="bu">len</span>(word_freq)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Words after removing stop words: </span><span class="sc">{</span><span class="bu">len</span>(content_words)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Top 30 content words:"</span>)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(content_words.head(<span class="dv">30</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Words before removing stop words: 68,356
+Words after removing stop words: 68,058
+
+Top 30 content words:
+            word  count  rank
+35    government  11209    36
+38        united  10158    39
+42        states   9524    43
+44      congress   8597    45
+52           new   7120    53
+56         great   6714    57
+59        public   6520    60
+62        people   6229    63
+66          year   5918    67
+69      american   5575    70
+72          time   5162    73
+76      national   4888    77
+81       country   4367    82
+82       present   4331    83
+88       federal   4093    89
+89         state   4073    90
+90         shall   4006    91
+91           war   3987    92
+99          work   3501   100
+100          act   3485   101
+102      foreign   3369   103
+103        years   3319   104
+105        power   3206   106
+106      general   3191   107
+107          law   3171   108
+108        world   3168   109
+112       system   2931   113
+116    necessary   2878   117
+117     increase   2818   118
+118  legislation   2790   119</code></pre>
+</div>
+</div>
+<p>Now we see more <strong>content-bearing words</strong>: government, states, congress, country, people, etc.</p>
+</section>
+<section id="visualizing-content-words" class="level3" data-number="9.6">
+<h3 data-number="9.6" class="anchored" data-anchor-id="visualizing-content-words"><span class="header-section-number">9.6</span> Visualizing Content Words</h3>
+<div id="1fd1092f" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create word cloud from content words</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>wordcloud_dict <span class="op">=</span> <span class="bu">dict</span>(<span class="bu">zip</span>(content_words[<span class="st">'word'</span>].head(<span class="dv">100</span>), </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>                          content_words[<span class="st">'count'</span>].head(<span class="dv">100</span>)))</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>wordcloud <span class="op">=</span> WordCloud(width<span class="op">=</span><span class="dv">800</span>, height<span class="op">=</span><span class="dv">400</span>, </span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>                      background_color<span class="op">=</span><span class="st">'white'</span>,</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>                      colormap<span class="op">=</span><span class="st">'viridis'</span>).generate_from_frequencies(wordcloud_dict)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">7</span>))</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>plt.imshow(wordcloud, interpolation<span class="op">=</span><span class="st">'bilinear'</span>)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>plt.axis(<span class="st">'off'</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Most Frequent Content Words in State of the Union Addresses'</span>, </span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>          fontsize<span class="op">=</span><span class="dv">16</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, pad<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lab_01_files/figure-html/cell-18-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>💡 Preprocessing is a Choice
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Whether to remove stop words depends on your research question:</p>
+<ul>
+<li><strong>Topic modeling</strong>: Usually remove</li>
+<li><strong>Sentiment analysis</strong>: Keep (negations matter!)</li>
+<li><strong>Stylometry</strong>: Keep (they reveal style!)</li>
+<li><strong>Document classification</strong>: Test both</li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="introduction-to-stylometry" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="introduction-to-stylometry"><span class="header-section-number">10</span> Introduction to Stylometry</h2>
+<section id="what-is-stylometry" class="level3" data-number="10.1">
+<h3 data-number="10.1" class="anchored" data-anchor-id="what-is-stylometry"><span class="header-section-number">10.1</span> What is Stylometry?</h3>
+<p><strong>Stylometry</strong> is the statistical analysis of writing style. It’s used to:</p>
+<ul>
+<li><strong>Attribute authorship</strong>: Who wrote this anonymous text?</li>
+<li><strong>Detect plagiarism</strong>: Did someone copy another’s style?</li>
+<li><strong>Study literary history</strong>: How did an author’s style evolve?</li>
+<li><strong>Forensics</strong>: Analyze threatening letters or disputed documents</li>
+</ul>
+</section>
+<section id="the-surprising-power-of-function-words" class="level3" data-number="10.2">
+<h3 data-number="10.2" class="anchored" data-anchor-id="the-surprising-power-of-function-words"><span class="header-section-number">10.2</span> The Surprising Power of Function Words</h3>
+<p>You might think content words (nouns, verbs) reveal writing style. But actually, <strong>function words</strong> (the stop words we just removed!) are more revealing because:</p>
+<ol type="1">
+<li><strong>Unconscious use</strong>: Authors don’t think about them</li>
+<li><strong>High frequency</strong>: Provide strong statistical signal<br>
+</li>
+<li><strong>Stable patterns</strong>: Less affected by topic</li>
+<li><strong>Individual variation</strong>: People use them differently</li>
+</ol>
+</section>
+<section id="a-simple-example" class="level3" data-number="10.3">
+<h3 data-number="10.3" class="anchored" data-anchor-id="a-simple-example"><span class="header-section-number">10.3</span> A Simple Example</h3>
+<p>Different presidents might discuss the same topics but use different grammatical structures:</p>
+<ul>
+<li>“<strong>We</strong> must ensure…” vs “<strong>I</strong> believe we must…”</li>
+<li>“This <strong>is</strong> important” vs “This <strong>has been</strong> important”</li>
+<li>“<strong>The</strong> people” vs “<strong>Our</strong> people”</li>
+</ul>
+<p>These tiny differences add up to distinctive “stylistic fingerprints.”</p>
+</section>
+<section id="analyzing-presidential-style" class="level3" data-number="10.4">
+<h3 data-number="10.4" class="anchored" data-anchor-id="analyzing-presidential-style"><span class="header-section-number">10.4</span> Analyzing Presidential Style</h3>
+<p>Let’s look at how often different presidents use personal pronouns:</p>
+<div id="27e319a0" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define personal pronouns</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>personal_pronouns <span class="op">=</span> [<span class="st">'i'</span>, <span class="st">'me'</span>, <span class="st">'my'</span>, <span class="st">'we'</span>, <span class="st">'us'</span>, <span class="st">'our'</span>, <span class="st">'you'</span>, <span class="st">'your'</span>]</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter for pronouns only</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>pronoun_df <span class="op">=</span> tokens_df[tokens_df[<span class="st">'word'</span>].isin(personal_pronouns)].copy()</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Count by president</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>pronoun_by_president <span class="op">=</span> (pronoun_df.groupby([<span class="st">'president'</span>, <span class="st">'word'</span>])</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>                        .size()</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>                        .reset_index(name<span class="op">=</span><span class="st">'count'</span>))</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate total words per president for normalization</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>words_per_president <span class="op">=</span> tokens_df.groupby(<span class="st">'president'</span>).size()</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalize (calculate rate per 1000 words)</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>pronoun_by_president <span class="op">=</span> pronoun_by_president.merge(</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>    words_per_president.reset_index(name<span class="op">=</span><span class="st">'total_words'</span>),</span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>    on<span class="op">=</span><span class="st">'president'</span></span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>pronoun_by_president[<span class="st">'rate_per_1000'</span>] <span class="op">=</span> (</span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>    (pronoun_by_president[<span class="st">'count'</span>] <span class="op">/</span> pronoun_by_president[<span class="st">'total_words'</span>]) <span class="op">*</span> <span class="dv">1000</span></span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Show some examples</span></span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sample of pronoun usage rates (per 1000 words):"</span>)</span>
+<span id="cb36-26"><a href="#cb36-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pronoun_by_president[pronoun_by_president[<span class="st">'president'</span>].isin(</span>
+<span id="cb36-27"><a href="#cb36-27" aria-hidden="true" tabindex="-1"></a>    [<span class="st">'Donald J. Trump'</span>, <span class="st">'Barack Obama'</span>, <span class="st">'George W. Bush'</span>]</span>
+<span id="cb36-28"><a href="#cb36-28" aria-hidden="true" tabindex="-1"></a>)].head(<span class="dv">15</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sample of pronoun usage rates (per 1000 words):
+          president  word  count  total_words  rate_per_1000
+24     Barack Obama     i    857       106566       8.041965
+25     Barack Obama    me    120       106566       1.126063
+26     Barack Obama    my    180       106566       1.689094
+27     Barack Obama   our   1811       106566      16.994163
+28     Barack Obama    us    287       106566       2.693167
+29     Barack Obama    we   1927       106566      18.082691
+30     Barack Obama   you    349       106566       3.274966
+31     Barack Obama  your    113       106566       1.060376
+56  Donald J. Trump     i    105        15058       6.973038
+57  Donald J. Trump    me      5        15058       0.332049
+58  Donald J. Trump    my     37        15058       2.457166
+59  Donald J. Trump   our    331        15058      21.981671
+60  Donald J. Trump    us     55        15058       3.652543
+61  Donald J. Trump    we    319        15058      21.184752
+62  Donald J. Trump   you     35        15058       2.324346</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-style-differences" class="level3" data-number="10.5">
+<h3 data-number="10.5" class="anchored" data-anchor-id="visualizing-style-differences"><span class="header-section-number">10.5</span> Visualizing Style Differences</h3>
+<p>Let’s compare how different presidents use “I” vs “we”:</p>
+<div id="9762dc5a" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Focus on 'I' and 'we'</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>i_we_df <span class="op">=</span> pronoun_by_president[pronoun_by_president[<span class="st">'word'</span>].isin([<span class="st">'i'</span>, <span class="st">'we'</span>])].copy()</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot for easier plotting</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>i_we_pivot <span class="op">=</span> i_we_df.pivot(index<span class="op">=</span><span class="st">'president'</span>, columns<span class="op">=</span><span class="st">'word'</span>, values<span class="op">=</span><span class="st">'rate_per_1000'</span>).fillna(<span class="dv">0</span>)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Get presidents with most speeches for clearer visualization</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>top_presidents <span class="op">=</span> (tokens_df[<span class="st">'president'</span>]</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>                  .value_counts()</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>                  .head(<span class="dv">10</span>)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>                  .index)</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>i_we_plot <span class="op">=</span> i_we_pivot.loc[i_we_pivot.index.isin(top_presidents)]</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create scatter plot</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>plt.scatter(i_we_plot[<span class="st">'i'</span>], i_we_plot[<span class="st">'we'</span>], s<span class="op">=</span><span class="dv">100</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Label points</span></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, row <span class="kw">in</span> i_we_plot.iterrows():</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Shorten long names</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>    name <span class="op">=</span> idx.split()[<span class="op">-</span><span class="dv">1</span>]  <span class="co"># Just last name</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>    plt.annotate(name, (row[<span class="st">'i'</span>], row[<span class="st">'we'</span>]), </span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>                xytext<span class="op">=</span>(<span class="dv">5</span>, <span class="dv">5</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Rate of "I" (per 1000 words)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Rate of "we" (per 1000 words)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Presidential Pronoun Usage: "I" vs "We"'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lab_01_files/figure-html/cell-20-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>📌 What This Tells Us
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Presidents who use “I” more often might be:</p>
+<ul>
+<li>Speaking in a more personal style</li>
+<li>Taking individual responsibility</li>
+<li>Modern era (contemporary style)</li>
+</ul>
+<p>Presidents who use “we” more might be:</p>
+<ul>
+<li>Emphasizing collective action</li>
+<li>Speaking for the nation</li>
+<li>Earlier era (formal style)</li>
+</ul>
+<p>These patterns can distinguish authors even when topics overlap!</p>
+</div>
+</div>
+</section>
+<section id="the-role-of-pca-principal-component-analysis" class="level3" data-number="10.6">
+<h3 data-number="10.6" class="anchored" data-anchor-id="the-role-of-pca-principal-component-analysis"><span class="header-section-number">10.6</span> The Role of PCA (Principal Component Analysis)</h3>
+<p>In a full stylometric analysis, we would:</p>
+<ol type="1">
+<li>Count many function words (not just pronouns)</li>
+<li>Have dozens or hundreds of features</li>
+<li>Need to reduce complexity to visualize patterns</li>
+</ol>
+<p><strong>PCA</strong> (Principal Component Analysis) helps by:</p>
+<ul>
+<li>Finding the main “directions” of variation</li>
+<li>Reducing many features to 2-3 dimensions</li>
+<li>Allowing us to plot and compare texts</li>
+</ul>
+<p><strong>What PCA gives us (practically):</strong></p>
+<ul>
+<li>A 2D plot where similar authors cluster together</li>
+<li>Ability to spot outliers or disputed authorship</li>
+<li>Quantified measure of stylistic distance</li>
+</ul>
+<p>We won’t dive into the mathematics here, but know that PCA is a standard tool for reducing complex data to interpretable patterns.</p>
+<hr>
+</section>
+</section>
+<section id="summary-and-key-takeaways" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="summary-and-key-takeaways"><span class="header-section-number">11</span> Summary and Key Takeaways</h2>
+<section id="what-we-learned" class="level3" data-number="11.1">
+<h3 data-number="11.1" class="anchored" data-anchor-id="what-we-learned"><span class="header-section-number">11.1</span> What We Learned</h3>
+<p>Today we covered the fundamental workflow of computational text analysis:</p>
+<ol type="1">
+<li><strong>Load text data</strong> → Working with structured formats (CSV, DataFrame)</li>
+<li><strong>Tokenize</strong> → Split text into words (or other units)</li>
+<li><strong>Count frequencies</strong> → Transform text into numbers</li>
+<li><strong>Explore patterns</strong> → Zipf’s Law, frequency distributions</li>
+<li><strong>Preprocess</strong> → Remove stop words (when appropriate)</li>
+<li><strong>Analyze style</strong> → Use function words for stylometry</li>
+</ol>
+</section>
+<section id="key-concepts" class="level3" data-number="11.2">
+<h3 data-number="11.2" class="anchored" data-anchor-id="key-concepts"><span class="header-section-number">11.2</span> Key Concepts</h3>
+<dl>
+<dt><strong>Tokenization</strong></dt>
+<dd>
+Splitting text into units (words, characters, sentences)
+</dd>
+<dt><strong>Bag of Words</strong></dt>
+<dd>
+Treating text as unordered collection of words
+</dd>
+<dt><strong>Zipf’s Law</strong></dt>
+<dd>
+Word frequency follows power law distribution (few common, many rare)
+</dd>
+<dt><strong>Stop Words</strong></dt>
+<dd>
+High-frequency grammatical words with little content
+</dd>
+<dt><strong>Stylometry</strong></dt>
+<dd>
+Statistical analysis of writing style using function words
+</dd>
+<dt><strong>Preprocessing</strong></dt>
+<dd>
+Transforming raw text for analysis (lowercase, remove punctuation, etc.)
+</dd>
+</dl>
+</section>
+<section id="tools-in-your-toolkit" class="level3" data-number="11.3">
+<h3 data-number="11.3" class="anchored" data-anchor-id="tools-in-your-toolkit"><span class="header-section-number">11.3</span> Tools in Your Toolkit</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Task</th>
+<th>Python Tool</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Load data</td>
+<td><code>pandas.read_csv()</code></td>
+</tr>
+<tr class="even">
+<td>Tokenize</td>
+<td><code>str.split()</code> or spaCy</td>
+</tr>
+<tr class="odd">
+<td>Count frequencies</td>
+<td><code>Counter()</code> or <code>value_counts()</code></td>
+</tr>
+<tr class="even">
+<td>Remove stop words</td>
+<td>spaCy stop word list</td>
+</tr>
+<tr class="odd">
+<td>Visualize</td>
+<td>matplotlib, seaborn, wordcloud</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="next-steps" class="level3" data-number="11.4">
+<h3 data-number="11.4" class="anchored" data-anchor-id="next-steps"><span class="header-section-number">11.4</span> Next Steps</h3>
+<p>In future labs, we’ll explore:</p>
+<ul>
+<li>More sophisticated tokenization (handling punctuation, contractions)</li>
+<li>N-grams (sequences of words)</li>
+<li>TF-IDF weighting (smarter than raw counts)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="exercises"><span class="header-section-number">12</span> Exercises</h2>
+<section id="exercise-1-basic-frequency-analysis" class="level3" data-number="12.1">
+<h3 data-number="12.1" class="anchored" data-anchor-id="exercise-1-basic-frequency-analysis"><span class="header-section-number">12.1</span> Exercise 1: Basic Frequency Analysis</h3>
+<p>Pick any president from the dataset and:</p>
+<ol type="1">
+<li>Extract all their speeches</li>
+<li>Tokenize and count word frequencies</li>
+<li>Create a bar plot of their top 20 words</li>
+<li>Create a word cloud</li>
+</ol>
+</section>
+<section id="exercise-2-stop-word-impact" class="level3" data-number="12.2">
+<h3 data-number="12.2" class="anchored" data-anchor-id="exercise-2-stop-word-impact"><span class="header-section-number">12.2</span> Exercise 2: Stop Word Impact</h3>
+<p>Compare word frequencies with and without stop words:</p>
+<ol type="1">
+<li>Calculate top 50 words with stop words</li>
+<li>Calculate top 50 words without stop words</li>
+<li>How many overlap? What changes?</li>
+</ol>
+</section>
+<section id="exercise-3-pronoun-style" class="level3" data-number="12.3">
+<h3 data-number="12.3" class="anchored" data-anchor-id="exercise-3-pronoun-style"><span class="header-section-number">12.3</span> Exercise 3: Pronoun Style</h3>
+<p>Choose three presidents and compare their use of:</p>
+<ul>
+<li>First person singular (“I”, “me”, “my”)</li>
+<li>First person plural (“we”, “us”, “our”)</li>
+</ul>
+<p>Create a visualization showing the differences.</p>
+</section>
+<section id="exercise-4-historical-change-advanced" class="level3" data-number="12.4">
+<h3 data-number="12.4" class="anchored" data-anchor-id="exercise-4-historical-change-advanced"><span class="header-section-number">12.4</span> Exercise 4: Historical Change (Advanced)</h3>
+<p>Compare speeches before and after 1950:</p>
+<ol type="1">
+<li>Split the dataset into two time periods</li>
+<li>Calculate word frequencies for each period</li>
+<li>Identify words that became more/less common</li>
+<li>Create a Zipf’s Law plot for each period</li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="references-and-further-reading" class="level2" data-number="13">
+<h2 data-number="13" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">13</span> References and Further Reading</h2>
+<section id="academic-papers" class="level3" data-number="13.1">
+<h3 data-number="13.1" class="anchored" data-anchor-id="academic-papers"><span class="header-section-number">13.1</span> Academic Papers</h3>
+<ul>
+<li>Piantadosi, S. T. (2014). Zipf’s word frequency law in natural language: A critical review and future directions. Psychonomic Bulletin &amp; Review, 21(5), 1112–1130. <a href="https://doi.org/10.3758/s13423-014-0585-6">https://doi.org/10.3758/s13423-014-0585-6</a></li>
+<li>Jurafsky, D., &amp; Martin, J. H. (2023). <em>Speech and Language Processing</em> (3rd ed., draft) <a href="https://web.stanford.edu/~jurafsky/slp3/">https://web.stanford.edu/~jurafsky/slp3/</a></li>
+</ul>
+</section>
+<section id="tutorials-and-books" class="level3" data-number="13.2">
+<h3 data-number="13.2" class="anchored" data-anchor-id="tutorials-and-books"><span class="header-section-number">13.2</span> Tutorials and Books</h3>
+<ul>
+<li>Silge, J., &amp; Robinson, D. (2017). <em>Text Mining with R</em> (applicable concepts) <a href="https://www.tidytextmining.com/">https://www.tidytextmining.com/</a></li>
+<li>Bird, S., Klein, E., &amp; Loper, E. (2009). <em>Natural Language Processing with Python</em>. <a href="https://www.nltk.org/book/">https://www.nltk.org/book/</a> (a bit dated, but good)</li>
+</ul>
+</section>
+<section id="documentation" class="level3" data-number="13.3">
+<h3 data-number="13.3" class="anchored" data-anchor-id="documentation"><span class="header-section-number">13.3</span> Documentation</h3>
+<ul>
+<li><a href="https://pandas.pydata.org/">pandas documentation</a></li>
+<li><a href="https://spacy.io/">spaCy documentation</a></li>
+<li><a href="https://seaborn.pydata.org/">seaborn documentation</a></li>
+</ul>
+<hr>
+<p><strong>End of Lab 01</strong></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/paskn\.github\.io\/cta-with-python\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
