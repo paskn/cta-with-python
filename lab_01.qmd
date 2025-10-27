@@ -311,6 +311,7 @@ plt.show()
 ### What do we notice?
 
 The most frequent words are:
+
 - Articles: "the", "a", "an"
 - Prepositions: "of", "to", "in", "for"
 - Conjunctions: "and", "but", "or"
