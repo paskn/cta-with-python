@@ -250,7 +250,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-10-25 11:59:06</p>
+      <p class="date">2025-10-27 09:35:29</p>
     </div>
   </div>
   
@@ -299,7 +299,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>First, let’s load the Python packages we’ll need:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># you will need to run it once after installing spaCy</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">!python</span> <span class="at">-m</span> spacy download en_core_web_sm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="61887a1b" class="cell" data-execution_count="1">
+<div id="b5ea2e7d" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -346,7 +346,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="loading-and-exploring-the-data" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="loading-and-exploring-the-data"><span class="header-section-number">4</span> Loading and Exploring the Data</h2>
 <p>Let’s load our dataset:</p>
-<div id="c0192f4b" class="cell" data-execution_count="2">
+<div id="2722b134" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>speeches <span class="op">=</span> pd.read_csv(<span class="st">"data/transcripts.csv"</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -424,7 +424,7 @@ First few rows:</code></pre>
 <section id="understanding-the-data-structure" class="level3" data-number="4.1">
 <h3 data-number="4.1" class="anchored" data-anchor-id="understanding-the-data-structure"><span class="header-section-number">4.1</span> Understanding the Data Structure</h3>
 <p>Our data is in <strong>tabular format</strong> - like a spreadsheet with rows and columns:</p>
-<div id="8470b483" class="cell" data-execution_count="3">
+<div id="80fd5175" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check column names and types</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Columns:"</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(speeches.dtypes)</span>
@@ -461,7 +461,7 @@ Date range:
 <li><strong>transcript</strong>: The actual text of the speech</li>
 </ul>
 <p>Let’s look at a short excerpt:</p>
-<div id="fe241d9c" class="cell" data-execution_count="4">
+<div id="de9b7ad3" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display a snippet of one speech</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sample_text <span class="op">=</span> speeches.loc[<span class="dv">0</span>, <span class="st">'transcript'</span>][:<span class="dv">500</span>]  <span class="co"># First 500 characters</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sample from first speech:"</span>)</span>
@@ -512,7 +512,7 @@ Each day since, we have gone forward with a clear vision
 <li>N-grams (sequences of N words)</li>
 </ul>
 <p>Let’s see this in action:</p>
-<div id="42579c25" class="cell" data-execution_count="5">
+<div id="93018bdb" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple example: split text into words</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>example <span class="op">=</span> <span class="st">"Python is great for text analysis"</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>words <span class="op">=</span> example.split()</span>
@@ -529,7 +529,7 @@ Number of tokens: 6</code></pre>
 <section id="tokenizing-our-speeches" class="level3" data-number="5.3">
 <h3 data-number="5.3" class="anchored" data-anchor-id="tokenizing-our-speeches"><span class="header-section-number">5.3</span> Tokenizing Our Speeches</h3>
 <p>Now let’s tokenize one full speech:</p>
-<div id="35614060" class="cell" data-execution_count="6">
+<div id="8c3e9264" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get one speech</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>speech_text <span class="op">=</span> speeches.loc[<span class="dv">0</span>, <span class="st">'transcript'</span>]</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -559,7 +559,7 @@ First 20 tokens:
 </ol>
 <p>This might seem like we’re throwing away information (word order matters!), but this simple model is surprisingly powerful for many tasks.</p>
 <p>Let’s create a bag of words for one speech:</p>
-<div id="d87db820" class="cell" data-execution_count="7">
+<div id="9a93af92" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count word frequencies</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>word_counts <span class="op">=</span> Counter(simple_tokens)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -606,7 +606,7 @@ Trump        150    12         89    5</code></pre>
 <section id="tokenizing-all-speeches" class="level2" data-number="6">
 <h2 data-number="6" class="anchored" data-anchor-id="tokenizing-all-speeches"><span class="header-section-number">6</span> Tokenizing All Speeches</h2>
 <p>Let’s tokenize all speeches and create a long-format dataset:</p>
-<div id="b941d6c3" class="cell" data-execution_count="8">
+<div id="66b91ba2" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize empty list to store results</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>all_tokens <span class="op">=</span> []</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -707,7 +707,7 @@ First few rows:</code></pre>
 </div>
 <section id="how-many-unique-words" class="level3" data-number="6.1">
 <h3 data-number="6.1" class="anchored" data-anchor-id="how-many-unique-words"><span class="header-section-number">6.1</span> How many unique words?</h3>
-<div id="dc2db946" class="cell" data-execution_count="9">
+<div id="98aec0db" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>unique_words <span class="op">=</span> tokens_df[<span class="st">'word'</span>].nunique()</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Number of unique words: </span><span class="sc">{</span>unique_words<span class="sc">:,}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -721,7 +721,7 @@ First few rows:</code></pre>
 <section id="word-frequencies" class="level2" data-number="7">
 <h2 data-number="7" class="anchored" data-anchor-id="word-frequencies"><span class="header-section-number">7</span> Word Frequencies</h2>
 <p>Now let’s count how often each word appears:</p>
-<div id="c4597f1a" class="cell" data-execution_count="10">
+<div id="7919660f" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count word frequencies</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>word_freq <span class="op">=</span> tokens_df[<span class="st">'word'</span>].value_counts().reset_index()</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>word_freq.columns <span class="op">=</span> [<span class="st">'word'</span>, <span class="st">'count'</span>]</span>
@@ -755,7 +755,7 @@ First few rows:</code></pre>
 </div>
 <section id="visualizing-frequency" class="level3" data-number="7.1">
 <h3 data-number="7.1" class="anchored" data-anchor-id="visualizing-frequency"><span class="header-section-number">7.1</span> Visualizing Frequency</h3>
-<div id="4557387e" class="cell" data-execution_count="11">
+<div id="4746dfb8" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot top 15 words</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>top_15 <span class="op">=</span> word_freq.head(<span class="dv">15</span>)</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -767,7 +767,7 @@ First few rows:</code></pre>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
 <span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_1012969/2171022789.py:5: FutureWarning: 
+<pre><code>/tmp/ipykernel_1863094/2171022789.py:5: FutureWarning: 
 
 Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
 
@@ -784,7 +784,12 @@ Passing `palette` without assigning `hue` is deprecated and will be removed in v
 </section>
 <section id="what-do-we-notice" class="level3" data-number="7.2">
 <h3 data-number="7.2" class="anchored" data-anchor-id="what-do-we-notice"><span class="header-section-number">7.2</span> What do we notice?</h3>
-<p>The most frequent words are: - Articles: “the”, “a”, “an” - Prepositions: “of”, “to”, “in”, “for” - Conjunctions: “and”, “but”, “or”</p>
+<p>The most frequent words are:</p>
+<ul>
+<li>Articles: “the”, “a”, “an”</li>
+<li>Prepositions: “of”, “to”, “in”, “for”</li>
+<li>Conjunctions: “and”, “but”, “or”</li>
+</ul>
 <p>These are <strong>grammatical words</strong> that appear in almost any English text. They don’t tell us much about the <em>content</em> of the speeches!</p>
 <p>This observation leads us to an important concept…</p>
 <hr>
@@ -806,12 +811,17 @@ Passing `palette` without assigning `hue` is deprecated and will be removed in v
 <li><strong>Most words are very rare</strong> (appear only once or twice)</li>
 <li><strong>This pattern is universal</strong> - it appears in all languages and genres</li>
 </ol>
-<p>This has practical implications: - Most words provide little statistical power (they’re too rare) - A small vocabulary covers most of any text - We need strategies to deal with this imbalance</p>
+<p>This has practical implications:</p>
+<ul>
+<li>Most words provide little statistical power (they’re too rare)</li>
+<li>A small vocabulary covers most of any text</li>
+<li>We need strategies to deal with this imbalance</li>
+</ul>
 </section>
 <section id="visualizing-zipfs-law" class="level3" data-number="8.3">
 <h3 data-number="8.3" class="anchored" data-anchor-id="visualizing-zipfs-law"><span class="header-section-number">8.3</span> Visualizing Zipf’s Law</h3>
 <p>Let’s see if our data follows Zipf’s Law:</p>
-<div id="4d7ccbad" class="cell" data-execution_count="12">
+<div id="dbf7fd01" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add rank to our frequency table</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>word_freq[<span class="st">'rank'</span>] <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(word_freq) <span class="op">+</span> <span class="dv">1</span>)</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -837,7 +847,7 @@ Passing `palette` without assigning `hue` is deprecated and will be removed in v
 <section id="the-long-tail" class="level3" data-number="8.4">
 <h3 data-number="8.4" class="anchored" data-anchor-id="the-long-tail"><span class="header-section-number">8.4</span> The Long Tail</h3>
 <p>Let’s look at how many words appear only once or twice:</p>
-<div id="aa0997ef" class="cell" data-execution_count="13">
+<div id="55bad492" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count words by frequency</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>freq_distribution <span class="op">=</span> word_freq[<span class="st">'count'</span>].value_counts().sort_index()</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -911,7 +921,7 @@ Passing `palette` without assigning `hue` is deprecated and will be removed in v
 <section id="stop-words-in-our-data" class="level3" data-number="9.3">
 <h3 data-number="9.3" class="anchored" data-anchor-id="stop-words-in-our-data"><span class="header-section-number">9.3</span> Stop Words in Our Data</h3>
 <p>Let’s see what Python’s spaCy library considers stop words:</p>
-<div id="ec0d33f0" class="cell" data-execution_count="14">
+<div id="a7b4b1c1" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load English language model (small version)</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>)</span>
@@ -938,7 +948,7 @@ First 30 stop words (alphabetically):
 </section>
 <section id="comparing-with-our-most-frequent-words" class="level3" data-number="9.4">
 <h3 data-number="9.4" class="anchored" data-anchor-id="comparing-with-our-most-frequent-words"><span class="header-section-number">9.4</span> Comparing with Our Most Frequent Words</h3>
-<div id="9e5beffe" class="cell" data-execution_count="15">
+<div id="cd55c89e" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which top words are stop words</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>top_30 <span class="op">=</span> word_freq.head(<span class="dv">30</span>).copy()</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>top_30[<span class="st">'is_stopword'</span>] <span class="op">=</span> top_30[<span class="st">'word'</span>].isin(stopwords_set)</span>
@@ -984,7 +994,7 @@ First 30 stop words (alphabetically):
 </section>
 <section id="removing-stop-words" class="level3" data-number="9.5">
 <h3 data-number="9.5" class="anchored" data-anchor-id="removing-stop-words"><span class="header-section-number">9.5</span> Removing Stop Words</h3>
-<div id="78bea96f" class="cell" data-execution_count="16">
+<div id="826333c5" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out stop words</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>content_words <span class="op">=</span> word_freq[<span class="op">~</span>word_freq[<span class="st">'word'</span>].isin(stopwords_set)].copy()</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1034,7 +1044,7 @@ Top 30 content words:
 </section>
 <section id="visualizing-content-words" class="level3" data-number="9.6">
 <h3 data-number="9.6" class="anchored" data-anchor-id="visualizing-content-words"><span class="header-section-number">9.6</span> Visualizing Content Words</h3>
-<div id="1fd1092f" class="cell" data-execution_count="17">
+<div id="5d064efd" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create word cloud from content words</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>wordcloud_dict <span class="op">=</span> <span class="bu">dict</span>(<span class="bu">zip</span>(content_words[<span class="st">'word'</span>].head(<span class="dv">100</span>), </span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>                          content_words[<span class="st">'count'</span>].head(<span class="dv">100</span>)))</span>
@@ -1116,7 +1126,7 @@ Top 30 content words:
 <section id="analyzing-presidential-style" class="level3" data-number="10.4">
 <h3 data-number="10.4" class="anchored" data-anchor-id="analyzing-presidential-style"><span class="header-section-number">10.4</span> Analyzing Presidential Style</h3>
 <p>Let’s look at how often different presidents use personal pronouns:</p>
-<div id="27e319a0" class="cell" data-execution_count="18">
+<div id="3cf833b8" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define personal pronouns</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>personal_pronouns <span class="op">=</span> [<span class="st">'i'</span>, <span class="st">'me'</span>, <span class="st">'my'</span>, <span class="st">'we'</span>, <span class="st">'us'</span>, <span class="st">'our'</span>, <span class="st">'you'</span>, <span class="st">'your'</span>]</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1169,7 +1179,7 @@ Top 30 content words:
 <section id="visualizing-style-differences" class="level3" data-number="10.5">
 <h3 data-number="10.5" class="anchored" data-anchor-id="visualizing-style-differences"><span class="header-section-number">10.5</span> Visualizing Style Differences</h3>
 <p>Let’s compare how different presidents use “I” vs “we”:</p>
-<div id="9762dc5a" class="cell" data-execution_count="19">
+<div id="e8b1f408" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Focus on 'I' and 'we'</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>i_we_df <span class="op">=</span> pronoun_by_president[pronoun_by_president[<span class="st">'word'</span>].isin([<span class="st">'i'</span>, <span class="st">'we'</span>])].copy()</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
