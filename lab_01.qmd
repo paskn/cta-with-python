@@ -341,6 +341,7 @@ Zipf's Law tells us that:
 3. **This pattern is universal** - it appears in all languages and genres
 
 This has practical implications:
+
 - Most words provide little statistical power (they're too rare)
 - A small vocabulary covers most of any text
 - We need strategies to deal with this imbalance
