@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://paskn.github.io/cta-with-python/lab_01.html</loc>
-    <lastmod>2025-10-27T09:35:15.432Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paskn.github.io/cta-with-python/basic-python.html</loc>
-    <lastmod>2025-10-27T09:35:15.312Z</lastmod>
-  </url>
-  <url>
-    <loc>https://paskn.github.io/cta-with-python/index.html</loc>
-    <lastmod>2025-10-27T09:35:15.431Z</lastmod>
+    <loc>https://paskn.github.io/cta-with-python/lab_02.html</loc>
+    <lastmod>2025-11-01T13:13:57.889Z</lastmod>
   </url>
   <url>
     <loc>https://paskn.github.io/cta-with-python/about.html</loc>
-    <lastmod>2025-10-27T09:35:15.312Z</lastmod>
+    <lastmod>2025-11-01T13:13:57.769Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paskn.github.io/cta-with-python/index.html</loc>
+    <lastmod>2025-11-01T13:13:57.889Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paskn.github.io/cta-with-python/basic-python.html</loc>
+    <lastmod>2025-11-01T13:13:57.769Z</lastmod>
+  </url>
+  <url>
+    <loc>https://paskn.github.io/cta-with-python/lab_01.html</loc>
+    <lastmod>2025-11-01T13:13:57.889Z</lastmod>
   </url>
 </urlset>
