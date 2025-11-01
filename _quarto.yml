@@ -20,6 +20,7 @@ format:
       - flatly
     css: styles.css
     toc: true
+    lightbox: true
 
 
 
