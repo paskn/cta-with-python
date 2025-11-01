@@ -1,0 +1,938 @@
+---
+title: "Lab 03: Dictionary Methods"
+subtitle: "Measuring text with word lists and dictionary induction"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+    lightbox: true
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+## Learning objectives
+
+By the end of this lab, you will understand:
+
+- What dictionary methods are and when to use them
+- The strengths and limitations of pre-built sentiment dictionaries
+- What dictionary induction is and why it helps
+- How to use Pointwise Mutual Information (PMI) to identify distinctive vocabulary
+- How to create domain-specific dictionaries from your own data
+- The difference between dictionary-based and model-based sentiment analysis
+
+---
+
+## Introduction: Words as measurements
+
+One of the simplest approaches to measuring properties of text is the **dictionary method**. The core idea is straightforward:
+
+1. Create (or obtain) a list of words associated with some concept (e.g., positive emotion, violence, uncertainty)
+2. Count how many times words from this list appear in each document
+3. Use these counts to categorize or score the documents
+
+For example, to measure sentiment, you might count positive words minus negative words. A document with many words like "excellent," "wonderful," and "fantastic" gets a high positive score. A document with "terrible," "awful," and "disappointing" gets a negative score.
+
+This approach is easy, accessible, and widely used. It's also questionable and potentially misleading.
+
+### Why dictionary methods are popular
+
+Dictionary methods have genuine advantages:
+
+- **Transparency**: Anyone can inspect the word list and understand how measurement works
+- **Speed**: Counting words is computationally trivial, even for millions of documents
+- **No training data required**: You don't need labeled examples to apply a pre-built dictionary
+- **Interpretability**: Results directly connect to specific words in the text
+
+These features make dictionary methods attractive for exploratory analysis and quick assessments.
+
+### Why dictionary methods are problematic
+
+Dictionary methods also have serious limitations:
+
+- **Arbitrary word selection**: Who decides which words indicate sentiment? What about words left out?
+- **Domain dependence**: "Sick" means different things in medical texts vs. teenage slang
+- **Context ignorance**: "This is not good" contains the positive word "good" but expresses negativity
+- **Negation blindness**: Most simple implementations miss "not happy," "barely acceptable," "hardly surprising"
+- **Systematic bias**: If your dictionary emphasizes formal language, informal texts get mis-measured
+
+**Important**: Dictionary methods can be useful for exploration and hypothesis generation, but you should be cautious about drawing strong inferences from them without validation.
+
+---
+
+## Sentiment dictionaries in Python
+
+Let's examine some commonly used sentiment dictionaries. We'll use NLTK (Natural Language Toolkit), which provides several lexicons.
+
+### Setup: Loading packages
+
+```{python}
+# Data manipulation
+import pandas as pd
+import numpy as np
+
+# Text processing
+import nltk
+from nltk.corpus import opinion_lexicon
+from nltk import word_tokenize
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+
+print("✓ Packages loaded")
+```
+
+### Downloading sentiment lexicons
+
+NLTK requires downloading lexicon data separately:
+
+```{python}
+# Download required NLTK data
+nltk.download('opinion_lexicon', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+
+print("✓ Lexicons downloaded")
+```
+
+### Opinion Lexicon (Hu & Liu)
+
+The Opinion Lexicon is a simple positive/negative word list created by Hu and Liu (2004). It contains about 6,800 words.
+
+```{python}
+# Load positive and negative words
+positive_words = set(opinion_lexicon.positive())
+negative_words = set(opinion_lexicon.negative())
+
+print(f"Positive words: {len(positive_words)}")
+print(f"Negative words: {len(negative_words)}")
+print(f"\nExample positive words: {list(positive_words)[:10]}")
+print(f"Example negative words: {list(negative_words)[:10]}")
+```
+
+### Applying a simple sentiment dictionary
+
+Let's apply this dictionary to a few example sentences:
+
+```{python}
+def simple_sentiment(text):
+    """
+    Calculate sentiment by counting positive minus negative words.
+    """
+    tokens = word_tokenize(text.lower())
+    
+    pos_count = sum(1 for token in tokens if token in positive_words)
+    neg_count = sum(1 for token in tokens if token in negative_words)
+    
+    return {
+        'positive': pos_count,
+        'negative': neg_count,
+        'sentiment': pos_count - neg_count
+    }
+
+# Test examples
+examples = [
+    "This is a wonderful and fantastic experience.",
+    "This is a terrible and awful disaster.",
+    "This is not good at all.",  # Negation problem
+    "The treatment was aggressive but effective."  # Domain problem
+]
+
+for text in examples:
+    result = simple_sentiment(text)
+    print(f"\nText: {text}")
+    print(f"  Positive: {result['positive']}, Negative: {result['negative']}, Score: {result['sentiment']}")
+```
+
+Notice how "This is not good at all" gets a positive score because the dictionary sees "good" but ignores "not." This illustrates a fundamental limitation of simple dictionary methods.
+
+::: {.callout-warning}
+## Limitations in action
+
+The third example ("This is not good at all") demonstrates why simple dictionary methods can fail. The sentence is clearly negative, but our method scores it as positive because it contains the word "good."
+
+More sophisticated approaches handle negation by checking for words like "not," "no," "never" within a few words before sentiment terms. However, even these can fail on complex constructions.
+:::
+
+::: {.callout-note}
+## Other sentiment lexicons
+
+NLTK provides other sentiment resources:
+
+- **VADER** (Valence Aware Dictionary and sEntiment Reasoner): Specifically designed for social media, handles emoticons, slang, and negation better - [https://github.com/cjhutto/vaderSentiment](https://github.com/cjhutto/vaderSentiment)
+- **SentiStrength**: Detects positive (1-5) and negative (-1 to -5) sentiment strength in short informal text, optimized for social web contexts with nonstandard spelling and emoticons - [https://github.com/MikeThelwall/SentiStrength](https://github.com/MikeThelwall/SentiStrength)
+- **SentiWordNet**: Assigns sentiment scores to WordNet synsets (word senses) - [https://github.com/aesuli/SentiWordNet](https://github.com/aesuli/SentiWordNet)
+
+For non-English languages, validated sentiment lexicons include:
+
+- **FEEL-IT** (Italian) - [https://github.com/MilaNLProc/feel-it](https://github.com/MilaNLProc/feel-it)
+- **SentiWS** (German) - [https://wortschatz.uni-leipzig.de/en/download](https://wortschatz.uni-leipzig.de/en/download)
+- **GermanPolarityClues** (German) - [http://sentiment.ulliwaltinger.de/](http://sentiment.ulliwaltinger.de/)
+- **ML-SentiCon** (Spanish, Catalan, Basque, Galician) - [https://github.com/ITALIC-US/ML-Senticon](https://github.com/ITALIC-US/ML-Senticon)
+- **LIWC** (available in multiple languages, commercial) - [https://www.liwc.app/](https://www.liwc.app/)
+
+Note that some lexicons claim multilingual support through automatic translation (e.g., NRC Emotion Lexicon), but only the English versions have been manually validated. For research purposes, use language-specific lexicons created by native speakers whenever possible.
+
+You can also find domain-specific dictionaries for finance, politics, or other specialized areas. The key is matching the dictionary to your domain and validating its performance on your specific data.
+:::
+
+---
+
+## Dictionary approach: Problems and a solution
+
+We've seen the problems with pre-built dictionaries:
+
+1. **Arbitrary word selection**: Dictionaries may be subjective and prone to systematic omissions
+2. **Domain dependence**: Words mean different things in different contexts
+
+An approach to alleviate these problems is **dictionary induction**.
+
+### What is dictionary induction?
+
+Dictionary induction means creating a custom dictionary from your own data, rather than using a pre-built one. The process works like this:
+
+1. **Obtain a corpus** from the relevant domain
+2. **Identify an external signal** correlated with what you want to measure (e.g., metadata like star ratings, or expert-provided seed words)
+3. **Use statistical methods** to find words associated with that signal in your corpus
+4. **Use the resulting dictionary** to measure the quantity of interest in other texts from the same domain
+
+This approach is still limited by the signal you choose, but it avoids importing assumptions from dictionaries built on different data.
+
+---
+
+## An example: Political sentiment dictionaries
+
+Here's the research question that motivates our example: When Democrats and Republicans express sentiment in political speeches, do they use systematically different vocabulary?
+
+This question combines two concepts:
+
+- **Sentiment**: Emotional tone (positive/negative words)
+- **Political affiliation**: Democratic vs Republican party
+
+We could use a general sentiment dictionary, but it wouldn't tell us which sentiment words are distinctively Democratic or Republican. We need a method to discover domain-specific patterns.
+
+**Dictionary induction** solves this problem. Here's our approach:
+
+1. **Corpus**: State of the Union addresses by U.S. presidents since 1917
+2. **External signal**: President's party affiliation (metadata)
+3. **Statistical method**: Find words from sentiment lexicons that are associated with each party
+4. **Result**: Party-specific sentiment vocabularies
+
+This creates induced dictionaries like "Democratic positive words" and "Republican positive words" rather than assuming all positive words work the same way across political contexts.
+
+### Loading and preparing the data
+
+```{python}
+# Load the State of the Union corpus
+sou = pd.read_csv('./data/transcripts.csv')
+sou['date'] = pd.to_datetime(sou['date'])
+
+print(f"Loaded {len(sou)} speeches from {sou['date'].min().year} to {sou['date'].max().year}")
+sou.head()
+```
+
+### Defining party affiliation
+
+We'll focus on speeches since 1917 and assign party labels:
+
+```{python}
+# Democratic presidents (post-1917)
+democrats = [
+    "Woodrow Wilson", 
+    "Franklin D. Roosevelt", 
+    "Harry S. Truman",
+    "John F. Kennedy", 
+    "Lyndon B. Johnson", 
+    "Jimmy Carter",
+    "William J. Clinton", 
+    "Barack Obama",
+    "Joseph R. Biden"
+]
+
+# Filter to post-1917 and add party labels
+sou_party = sou[sou['date'] > '1917-10-25'].copy()
+sou_party['party'] = sou_party['president'].apply(
+    lambda x: 'democrat' if x in democrats else 'republican'
+)
+
+# Check distribution
+print("Speeches by party:")
+print(sou_party['party'].value_counts())
+```
+
+### Tokenizing and filtering for sentiment words
+
+Now we'll tokenize all speeches and keep only words from the sentiment lexicon. This focuses our analysis on emotional/evaluative language:
+
+```{python}
+from collections import defaultdict
+
+# Create a combined sentiment word set (all sentiment words)
+sentiment_words = positive_words | negative_words
+print(f"Total sentiment words in lexicon: {len(sentiment_words)}")
+
+# Count word frequencies by party
+party_word_counts = defaultdict(lambda: defaultdict(int))
+
+for idx, row in sou_party.iterrows():
+    party = row['party']
+    tokens = word_tokenize(row['transcript'].lower())
+    
+    for token in tokens:
+        # Only count words that appear in sentiment lexicon
+        if token in sentiment_words:
+            party_word_counts[party][token] += 1
+
+# Convert to DataFrame
+word_freq_data = []
+for party in ['democrat', 'republican']:
+    for word, count in party_word_counts[party].items():
+        word_freq_data.append({
+            'word': word,
+            'party': party,
+            'count': count
+        })
+
+word_freq = pd.DataFrame(word_freq_data)
+
+# Pivot to wide format
+word_freq_wide = word_freq.pivot(index='word', columns='party', values='count').fillna(0)
+word_freq_wide.columns = ['dem_freq', 'rep_freq']
+word_freq_wide = word_freq_wide.reset_index()
+
+print(f"\nFound {len(word_freq_wide)} sentiment words used in speeches")
+word_freq_wide.head(10)
+```
+
+---
+
+## Finding party-distinctive words with PMI
+
+Now we face a question: Which sentiment words are distinctively Democratic or Republican?
+
+We can't just look at raw frequencies - Democratic speeches might use "health" 500 times and Republican speeches 200 times, but maybe the Democratic corpus is simply bigger. We need a measure that accounts for corpus size and tells us which words are surprisingly associated with one party or the other.
+
+This is exactly what **Pointwise Mutual Information (PMI)** does.
+
+### The problem: Which words are distinctively associated?
+
+Let's look at a concrete example using the word "proud."
+
+Suppose we find:
+
+- Democrats use "proud" 450 times (out of 200,000 total sentiment words)
+- Republicans use "proud" 600 times (out of 150,000 total sentiment words)
+
+Which party uses "proud" more? Looking at raw counts (450 vs 600), it seems Republican. But look at the rates:
+
+- Democratic rate: 450/200,000 = 0.00225 (0.225%)
+- Republican rate: 600/150,000 = 0.004 (0.4%)
+
+Republicans use "proud" about 1.8× more often proportionally. But is this surprising, or just what we'd expect by chance given how common "proud" is overall?
+
+### What is PMI?
+
+PMI stands for **Pointwise Mutual Information**. It answers one simple question:
+
+> *"How much more (or less) does this word appear with this category than we'd expect by chance?"*
+
+**The logic**:
+
+- If a word appears in Democratic speeches exactly as often as we'd expect (given corpus sizes), PMI = 0
+- If it appears more often than expected, PMI > 0
+- If it appears less often than expected, PMI < 0
+
+Think of PMI as an "association meter" - it measures whether two things (a word and a category) tend to occur together more than random chance would predict.
+
+### How to read PMI values
+
+PMI values tell us about association strength:
+
+| PMI value | What it means |
+|-----------|---------------|
+| PMI = 0   | Word appears exactly as expected (no special association) |
+| PMI > 0   | Word appears more than expected (positive association) |
+| PMI > 1   | Strong positive association |
+| PMI < 0   | Word appears less than expected (negative association) |
+| PMI < -1  | Strong negative association |
+
+**For our analysis**: We'll calculate two PMI values for each word:
+
+- **pmi_dem**: Association with Democratic speeches
+- **pmi_rep**: Association with Republican speeches
+
+Words with high `pmi_dem` are distinctively Democratic. Words with high `pmi_rep` are distinctively Republican.
+
+### A concrete example
+
+Let's work through the numbers for a specific word to see how PMI works.
+
+Suppose the word "opportunity" appears:
+
+- 300 times in Democratic speeches
+- 100 times in Republican speeches
+
+And our corpus totals are:
+
+- 200,000 total sentiment words in Democratic speeches
+- 150,000 total sentiment words in Republican speeches
+- 350,000 total sentiment words overall
+
+**Step 1**: Calculate the probability that a randomly selected sentiment word from Democratic speeches is "opportunity":
+
+$$P(\text{opportunity} | \text{Democrat}) = \frac{300}{200,000} = 0.0015$$
+
+**Step 2**: Calculate the overall probability of "opportunity" (across both parties):
+
+$$P(\text{opportunity}) = \frac{300 + 100}{350,000} = \frac{400}{350,000} = 0.00114$$
+
+**Step 3**: Calculate the probability of selecting the Democratic corpus:
+
+$$P(\text{Democrat}) = \frac{200,000}{350,000} = 0.571$$
+
+**Step 4**: If "opportunity" and "Democrat" were independent (no association), we'd expect:
+
+$$P(\text{opportunity} | \text{Democrat}) = P(\text{opportunity}) = 0.00114$$
+
+**Step 5**: But we observed 0.0015, not 0.00114. PMI measures this difference:
+
+$$\text{PMI}(\text{opportunity}, \text{Democrat}) = \log\frac{0.0015}{0.00114 \times 0.571} = \log\frac{0.0015}{0.00065} = \log(2.3) \approx 0.83$$
+
+**Interpretation**: PMI = 0.83 means "opportunity" appears more with Democratic speeches than chance alone would predict. The positive value indicates a Democratic association.
+
+::: {.callout-note collapse="true"}
+## For the mathematically curious: The PMI formula
+
+PMI is defined as:
+
+$$\text{PMI}(x, y) = \log \frac{P(x, y)}{P(x) \cdot P(y)}$$
+
+Where:
+
+- $P(x, y)$ = probability of seeing word $x$ in category $y$ (e.g., "opportunity" in Democratic speeches)
+- $P(x)$ = overall probability of word $x$ (across all speeches)
+- $P(y)$ = probability of selecting category $y$ (proportion of Democratic speeches)
+
+For corpus comparison, this translates to:
+
+- $P(x, y) = \frac{\text{count of word in party corpus}}{\text{total words in that party corpus}}$
+- $P(x) = \frac{\text{total count of word across both parties}}{\text{total words in both corpora}}$
+- $P(y) = \frac{\text{size of party corpus}}{\text{size of both corpora}}$
+
+We typically use natural logarithm (ln), though base-2 log is also common. The logarithm makes the measure symmetric: positive association with one category automatically means negative association with the other.
+:::
+
+### Calculating PMI in Python
+
+Let's implement PMI to find which sentiment words are distinctively associated with each party:
+
+```{python}
+def calculate_pmi(word_freq_df):
+    """
+    Calculate PMI for each word with respect to both parties.
+    
+    This function measures how strongly each word is associated with
+    Democratic vs Republican speeches, accounting for corpus size.
+    
+    Returns a DataFrame with pmi_dem and pmi_rep columns.
+    """
+    # Calculate totals
+    total_dem = word_freq_df['dem_freq'].sum()
+    total_rep = word_freq_df['rep_freq'].sum()
+    total_all = total_dem + total_rep
+    
+    print(f"Democratic corpus: {total_dem:,} sentiment words")
+    print(f"Republican corpus: {total_rep:,} sentiment words")
+    print(f"Total: {total_all:,} sentiment words\n")
+    
+    # Calculate PMI for Democrats
+    # P(word | dem) = word_count_dem / total_dem
+    # P(word) = (word_count_dem + word_count_rep) / total_all
+    # P(dem) = total_dem / total_all
+    
+    p_word_dem = word_freq_df['dem_freq'] / total_dem
+    p_word = (word_freq_df['dem_freq'] + word_freq_df['rep_freq']) / total_all
+    p_dem = total_dem / total_all
+    
+    # Avoid division by zero with small epsilon
+    epsilon = 1e-10
+    word_freq_df['pmi_dem'] = np.log((p_word_dem + epsilon) / ((p_word + epsilon) * p_dem))
+    
+    # Calculate PMI for Republicans (same logic)
+    p_word_rep = word_freq_df['rep_freq'] / total_rep
+    p_rep = total_rep / total_all
+    
+    word_freq_df['pmi_rep'] = np.log((p_word_rep + epsilon) / ((p_word + epsilon) * p_rep))
+    
+    return word_freq_df
+
+# Calculate PMI
+sou_pmi = calculate_pmi(word_freq_wide.copy())
+
+# Add sentiment labels for later analysis
+sou_pmi['sentiment'] = sou_pmi['word'].apply(
+    lambda w: 'positive' if w in positive_words else 'negative'
+)
+
+print("PMI calculation complete")
+print("\nExample results:")
+sou_pmi.head(10)
+```
+
+---
+
+## Inspecting the induced dictionary
+
+Now let's examine which sentiment words are most distinctively associated with each party.
+
+### Most Democratic sentiment words
+
+```{python}
+# Top words by Democratic PMI
+top_dem = sou_pmi.nlargest(20, 'pmi_dem')[['word', 'pmi_dem', 'sentiment', 'dem_freq', 'rep_freq']]
+print("Most distinctively Democratic sentiment words:\n")
+print(top_dem.to_string(index=False))
+```
+
+### Most Republican sentiment words
+
+```{python}
+# Top words by Republican PMI  
+top_rep = sou_pmi.nlargest(20, 'pmi_rep')[['word', 'pmi_rep', 'sentiment', 'dem_freq', 'rep_freq']]
+print("Most distinctively Republican sentiment words:\n")
+print(top_rep.to_string(index=False))
+```
+
+Look at these lists. Do the words make sense given what you know about Democratic vs Republican rhetoric? Are there patterns in which types of sentiment words each party favors?
+
+### Visualizing the political-sentiment space
+
+For a two-category comparison like Democrat vs Republican, the most informative measure is the **PMI difference**: `pmi_dem - pmi_rep`. This gives us a single scale from "distinctively Republican" (negative values) to "distinctively Democratic" (positive values).
+
+The clearest way to visualize this is with a horizontal bar chart showing the most distinctive words for each party.
+
+```{python}
+# Filter out very rare words (appearing fewer than 10 times total)
+# This removes statistical artifacts from extremely rare words
+plot_data = sou_pmi[
+    (sou_pmi['dem_freq'] + sou_pmi['rep_freq']) >= 10
+].copy()
+
+print(f"Analyzing {len(plot_data)} words (filtered from {len(sou_pmi)} total)")
+print(f"Removed {len(sou_pmi) - len(plot_data)} very rare words")
+
+# Calculate PMI difference (dem - rep)
+# Positive values = more Democratic, Negative values = more Republican
+plot_data['pmi_diff'] = plot_data['pmi_dem'] - plot_data['pmi_rep']
+
+# Select top 15 most Republican and top 15 most Democratic words
+most_republican = plot_data.nsmallest(15, 'pmi_diff')[['word', 'pmi_diff', 'sentiment']].copy()
+most_democratic = plot_data.nlargest(15, 'pmi_diff')[['word', 'pmi_diff', 'sentiment']].copy()
+
+# Combine and sort by PMI difference for display
+top_words = pd.concat([most_republican, most_democratic]).sort_values('pmi_diff')
+
+print(f"\nShowing top 15 Republican and top 15 Democratic sentiment words")
+
+# Create horizontal bar chart
+fig, ax = plt.subplots(figsize=(12, 10))
+
+# Color bars by sentiment (positive vs negative)
+colors = top_words['sentiment'].map({'positive': '#2E7D32', 'negative': '#C62828'})
+
+# Create horizontal bars
+bars = ax.barh(
+    range(len(top_words)),
+    top_words['pmi_diff'],
+    color=colors,
+    alpha=0.7,
+    edgecolor='black',
+    linewidth=0.5
+)
+
+# Set word labels on y-axis
+ax.set_yticks(range(len(top_words)))
+ax.set_yticklabels(top_words['word'], fontsize=10)
+
+# Add vertical line at zero (neutral point)
+ax.axvline(x=0, color='black', linestyle='-', linewidth=1.5, alpha=0.8)
+
+# Add shaded regions to show party zones
+ax.axvspan(top_words['pmi_diff'].min(), 0, alpha=0.1, color='red', label='Republican zone')
+ax.axvspan(0, top_words['pmi_diff'].max(), alpha=0.1, color='blue', label='Democratic zone')
+
+# Labels and title
+ax.set_xlabel('PMI Difference (negative = Republican, positive = Democratic)', fontsize=12)
+ax.set_ylabel('Sentiment words', fontsize=12)
+ax.set_title('Most distinctive sentiment words by party', fontsize=14, fontweight='bold')
+
+# Create custom legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='#2E7D32', alpha=0.7, edgecolor='black', label='Positive sentiment'),
+    Patch(facecolor='#C62828', alpha=0.7, edgecolor='black', label='Negative sentiment'),
+    Patch(facecolor='red', alpha=0.1, label='Republican-distinctive'),
+    Patch(facecolor='blue', alpha=0.1, label='Democratic-distinctive')
+]
+ax.legend(handles=legend_elements, loc='lower right', fontsize=10)
+
+ax.grid(True, alpha=0.3, axis='x')
+plt.tight_layout()
+plt.show()
+```
+
+**How to read this chart**:
+
+- **Each bar represents one sentiment word**
+- **Bar direction and length**:
+  - Bars extending left (negative values) = distinctively Republican
+  - Bars extending right (positive values) = distinctively Democratic
+  - Longer bars = stronger association with that party
+- **Bar color**:
+  - Green bars = positive sentiment words (e.g., "great," "peace")
+  - Red bars = negative sentiment words (e.g., "war," "threat")
+- **Background shading**: Light red zone = Republican territory, light blue zone = Democratic territory
+
+This visualization reveals the induced dictionary. Words on the left are distinctively Republican sentiment words, while words on the right are distinctively Democratic sentiment words.
+
+**What we've accomplished**: We started with a general sentiment lexicon (positive/negative words) and used PMI to discover which sentiment words are characteristically Democratic or Republican in political speeches. This is dictionary induction - creating domain-specific dictionaries from data rather than relying on general-purpose word lists.
+
+---
+
+## Using the induced dictionary for measurement
+
+Now that we've created a sentiment dictionary from political speeches, let's apply it to measure sentiment across all State of the Union addresses from 1790 to present. This demonstrates an important principle: once you have a dictionary, you can apply it to any text in the same domain to measure the phenomenon of interest.
+
+We'll track sentiment over time to see if major historical events correlate with changes in emotional tone in presidential rhetoric.
+
+### Calculating sentiment for all speeches
+
+```{python}
+# Prepare all speeches with sentiment word counts
+all_speeches = sou.copy()
+all_speeches['year'] = all_speeches['date'].dt.year
+
+# Function to count sentiment in a speech
+def count_sentiment(text):
+    """Count positive and negative sentiment words in text."""
+    tokens = word_tokenize(text.lower())
+
+    pos_count = sum(1 for token in tokens if token in positive_words)
+    neg_count = sum(1 for token in tokens if token in negative_words)
+    total_tokens = len([t for t in tokens if t.isalpha()])  # Only count actual words
+
+    return {
+        'positive': pos_count,
+        'negative': neg_count,
+        'total_words': total_tokens,
+        'sentiment_score': pos_count - neg_count,
+        'sentiment_rate': (pos_count - neg_count) / total_tokens if total_tokens > 0 else 0
+    }
+
+# Calculate sentiment for all speeches
+sentiment_data = []
+for idx, row in all_speeches.iterrows():
+    sent = count_sentiment(row['transcript'])
+    sentiment_data.append({
+        'date': row['date'],
+        'year': row['year'],
+        'president': row['president'],
+        'positive': sent['positive'],
+        'negative': sent['negative'],
+        'total_words': sent['total_words'],
+        'sentiment_score': sent['sentiment_score'],
+        'sentiment_rate': sent['sentiment_rate']
+    })
+
+sentiment_df = pd.DataFrame(sentiment_data)
+
+print("Sentiment counts calculated for all speeches")
+sentiment_df.head()
+```
+
+### Sentiment over time: A historical perspective
+
+Let's track sentiment year by year to see if major historical events correlate with changes in emotional tone.
+
+```{python}
+# Calculate average sentiment by year
+yearly_sentiment = sentiment_df.groupby('year').agg({
+    'positive': 'sum',
+    'negative': 'sum',
+    'total_words': 'sum',
+    'sentiment_score': 'sum'
+}).reset_index()
+
+# Calculate rates
+yearly_sentiment['positive_rate'] = (yearly_sentiment['positive'] / yearly_sentiment['total_words']) * 1000
+yearly_sentiment['negative_rate'] = (yearly_sentiment['negative'] / yearly_sentiment['total_words']) * 1000
+yearly_sentiment['net_sentiment'] = yearly_sentiment['positive_rate'] - yearly_sentiment['negative_rate']
+
+print(f"Tracking sentiment across {len(yearly_sentiment)} years")
+print(f"From {yearly_sentiment['year'].min()} to {yearly_sentiment['year'].max()}")
+```
+
+Now let's visualize this time series and mark major historical events:
+
+```{python}
+# Create time series plot
+fig, ax = plt.subplots(figsize=(16, 6))
+
+# Plot sentiment over time
+ax.plot(yearly_sentiment['year'], yearly_sentiment['net_sentiment'], 
+        linewidth=2, color='#1976D2', marker='o', markersize=4, alpha=0.7)
+
+# Add zero line
+ax.axhline(y=0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+
+# Mark major historical events
+events = [
+    (1914, 'WWI begins', '#D32F2F'),
+    (1918, 'WWI ends', '#388E3C'),
+    (1929, 'Great Depression', '#D32F2F'),
+    (1941, 'WWII (US entry)', '#D32F2F'),
+    (1945, 'WWII ends', '#388E3C'),
+    (1963, 'Kennedy assassination', '#D32F2F'),
+    (2001, '9/11', '#D32F2F'),
+    (2008, 'Financial crisis', '#D32F2F'),
+]
+
+for year, label, color in events:
+    if year >= yearly_sentiment['year'].min() and year <= yearly_sentiment['year'].max():
+        ax.axvline(x=year, color=color, linestyle=':', linewidth=1.5, alpha=0.6)
+        ax.text(year, ax.get_ylim()[1] * 0.95, label, 
+                rotation=90, verticalalignment='top', fontsize=8, alpha=0.7)
+
+# Labels and title
+ax.set_xlabel('Year', fontsize=12)
+ax.set_ylabel('Net sentiment (positive - negative words per 1,000)', fontsize=12)
+ax.set_title('Presidential rhetoric sentiment over time (1790-2020)', fontsize=14, fontweight='bold')
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+**How to read this plot**:
+
+- **Y-axis**: Net sentiment score (positive words minus negative words per 1,000 words)
+  - Above zero = more positive language
+  - Below zero = more negative language
+  - Further from zero = stronger emotional tone
+- **X-axis**: Years from 1790 to present
+- **Red dashed lines**: Major negative events (wars, crises, tragedies)
+- **Green dashed lines**: War endings / resolutions
+
+**Questions to explore**:
+
+- Do wars correlate with drops in sentiment (more negative language)?
+- Do post-war periods show sentiment recovery (more positive language)?
+- Are there long-term trends (e.g., does sentiment decline over the 20th century)?
+- Do economic crises (1929, 2008) affect sentiment differently than wars?
+
+### Zooming in: The World War I period
+
+Let's examine one period more closely - around World War I (1914-1918), which coincides with our 1917 cutoff.
+
+```{python}
+# Focus on WWI period
+wwi_period = yearly_sentiment[(yearly_sentiment['year'] >= 1910) & (yearly_sentiment['year'] <= 1925)].copy()
+
+# Create detailed plot
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Plot sentiment
+ax.plot(wwi_period['year'], wwi_period['net_sentiment'], 
+        linewidth=3, color='#1976D2', marker='o', markersize=8)
+
+# Highlight war period
+ax.axvspan(1914, 1918, alpha=0.2, color='red', label='WWI')
+ax.axvline(x=1917, color='purple', linestyle='--', linewidth=2, alpha=0.7, label='1917 (our data split)')
+
+ax.axhline(y=0, color='black', linestyle='-', linewidth=1, alpha=0.5)
+
+ax.set_xlabel('Year', fontsize=12)
+ax.set_ylabel('Net sentiment per 1,000 words', fontsize=12)
+ax.set_title('Presidential sentiment around World War I', fontsize=14, fontweight='bold')
+ax.legend(loc='best')
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows**:
+
+The shaded red area marks the war years (1914-1918). The purple line shows 1917, which we used to split our data for dictionary induction.
+
+Look at the pattern:
+
+- Does sentiment drop during the war years?
+- Does it recover after the war ends in 1918?
+- How does the pre-war sentiment (1910-1913) compare to post-war (1919-1925)?
+
+This type of analysis reveals whether major historical events leave linguistic traces in presidential rhetoric. A drop in sentiment during war suggests presidents used more negative or somber language. Recovery afterward might indicate rhetorical optimism about peace and reconstruction.
+
+### What we've learned from dictionary-based measurement
+
+By applying our sentiment dictionary to track changes over time, we've demonstrated:
+
+1. **Dictionary application**: Once created, a dictionary can measure sentiment across different texts
+2. **Event detection**: We can track whether major events (wars, crises) correlate with sentiment shifts
+3. **Temporal patterns**: We can identify long-term trends and short-term fluctuations in political rhetoric
+4. **Historical context**: Linguistic traces of historical events appear in presidential speeches
+
+This is the power of dictionary methods: once you have a reliable word list, you can apply it to any text in the same domain and language to measure the phenomenon of interest.
+
+---
+
+## Beyond dictionaries: Model-based sentiment analysis
+
+Dictionary methods are transparent and interpretable, but they have fundamental limitations. Modern NLP offers alternatives that can handle context, negation, and nuance better.
+
+### Transformer-based sentiment analysis
+
+While we've focused on dictionaries in this lab, it's worth knowing that more sophisticated approaches exist. These use neural networks trained on large amounts of labeled data to understand sentiment in context.
+
+Here's a quick example using a pre-trained model:
+
+```{python}
+# Note: This requires transformers library
+# To install: pip install transformers torch
+
+try:
+    from transformers import pipeline
+    
+    # Load a sentiment analysis pipeline
+    sentiment_pipeline = pipeline("sentiment-analysis",
+                                  model="hf-models/distilbert-base-uncased-finetuned-sst-2-english",
+                                  tokenizer="hf-models/distilbert-base-uncased-finetuned-sst-2-english")
+    
+    # Test on our earlier examples
+    examples = [
+        "This is a wonderful and fantastic experience.",
+        "This is a terrible and awful disaster.",
+        "This is not good at all.",  # Negation problem
+    ]
+    
+    print("Transformer-based sentiment analysis:\n")
+    for text in examples:
+        result = sentiment_pipeline(text)[0]
+        print(f"Text: {text}")
+        print(f"  Label: {result['label']}, Confidence: {result['score']:.3f}\n")
+        
+except ImportError:
+    print("Transformers library not installed. To use model-based sentiment analysis:")
+    print("  pip install transformers torch")
+    print("\nModel-based approaches can handle negation and context better than dictionaries.")
+except Exception as e:
+    print(f"Note: Transformer example requires internet connection to download models.")
+    print(f"Error: {e}")
+```
+
+Notice how the transformer correctly identifies "This is not good at all" as negative, while our simple dictionary method earlier scored it as positive.
+
+::: {.callout-note}
+## Dictionary vs. model-based approaches
+
+**When to use dictionaries**:
+
+- You need full transparency and interpretability
+- Your domain has specialized vocabulary not covered by general models
+- You have limited computational resources
+- You're doing exploratory analysis
+
+**When to use model-based approaches**:
+
+- Context and negation matter for your task
+- You have access to labeled training data or good pre-trained models
+- Prediction accuracy is more important than interpretability
+- You're working with complex linguistic constructions
+
+Often, the best approach is to use *both*: dictionaries for exploration and hypothesis generation, then validate findings with more sophisticated methods.
+:::
+
+---
+
+## Summary
+
+In this lab, we explored dictionary methods for text analysis:
+
+1. **Simple dictionaries**: We applied pre-built sentiment lexicons and saw their limitations (negation, context blindness)
+
+2. **Dictionary induction**: We created custom party-specific sentiment dictionaries using PMI to identify distinctive vocabulary
+
+3. **PMI as a discovery tool**: We learned how PMI measures association between words and categories, accounting for corpus size
+
+4. **Measurement with induced dictionaries**: We applied these dictionaries to out-of-sample texts (pre-1917 speeches)
+
+5. **Beyond dictionaries**: We briefly looked at how modern transformer models handle sentiment differently
+
+**Key takeaways**:
+
+- Dictionary methods are transparent but limited
+- Dictionary induction helps adapt to your specific domain
+- PMI identifies words statistically associated with categories
+- More sophisticated methods exist but trade interpretability for accuracy
+
+**The connection**: Dictionary induction combines the transparency of dictionary methods with data-driven discovery. Instead of assuming a general sentiment dictionary works for all contexts, we use statistical measures (PMI) to find which sentiment words are distinctive in our specific domain (political speeches by party).
+
+---
+
+## Exercises
+
+Try these on your own to deepen your understanding:
+
+1. **Positive vs. negative breakdown**: Separate the sentiment words into positive and negative, then calculate PMI for each group. Do Democrats and Republicans differ more in their positive vocabulary or negative vocabulary?
+
+2. **Different time splits**: Instead of pre/post-1917, try splitting by Cold War era (pre/post-1945). How do the induced dictionaries change? What does this tell you about evolving political language?
+
+3. **Individual presidents**: Calculate PMI scores for individual presidents instead of parties. Which president has the most distinctive sentiment vocabulary? Do presidents from the same party cluster together?
+
+4. **Beyond sentiment**: Try dictionary induction on a different corpus (e.g., news articles, social media posts, product reviews) with different categories. The method generalizes to any contrasting corpora.
+
+5. **Validation challenge**: How would you validate whether your induced dictionary actually measures what you think it measures? Design a validation approach. (Hint: Think about held-out data, human coding, or comparison with other measures.)
+
+6. **VADER comparison**: Install VADER (`pip install vaderSentiment`) and repeat the analysis using VADER's sentiment lexicon instead of Opinion Lexicon. Do you get different party-specific dictionaries? What does this tell you about lexicon choice?
+
+---
+
+## References and further reading
+
+### Dictionary methods
+
+- Hu, M., & Liu, B. (2004). Mining and summarizing customer reviews. *Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 168-177. [https://doi.org/10.1145/1014052.1014073](https://doi.org/10.1145/1014052.1014073)
+- Hutto, C., & Gilbert, E. (2014). VADER: A parsimonious rule-based model for sentiment analysis of social media text. *Proceedings of the International AAAI Conference on Web and Social Media*, 8(1), 216-225. [https://doi.org/10.1609/icwsm.v8i1.14550](https://doi.org/10.1609/icwsm.v8i1.14550)
+
+### PMI and corpus linguistics
+
+- Church, K. W., & Hanks, P. (1990). Word association norms, mutual information, and lexicography. *Computational Linguistics*, 16(1), 22-29. [https://aclanthology.org/J90-1003.pdf](https://aclanthology.org/J90-1003.pdf)
+- Manning, C. D., & Schütze, H. (1999). *Foundations of Statistical Natural Language Processing*. MIT Press. (Chapter 5: Collocations) [https://nlp.stanford.edu/fsnlp/promo/colloc.pdf](https://nlp.stanford.edu/fsnlp/promo/colloc.pdf)
+
+### Extra: Dictionary induction with word embeddings in PolSci
+
+- Rheault, L., & Cochrane, C. (2020). Word embeddings for the analysis of ideological placement in parliamentary corpora. *Political Analysis*, 28(1), 112-133. [https://doi.org/10.1017/pan.2019.26](https://doi.org/10.1017/pan.2019.26)
+- Rodriguez, P. L., & Spirling, A. (2022). Word embeddings: What works, what doesn't, and how to tell the difference for applied research. *Journal of Politics*, 84(1), 101-115. [https://doi.org/10.1086/715162](https://doi.org/10.1086/715162)
+
+### Tools
+
+- **NLTK**: Natural Language Toolkit - [https://www.nltk.org](https://www.nltk.org)
+- **HuggingFace Transformers**: State-of-the-art NLP models - [https://huggingface.co/transformers](https://huggingface.co/transformers)
+- **VADER**: Sentiment analysis tool -
+  [https://github.com/cjhutto/vaderSentiment](https://github.com/cjhutto/vaderSentiment)
+- **spacytextblob**: You can use spaCy as well
+  [https://spacy.io/universe/project/spacy-textblob/](https://spacy.io/universe/project/spacy-textblob/).
+  It uses a pre-trained classifier (Naive Bayes) from **TextBlob** - [https://textblob.readthedocs.io/en/dev/](https://textblob.readthedocs.io/en/dev/).
+
+---
+
+**End of Lab 04**
