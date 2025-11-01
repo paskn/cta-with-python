@@ -267,7 +267,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-11-01 22:56:26</p>
+      <p class="date">2025-11-01 23:02:21</p>
     </div>
   </div>
   
@@ -332,7 +332,7 @@ window.Quarto = {
 <p>Let’s examine some commonly used sentiment dictionaries. We’ll use NLTK (Natural Language Toolkit), which provides several lexicons.</p>
 <section id="setup-loading-packages" class="level3" data-number="3.1">
 <h3 data-number="3.1" class="anchored" data-anchor-id="setup-loading-packages"><span class="header-section-number">3.1</span> Setup: Loading packages</h3>
-<div id="96a1140d" class="cell" data-execution_count="1">
+<div id="37eda31c" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -359,7 +359,7 @@ window.Quarto = {
 <section id="downloading-sentiment-lexicons" class="level3" data-number="3.2">
 <h3 data-number="3.2" class="anchored" data-anchor-id="downloading-sentiment-lexicons"><span class="header-section-number">3.2</span> Downloading sentiment lexicons</h3>
 <p>NLTK requires downloading lexicon data separately:</p>
-<div id="1cb7f240" class="cell" data-execution_count="2">
+<div id="2125baff" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download required NLTK data</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>nltk.download(<span class="st">'opinion_lexicon'</span>, quiet<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>nltk.download(<span class="st">'punkt'</span>, quiet<span class="op">=</span><span class="va">True</span>)</span>
@@ -374,7 +374,7 @@ window.Quarto = {
 <section id="opinion-lexicon-hu-liu" class="level3" data-number="3.3">
 <h3 data-number="3.3" class="anchored" data-anchor-id="opinion-lexicon-hu-liu"><span class="header-section-number">3.3</span> Opinion Lexicon (Hu &amp; Liu)</h3>
 <p>The Opinion Lexicon is a simple positive/negative word list created by Hu and Liu (2004). It contains about 6,800 words.</p>
-<div id="a11cdf58" class="cell" data-execution_count="3">
+<div id="df1bf0aa" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load positive and negative words</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>positive_words <span class="op">=</span> <span class="bu">set</span>(opinion_lexicon.positive())</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>negative_words <span class="op">=</span> <span class="bu">set</span>(opinion_lexicon.negative())</span>
@@ -387,15 +387,15 @@ window.Quarto = {
 <pre><code>Positive words: 2006
 Negative words: 4783
 
-Example positive words: ['unmatched', 'indebted', 'uphold', 'endear', 'fastest', 'gratified', 'openly', 'marveled', 'effusion', 'inpressed']
-Example negative words: ['crazy', 'rascals', 'terrorism', 'wrong', 'crap', 'debaucher', 'ill-favored', 'sardonically', 'twisted', 'vehemently']</code></pre>
+Example positive words: ['modern', 'well-connected', 'expansive', 'astounding', 'abound', 'amazingly', 'stellarly', 'enticed', 'celebration', 'elan']
+Example negative words: ['catastrophically', 'defile', 'undocumented', 'hard-line', 'mangles', 'ruinous', 'shit', 'sorely', 'scathingly', 'acridness']</code></pre>
 </div>
 </div>
 </section>
 <section id="applying-a-simple-sentiment-dictionary" class="level3" data-number="3.4">
 <h3 data-number="3.4" class="anchored" data-anchor-id="applying-a-simple-sentiment-dictionary"><span class="header-section-number">3.4</span> Applying a simple sentiment dictionary</h3>
 <p>Let’s apply this dictionary to a few example sentences:</p>
-<div id="3960aa89" class="cell" data-execution_count="4">
+<div id="e9057566" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simple_sentiment(text):</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate sentiment by counting positive minus negative words.</span></span>
@@ -524,7 +524,7 @@ Text: The treatment was aggressive but effective.
 <p>This creates induced dictionaries like “Democratic positive words” and “Republican positive words” rather than assuming all positive words work the same way across political contexts.</p>
 <section id="loading-and-preparing-the-data" class="level3" data-number="5.1">
 <h3 data-number="5.1" class="anchored" data-anchor-id="loading-and-preparing-the-data"><span class="header-section-number">5.1</span> Loading and preparing the data</h3>
-<div id="f2a6aa74" class="cell" data-execution_count="5">
+<div id="659230e2" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the State of the Union corpus</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sou <span class="op">=</span> pd.read_csv(<span class="st">'./data/transcripts.csv'</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sou[<span class="st">'date'</span>] <span class="op">=</span> pd.to_datetime(sou[<span class="st">'date'</span>])</span>
@@ -600,7 +600,7 @@ Text: The treatment was aggressive but effective.
 <section id="defining-party-affiliation" class="level3" data-number="5.2">
 <h3 data-number="5.2" class="anchored" data-anchor-id="defining-party-affiliation"><span class="header-section-number">5.2</span> Defining party affiliation</h3>
 <p>We’ll focus on speeches since 1917 and assign party labels:</p>
-<div id="eba53c75" class="cell" data-execution_count="6">
+<div id="3fc01242" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Democratic presidents (post-1917)</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>democrats <span class="op">=</span> [</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Woodrow Wilson"</span>, </span>
@@ -635,7 +635,7 @@ Name: count, dtype: int64</code></pre>
 <section id="tokenizing-and-filtering-for-sentiment-words" class="level3" data-number="5.3">
 <h3 data-number="5.3" class="anchored" data-anchor-id="tokenizing-and-filtering-for-sentiment-words"><span class="header-section-number">5.3</span> Tokenizing and filtering for sentiment words</h3>
 <p>Now we’ll tokenize all speeches and keep only words from the sentiment lexicon. This focuses our analysis on emotional/evaluative language:</p>
-<div id="14b5c135" class="cell" data-execution_count="7">
+<div id="8cd1e1c6" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> defaultdict</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a combined sentiment word set (all sentiment words)</span></span>
@@ -898,7 +898,7 @@ Found 2878 sentiment words used in speeches</code></pre>
 <section id="calculating-pmi-in-python" class="level3" data-number="6.5">
 <h3 data-number="6.5" class="anchored" data-anchor-id="calculating-pmi-in-python"><span class="header-section-number">6.5</span> Calculating PMI in Python</h3>
 <p>Let’s implement PMI to find which sentiment words are distinctively associated with each party:</p>
-<div id="dd9e98b9" class="cell" data-execution_count="8">
+<div id="83f3aa78" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_pmi(word_freq_df):</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate PMI for each word with respect to both parties.</span></span>
@@ -1079,7 +1079,7 @@ Example results:</code></pre>
 <p>Now let’s examine which sentiment words are most distinctively associated with each party.</p>
 <section id="most-democratic-sentiment-words" class="level3" data-number="7.1">
 <h3 data-number="7.1" class="anchored" data-anchor-id="most-democratic-sentiment-words"><span class="header-section-number">7.1</span> Most Democratic sentiment words</h3>
-<div id="de1fa25f" class="cell" data-execution_count="9">
+<div id="7f544047" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Top words by Democratic PMI</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>top_dem <span class="op">=</span> sou_pmi.nlargest(<span class="dv">20</span>, <span class="st">'pmi_dem'</span>)[[<span class="st">'word'</span>, <span class="st">'pmi_dem'</span>, <span class="st">'sentiment'</span>, <span class="st">'dem_freq'</span>, <span class="st">'rep_freq'</span>]]</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Most distinctively Democratic sentiment words:</span><span class="ch">\n</span><span class="st">"</span>)</span>
@@ -1113,7 +1113,7 @@ undocumented 1.265108  negative      22.0       0.0
 </section>
 <section id="most-republican-sentiment-words" class="level3" data-number="7.2">
 <h3 data-number="7.2" class="anchored" data-anchor-id="most-republican-sentiment-words"><span class="header-section-number">7.2</span> Most Republican sentiment words</h3>
-<div id="07c6b62d" class="cell" data-execution_count="10">
+<div id="05512bee" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Top words by Republican PMI  </span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>top_rep <span class="op">=</span> sou_pmi.nlargest(<span class="dv">20</span>, <span class="st">'pmi_rep'</span>)[[<span class="st">'word'</span>, <span class="st">'pmi_rep'</span>, <span class="st">'sentiment'</span>, <span class="st">'dem_freq'</span>, <span class="st">'rep_freq'</span>]]</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Most distinctively Republican sentiment words:</span><span class="ch">\n</span><span class="st">"</span>)</span>
@@ -1150,7 +1150,7 @@ self-sufficient 1.515299  positive       0.0      12.0
 <h3 data-number="7.3" class="anchored" data-anchor-id="visualizing-the-political-sentiment-space"><span class="header-section-number">7.3</span> Visualizing the political-sentiment space</h3>
 <p>For a two-category comparison like Democrat vs Republican, the most informative measure is the <strong>PMI difference</strong>: <code>pmi_dem - pmi_rep</code>. This gives us a single scale from “distinctively Republican” (negative values) to “distinctively Democratic” (positive values).</p>
 <p>The clearest way to visualize this is with a horizontal bar chart showing the most distinctive words for each party.</p>
-<div id="706b0e37" class="cell" data-execution_count="11">
+<div id="bc1fd71d" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out very rare words (appearing fewer than 10 times total)</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This removes statistical artifacts from extremely rare words</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>plot_data <span class="op">=</span> sou_pmi[</span>
@@ -1259,7 +1259,7 @@ Showing top 15 Republican and top 15 Democratic sentiment words</code></pre>
 <p>We’ll track sentiment over time to see if major historical events correlate with changes in emotional tone in presidential rhetoric.</p>
 <section id="calculating-sentiment-for-all-speeches" class="level3" data-number="8.1">
 <h3 data-number="8.1" class="anchored" data-anchor-id="calculating-sentiment-for-all-speeches"><span class="header-section-number">8.1</span> Calculating sentiment for all speeches</h3>
-<div id="25466db3" class="cell" data-execution_count="12">
+<div id="7a1adfdd" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare all speeches with sentiment word counts</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>all_speeches <span class="op">=</span> sou.copy()</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>all_speeches[<span class="st">'year'</span>] <span class="op">=</span> all_speeches[<span class="st">'date'</span>].dt.year</span>
@@ -1387,7 +1387,7 @@ Showing top 15 Republican and top 15 Democratic sentiment words</code></pre>
 <section id="sentiment-over-time-a-historical-perspective" class="level3" data-number="8.2">
 <h3 data-number="8.2" class="anchored" data-anchor-id="sentiment-over-time-a-historical-perspective"><span class="header-section-number">8.2</span> Sentiment over time: A historical perspective</h3>
 <p>Let’s track sentiment year by year to see if major historical events correlate with changes in emotional tone.</p>
-<div id="d373ff88" class="cell" data-execution_count="13">
+<div id="e40aabd5" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average sentiment by year</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>yearly_sentiment <span class="op">=</span> sentiment_df.groupby(<span class="st">'year'</span>).agg({</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'positive'</span>: <span class="st">'sum'</span>,</span>
@@ -1409,7 +1409,7 @@ From 1790 to 2018</code></pre>
 </div>
 </div>
 <p>Now let’s visualize this time series and mark major historical events:</p>
-<div id="563a5296" class="cell" data-execution_count="14">
+<div id="aaa040ad" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create time series plot</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">6</span>))</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1477,7 +1477,7 @@ From 1790 to 2018</code></pre>
 <section id="zooming-in-the-world-war-i-period" class="level3" data-number="8.3">
 <h3 data-number="8.3" class="anchored" data-anchor-id="zooming-in-the-world-war-i-period"><span class="header-section-number">8.3</span> Zooming in: The World War I period</h3>
 <p>Let’s examine one period more closely - around World War I (1914-1918), which coincides with our 1917 cutoff.</p>
-<div id="6a0d9639" class="cell" data-execution_count="15">
+<div id="83a4d608" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Focus on WWI period</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>wwi_period <span class="op">=</span> yearly_sentiment[(yearly_sentiment[<span class="st">'year'</span>] <span class="op">&gt;=</span> <span class="dv">1910</span>) <span class="op">&amp;</span> (yearly_sentiment[<span class="st">'year'</span>] <span class="op">&lt;=</span> <span class="dv">1925</span>)].copy()</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1540,7 +1540,7 @@ From 1790 to 2018</code></pre>
 <h3 data-number="9.1" class="anchored" data-anchor-id="transformer-based-sentiment-analysis"><span class="header-section-number">9.1</span> Transformer-based sentiment analysis</h3>
 <p>While we’ve focused on dictionaries in this lab, it’s worth knowing that more sophisticated approaches exist. These use neural networks trained on large amounts of labeled data to understand sentiment in context.</p>
 <p>Here’s a quick example using a pre-trained model:</p>
-<div id="56ce0af2" class="cell" data-execution_count="16">
+<div id="1f9153c1" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Note: This requires transformers library</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># To install: pip install transformers torch</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1573,12 +1573,20 @@ From 1790 to 2018</code></pre>
 <span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Note: Transformer example requires internet connection to download models."</span>)</span>
 <span id="cb29-31"><a href="#cb29-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>None of PyTorch, TensorFlow &gt;= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
-None of PyTorch, TensorFlow &gt;= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.</code></pre>
+<pre><code>Device set to use cuda:0</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Note: Transformer example requires internet connection to download models.
-Error: name 'torch' is not defined</code></pre>
+<pre><code>Transformer-based sentiment analysis:
+
+Text: This is a wonderful and fantastic experience.
+  Label: POSITIVE, Confidence: 1.000
+
+Text: This is a terrible and awful disaster.
+  Label: NEGATIVE, Confidence: 1.000
+
+Text: This is not good at all.
+  Label: NEGATIVE, Confidence: 1.000
+</code></pre>
 </div>
 </div>
 <p>Notice how the transformer correctly identifies “This is not good at all” as negative, while our simple dictionary method earlier scored it as positive.</p>
