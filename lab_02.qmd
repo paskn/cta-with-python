@@ -863,6 +863,7 @@ For each word, we now have **three** key numbers:
 **Example interpretation**:
 
 If you see a word with:
+
 - Log odds = +2.0
 - G² = 45.3
 
