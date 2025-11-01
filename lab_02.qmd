@@ -1,0 +1,1304 @@
+---
+title: "Lab 02: Words as data points II"
+subtitle: "Comparing corpora, lemmatization, and statistical significance"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+
+
+## Learning objectives
+
+By the end of this lab, you will understand:
+
+- How to compare word usage across different groups or corpora
+- What lemmatization is and why it matters for text analysis
+- The difference between stemming and lemmatization
+- Why simple frequency comparisons can be misleading
+- How to measure statistical significance with log-likelihood (G²)
+- How to quantify effect size with log odds ratio
+- What named entities are and how to extract them
+- How to use spaCy for advanced NLP tasks in Python
+
+---
+
+## Introduction: Why compare corpora?
+
+In social and political science, texts often serve as proxies for social phenomena, sentiments, ideas, or discourses. A common research design involves collecting texts from different institutions, groups, or actors to create **contrasting corpora**. By comparing word usage across these corpora, we can infer something about the underlying social or political features of the entities they represent.
+
+### The research question
+
+Consider this scenario: Do Democratic and Republican presidents talk differently? Not just in terms of political positions, but in the actual *words* they use?
+
+In Lab 01, we compared authors based on *pre-selected* words (stop words, personal pronouns). This worked well for stylometry because function words are a closed class - we know all of them in advance.
+
+But what about **content words**? If we want to compare the *substance* of what different groups talk about, how do we:
+
+1. Avoid arbitrary word selection?
+2. Distinguish meaningful differences from random variation?
+3. Quantify both the *significance* and *magnitude* of differences?
+
+This is where corpus comparison methods come in.
+
+### Our approach today
+
+We'll create two contrasting corpora:
+
+- **Corpus A**: State of the Union addresses by Democratic presidents (since 1917)
+- **Corpus B**: State of the Union addresses by Republican presidents (since 1917)
+
+Then we'll use statistical measures to identify which words are significantly over- or under-used in one corpus compared to the other.
+
+**Key insight**: We're not just looking for *different* words - we're looking for *statistically significant* differences that reveal meaningful patterns.
+
+---
+
+## Setup: Loading packages
+
+```{python}
+# Data manipulation
+import pandas as pd
+import numpy as np
+
+# Text processing
+import spacy
+from collections import Counter
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Statistical functions
+from scipy.stats import chi2
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+
+print("✓ Packages loaded successfully")
+```
+
+::: {.callout-note}
+## About these packages
+
+New packages in this lab:
+
+- **numpy**: Numerical computing (for log calculations)
+- **scipy.stats**: Statistical functions (for significance testing)
+
+We'll continue using pandas, spaCy, and visualization libraries from Lab 01.
+:::
+
+### Loading spaCy model
+
+```{python}
+# Load English language model
+nlp = spacy.load("en_core_web_sm")
+
+nlp.max_length = 1530000        # https://github.com/explosion/spaCy/issues/13207#issuecomment-1865973378
+
+print(f"✓ spaCy model loaded: {nlp.meta['name']}")
+print(f"  Language: {nlp.meta['lang']}")
+print(f"  Components: {nlp.pipe_names}")
+```
+
+---
+
+## Loading and preparing the data
+
+Let's load our State of the Union dataset:
+
+```{python}
+# Load the data
+speeches = pd.read_csv("data/transcripts.csv")
+
+print(f"Total speeches: {len(speeches)}")
+print(f"Date range: {speeches['date'].min()} to {speeches['date'].max()}")
+print(f"\nFirst few rows:")
+speeches.head()
+```
+
+### Creating contrasting corpora
+
+We'll split speeches by party affiliation. First, let's define which presidents belong to which party (since 1917):
+
+```{python}
+# Democratic presidents since 1917
+democrats = [
+    "Woodrow Wilson", 
+    "Franklin D. Roosevelt", 
+    "Harry S. Truman", 
+    "John F. Kennedy", 
+    "Lyndon B. Johnson", 
+    "Jimmy Carter",
+    "William J. Clinton", 
+    "Barack Obama"
+]
+
+# Filter speeches
+speeches_after_1917 = speeches[speeches['date'] > '1917-10-25'].copy()
+
+# Create party labels
+speeches_after_1917['party'] = speeches_after_1917['president'].apply(
+    lambda x: 'Democrat' if x in democrats else 'Republican'
+)
+
+# Split into two corpora
+dem_speeches = speeches_after_1917[speeches_after_1917['party'] == 'Democrat']
+rep_speeches = speeches_after_1917[speeches_after_1917['party'] == 'Republican']
+
+print("Democratic presidents:")
+print(dem_speeches['president'].value_counts())
+print(f"\nTotal Democratic speeches: {len(dem_speeches)}")
+
+print("\n" + "="*50)
+print("\nRepublican presidents:")
+print(rep_speeches['president'].value_counts())
+print(f"\nTotal Republican speeches: {len(rep_speeches)}")
+```
+
+::: {.callout-tip}
+## Why start in 1917?
+
+We chose 1917 as a cutoff to:
+
+- Ensure both parties have substantial representation
+- Focus on relatively modern political language
+- Avoid complications from 19th century political realignments
+
+In your own research, such choices should be **explicit** and **justified**.
+:::
+
+### Combining texts by party
+
+For corpus comparison, we'll combine all speeches from each party into two large text collections:
+
+```{python}
+# Combine all speeches by party
+dem_corpus = " ".join(dem_speeches['transcript'].tolist())
+rep_corpus = " ".join(rep_speeches['transcript'].tolist())
+
+print(f"Democratic corpus: {len(dem_corpus):,} characters")
+print(f"Republican corpus: {len(rep_corpus):,} characters")
+```
+
+---
+
+## From wordforms to lemmas: Introduction to lemmatization
+
+### The problem with raw words
+
+Consider these sentences:
+
+- "The government **regulates** industry."
+- "These **regulations** affect small businesses."
+- "The **regulatory** framework is complex."
+
+These three words - *regulates*, *regulations*, *regulatory* - are clearly related. They share the same root concept of "regulation." But if we count them separately, we miss this connection.
+
+This problem is especially acute in languages with rich inflection (Russian, German, Finnish), but it exists in English too:
+
+- Verbs: walk, walks, walked, walking
+- Nouns: cat, cats, mouse, mice
+- Adjectives: big, bigger, biggest
+
+### Two solutions: Stemming vs lemmatization
+
+**Stemming**: Crudely chop off word endings
+
+- running → run
+- better → bet (⚠️ wrong!)
+- organization → organ (⚠️ wrong!)
+- Fast but imprecise
+
+**Lemmatization**: Reduce words to their dictionary form (*lemma*)
+
+- running → run
+- better → good
+- mice → mouse
+- Slower but accurate
+
+### How lemmatization works
+
+Lemmatization requires:
+
+1. **Part-of-speech information**: Is "running" a verb or a noun?
+2. **Morphological dictionary**: What are all the forms of "run"?
+3. **Linguistic rules**: How do irregular forms work?
+
+Fortunately, spaCy does all this for us!
+
+### Lemmatization with spaCy
+
+Let's see lemmatization in action:
+
+```{python}
+# Example text
+example = "The regulations are regulating industries more effectively than previous regulatory frameworks."
+
+# Process with spaCy
+doc = nlp(example)
+
+# Show original word, lemma, and part of speech
+print("Word → Lemma (Part of Speech)")
+print("-" * 40)
+for token in doc:
+    if not token.is_punct:
+        print(f"{token.text:15} → {token.lemma_:15} ({token.pos_})")
+```
+
+Notice how:
+
+- "regulations" → "regulation"
+- "are regulating" → "be regulate" (splits auxiliary verb)
+- "regulatory" → "regulatory" (already base form)
+
+::: {.callout-important}
+## When to lemmatize?
+
+**Use lemmatization when:**
+
+- Comparing content across documents
+- Building topic models
+- Working with inflected languages
+- Vocabulary is too large
+
+**Don't lemmatize when:**
+
+- Doing stylometry (exact forms matter)
+- Studying syntax or grammar
+- Tense/number/person is important
+- Training neural language models
+:::
+
+---
+
+## Processing our corpora with spaCy
+
+Now let's lemmatize both of our political corpora. This will take a few minutes as spaCy processes all the text.
+
+::: {.callout-note}
+## Processing time
+
+Processing large texts with spaCy is computationally intensive. For very large corpora (millions of words), you might want to:
+
+- Use spaCy's `nlp.pipe()` for batch processing
+- Disable unnecessary components (`nlp.disable_pipes()`)
+- Save processed results to disk
+
+For this lab, the processing should take 2-5 minutes.
+:::
+
+```{python}
+#| eval: false
+
+# Process Democratic speeches (this takes time!)
+print("Processing Democratic speeches...")
+dem_doc = nlp(dem_corpus)
+print("✓ Democratic corpus processed")
+
+# Process Republican speeches
+print("Processing Republican speeches...")
+rep_doc = nlp(rep_corpus)
+print("✓ Republican corpus processed")
+```
+
+For the purposes of this lab, let's work with a sample to speed things up:
+
+```{python}
+# Take a sample of each corpus for faster processing
+dem_sample = " ".join(dem_speeches.sample(n=min(20, len(dem_speeches)), random_state=42)['transcript'].tolist())
+rep_sample = " ".join(rep_speeches.sample(n=min(20, len(rep_speeches)), random_state=42)['transcript'].tolist())
+
+# Process samples
+print("Processing samples...")
+dem_doc = nlp(dem_sample)
+rep_doc = nlp(rep_sample)
+print("✓ Processing complete")
+
+print(f"\nDemocratic sample: {len(dem_doc)} tokens")
+print(f"Republican sample: {len(rep_doc)} tokens")
+```
+
+### Extracting lemmas and filtering
+
+We want to keep only content-bearing words. Let's filter out:
+
+- Punctuation (`.`, `,`, `!`, etc.)
+- Numbers (`1`, `2020`, `million`)
+- Symbols (`$`, `%`, `@`)
+- Proper nouns (specific names of people and places)
+- Stop words (optional - let's keep them for now to see what happens)
+
+```{python}
+# Extract lemmas from Democratic speeches
+dem_lemmas = []
+for token in dem_doc:
+    if not token.is_punct and not token.is_space and token.pos_ not in ['NUM', 'SYM', 'PROPN']:
+        dem_lemmas.append({
+            'lemma': token.lemma_.lower(),
+            'pos': token.pos_,
+            'party': 'Democrat'
+        })
+
+# Extract lemmas from Republican speeches
+rep_lemmas = []
+for token in rep_doc:
+    if not token.is_punct and not token.is_space and token.pos_ not in ['NUM', 'SYM', 'PROPN']:
+        rep_lemmas.append({
+            'lemma': token.lemma_.lower(),
+            'pos': token.pos_,
+            'party': 'Republican'
+        })
+
+# Combine into DataFrames
+dem_df = pd.DataFrame(dem_lemmas)
+rep_df = pd.DataFrame(rep_lemmas)
+
+print(f"Democratic lemmas: {len(dem_df):,}")
+print(f"Republican lemmas: {len(rep_df):,}")
+print(f"\nSample of Democratic lemmas:")
+print(dem_df.head(10))
+```
+
+### Creating frequency tables
+
+Now let's count how often each lemma appears in each corpus:
+
+```{python}
+# Count frequencies by party
+dem_counts = dem_df['lemma'].value_counts().reset_index()
+dem_counts.columns = ['lemma', 'democrat']
+
+rep_counts = rep_df['lemma'].value_counts().reset_index()
+rep_counts.columns = ['lemma', 'republican']
+
+# Merge into one table
+freq_table = dem_counts.merge(rep_counts, on='lemma', how='outer').fillna(0)
+
+# Convert to integers
+freq_table['democrat'] = freq_table['democrat'].astype(int)
+freq_table['republican'] = freq_table['republican'].astype(int)
+
+# Filter out very rare words (appears less than 10 times in both corpora)
+freq_table = freq_table[(freq_table['democrat'] > 10) | (freq_table['republican'] > 10)].copy()
+
+print(f"Unique lemmas (after filtering): {len(freq_table):,}")
+print(f"\nTop 20 by total frequency:")
+freq_table['total'] = freq_table['democrat'] + freq_table['republican']
+print(freq_table.sort_values('total', ascending=False).head(20))
+```
+
+---
+
+## The problem with simple frequency comparisons
+
+Looking at raw frequencies is tempting, but it can be misleading. Let's see why.
+
+### Corpus size matters
+
+```{python}
+# Total tokens per party
+total_dem = freq_table['democrat'].sum()
+total_rep = freq_table['republican'].sum()
+
+print(f"Total Democratic tokens: {total_dem:,}")
+print(f"Total Republican tokens: {total_rep:,}")
+print(f"Ratio (Dem/Rep): {total_dem/total_rep:.2f}")
+```
+
+If one corpus is larger, it will naturally have higher raw counts for most words. We need to account for this.
+
+### Example: The word "people"
+
+```{python}
+# Look at a specific word
+people_row = freq_table[freq_table['lemma'] == 'people']
+
+if len(people_row) > 0:
+    dem_count = people_row['democrat'].values[0]
+    rep_count = people_row['republican'].values[0]
+    
+    # Raw counts
+    print(f"Raw counts for 'people':")
+    print(f"  Democrats: {dem_count}")
+    print(f"  Republicans: {rep_count}")
+    print(f"  Difference: {dem_count - rep_count}")
+    
+    # Normalized (per 1000 words)
+    dem_rate = (dem_count / total_dem) * 1000
+    rep_rate = (rep_count / total_rep) * 1000
+    
+    print(f"\nNormalized rates (per 1,000 words):")
+    print(f"  Democrats: {dem_rate:.2f}")
+    print(f"  Republicans: {rep_rate:.2f}")
+    print(f"  Difference: {dem_rate - rep_rate:.2f}")
+```
+
+The raw difference might be large just because one corpus is bigger!
+
+### Two questions we need to answer
+
+1. **Is the difference statistically significant?**
+   - Could this difference occur by chance?
+   - How confident can we be that it's a real pattern?
+   - → We'll use **log-likelihood (G²)** for this
+
+2. **How large is the effect?**
+   - Is it a huge difference or a tiny one?
+   - Which words show the strongest contrast?
+   - → We'll use **log odds ratio** for this
+
+::: {.callout-note}
+## Statistical significance ≠ practical importance
+
+A difference can be:
+
+- **Statistically significant** but **tiny** (large sample)
+- **Large** but **not significant** (small sample)
+
+We need *both* measures to draw meaningful conclusions.
+:::
+
+---
+
+## Measuring significance: Log-likelihood (G²)
+
+### The problem: When is a difference real?
+
+Let's say we're comparing Republican and Democratic speeches, and we find that the word "freedom" appears:
+
+- 100 times in Republican speeches
+- 50 times in Democratic speeches
+
+Should we conclude that Republicans talk twice as much about freedom?
+
+Not necessarily. Here's why: What if the Republican corpus contains 1,000,000 words total, while the Democratic corpus contains 500,000 words? Then both parties use "freedom" at exactly the same rate (100 per million words). The difference in raw counts is simply because we have more Republican text.
+
+This is why we need a statistical test that accounts for corpus size.
+
+### What is log-likelihood (G²)?
+
+Log-likelihood, abbreviated as **G²**, is a statistical test that answers one simple question:
+
+> *"Given the sizes of my two corpora, how surprising is this word's distribution?"*
+
+**The logic:**
+
+- If a word is distributed just as we'd expect (proportional to corpus size), G² is close to 0
+- If the distribution is very different from what we'd expect, G² is large
+- The larger G², the more confident we can be that the difference is real, not just random variation
+
+Think of G² as a "surprise meter" - it measures how surprised we should be by what we observe.
+
+### How to read G² values
+
+G² follows a well-known statistical distribution, which means we have standard thresholds for interpretation:
+
+| G² value | Confidence level | What it means |
+|----------|------------------|---------------|
+| < 3.84   | Not significant  | Difference might be random chance |
+| > 3.84   | 95% confident    | Probably a real pattern (p < 0.05) |
+| > 6.63   | 99% confident    | Very likely a real pattern (p < 0.01) |
+| > 10.83  | 99.9% confident  | Almost certainly a real pattern (p < 0.001) |
+
+**Rule of thumb**: We typically use **G² > 6.63** as our cutoff for trusting a difference.
+
+::: {.callout-note}
+## What does "99% confident" mean?
+
+It means: "If there were actually no real difference, we'd see a result this extreme less than 1% of the time." In other words, we're very confident the pattern is real, not just luck.
+:::
+
+::: {.callout-note collapse="true"}
+## For the mathematically curious: How G² is calculated
+
+G² compares observed frequencies (what we actually see) to expected frequencies (what we'd see if words were distributed proportionally to corpus size).
+
+The formula is:
+
+$$G^2 = 2 \sum O \times \ln\left(\frac{O}{E}\right)$$
+
+Where:
+
+- $O$ = observed frequency
+- $E$ = expected frequency
+- $\ln$ = natural logarithm
+
+For two corpora, this expands to:
+
+$$G^2 = 2 \times \left[ a \times \ln\left(\frac{a}{E_1}\right) + b \times \ln\left(\frac{b}{E_2}\right) \right]$$
+
+Where:
+
+- $a$ = word count in Corpus A
+- $b$ = word count in Corpus B
+- $E_1$ = expected count in Corpus A
+- $E_2$ = expected count in Corpus B
+
+The expected frequencies account for corpus size:
+
+$$E_1 = C \times \frac{a + b}{C + D}$$
+$$E_2 = D \times \frac{a + b}{C + D}$$
+
+Where:
+
+- $C$ = total size of Corpus A
+- $D$ = total size of Corpus B
+
+This test is based on Dunning (1993), a foundational paper in corpus linguistics. It's preferred over chi-squared for text data because it handles sparse data (rare words) more reliably.
+:::
+
+### Calculating G² in Python
+
+We'll create a function that does all the mathematical work for us:
+
+```{python}
+def log_likelihood(a, b):
+    """
+    Calculate log-likelihood (G²) for word frequencies in two corpora.
+
+    This function compares observed word frequencies to expected frequencies
+    (based on corpus size) and returns a G² value indicating how surprising
+    the observed distribution is.
+
+    Parameters:
+    -----------
+    a : array-like
+        Word counts in corpus A (e.g., Democratic speeches)
+    b : array-like
+        Word counts in corpus B (e.g., Republican speeches)
+
+    Returns:
+    --------
+    array-like
+        G² values for each word (higher = more surprising/significant)
+    """
+    # Total corpus sizes
+    C = np.sum(a)  # Total tokens in corpus A
+    D = np.sum(b)  # Total tokens in corpus B
+
+    # Calculate expected frequencies (what we'd expect if words were distributed proportionally)
+    E1 = C * ((a + b) / (C + D))
+    E2 = D * ((a + b) / (C + D))
+
+    # Calculate G² statistic
+    # Note: We add a tiny constant (1e-10) to avoid mathematical errors when counts are zero
+    g2 = 2 * ((a * np.log(a / E1 + 1e-10)) + (b * np.log(b / E2 + 1e-10)))
+
+    return g2
+```
+
+### Using G² to find significant differences
+
+```{python}
+# Calculate log-likelihood for all words
+freq_table['g2'] = log_likelihood(
+    freq_table['democrat'].values, 
+    freq_table['republican'].values
+)
+
+# Sort by G² (most significant differences)
+freq_table_sorted = freq_table.sort_values('g2', ascending=False).copy()
+
+print("Words with highest G² (most significant differences):")
+print(freq_table_sorted[['lemma', 'democrat', 'republican', 'g2']].head(20))
+```
+
+Look at the G² values. Many are well above 6.63, meaning we can be very confident these differences are real.
+
+### How many significant differences did we find?
+
+Let's count how many words show statistically significant differences at different confidence levels:
+
+```{python}
+# Count significant differences
+sig_05 = (freq_table['g2'] > 3.84).sum()
+sig_01 = (freq_table['g2'] > 6.63).sum()
+sig_001 = (freq_table['g2'] > 10.83).sum()
+
+print(f"Significant differences:")
+print(f"  95% confident (G² > 3.84):   {sig_05} words")
+print(f"  99% confident (G² > 6.63):   {sig_01} words")
+print(f"  99.9% confident (G² > 10.83): {sig_001} words")
+print(f"\nTotal words tested: {len(freq_table)}")
+```
+
+So we have hundreds of words with statistically significant differences. But are they all interesting?
+
+### The problem: Stop words dominate
+
+Not all statistically significant differences are interesting. Let's check what kinds of words have the highest G² values:
+
+```{python}
+# Load stop words from spaCy
+stop_words = nlp.Defaults.stop_words
+
+# Check if top G² words are stop words
+freq_table_sorted['is_stopword'] = freq_table_sorted['lemma'].isin(stop_words)
+
+print("Top 20 by G² - are they stop words?")
+print(freq_table_sorted[['lemma', 'g2', 'is_stopword']].head(20))
+```
+
+Notice that many high-G² words are stop words (words like "the", "and", "of").
+
+**Why does this happen?**
+
+- Stop words appear thousands of times in our corpora
+- G² is sensitive to absolute frequencies - when a word appears 5,000 times, even a small proportional difference produces high G²
+- A word that's 51% vs 49% between corpora can have higher G² than a word that's 90% vs 10%, just because the first word is more common overall
+
+**The solution**: Filter to focus on content words (nouns, verbs, adjectives) by removing stop words.
+
+```{python}
+# Focus on content words by removing stop words
+content_words = freq_table_sorted[~freq_table_sorted['is_stopword']].copy()
+
+print("Top 20 content words by G²:")
+print(content_words[['lemma', 'democrat', 'republican', 'g2']].head(20))
+```
+
+Much better! Now we're seeing substantive words about policy, governance, and political issues.
+
+### What G² doesn't tell us
+
+G² tells us **that** a difference exists and how confident we can be about it. But it doesn't tell us:
+
+1. **Which corpus** uses the word more
+2. **How much more** it's used
+
+For that, we need another measure: log odds ratio.
+
+---
+
+## Measuring effect size: Log odds ratio
+
+### The problem: G² doesn't tell us everything
+
+Look back at the content words with high G² values. Can you quickly tell which party uses each word more? Is "health" more Democratic or Republican? What about "security"?
+
+G² told us that differences exist and that they're statistically significant. But it doesn't tell us:
+
+1. **Direction**: Which corpus uses the word more?
+2. **Magnitude**: Is it slightly more common, or dramatically more common?
+
+For this, we need a different measure: **log odds ratio**.
+
+### What is log odds ratio?
+
+Log odds ratio is a measure of **effect size** that answers:
+
+> *"How much more is this word used in one corpus compared to the other?"*
+
+It gives us two pieces of information:
+
+- **The sign** (+ or -) tells us which corpus uses the word more
+- **The number** tells us how much more it's used
+
+### How to read log odds values
+
+In our analysis, we calculate log odds where:
+
+- **Positive values** = word is more common in Democratic speeches
+- **Negative values** = word is more common in Republican speeches
+- **Zero** = word is equally common in both
+
+The magnitude tells us how big the difference is:
+
+| Log Odds | Meaning |
+|----------|---------|
+| +1.0     | Word is 2× more common in Democratic speeches |
+| +2.0     | Word is 4× more common in Democratic speeches |
+| +3.0     | Word is 8× more common in Democratic speeches |
+| -1.0     | Word is 2× more common in Republican speeches |
+| -2.0     | Word is 4× more common in Republican speeches |
+| 0.0      | Word is equally common in both |
+
+### A concrete example
+
+Let's say the word "healthcare" appears:
+
+- 200 times in Democratic speeches (out of 100,000 total Democratic words)
+- 50 times in Republican speeches (out of 100,000 total Republican words)
+
+The proportions are:
+
+- Democratic: 200/100,000 = 0.002 (0.2%)
+- Republican: 50/100,000 = 0.0005 (0.05%)
+
+The ratio is 0.002/0.0005 = 4.0 (Democrats use it 4× more often).
+
+The log₂(4.0) = 2.0
+
+So this word would have a **log odds ratio of +2.0**, meaning Democrats use it 4× more than Republicans.
+
+::: {.callout-note collapse="true"}
+## Why use logarithm?
+
+Raw ratios are asymmetric and hard to interpret:
+
+- "2× more common" = ratio of 2.0
+- "2× less common" = ratio of 0.5
+
+These don't look symmetric even though they represent the same magnitude of difference.
+
+Taking the logarithm makes them symmetric:
+
+- 2× more common: log₂(2.0) = +1.0
+- 2× less common: log₂(0.5) = -1.0
+
+We use **base-2 logarithm** (log₂) because it's easy to interpret:
+
+- Each +1 means "doubled"
+- Each -1 means "halved"
+
+This makes effect sizes comparable across different words.
+:::
+
+::: {.callout-note collapse="true"}
+## The mathematical formula
+
+Log odds ratio is calculated as:
+
+$$\text{Log Odds Ratio} = \log_2\left(\frac{a/C}{b/D}\right)$$
+
+Where:
+
+- $a$ = word count in Corpus A (Democrats)
+- $b$ = word count in Corpus B (Republicans)
+- $C$ = total size of Corpus A
+- $D$ = total size of Corpus B
+
+This simplifies to comparing the proportions (a/C vs b/D) of how often each corpus uses the word.
+:::
+
+### Calculating log odds ratio in Python
+
+Let's create a function to calculate log odds ratio for all our words:
+
+```{python}
+def log_odds_ratio(a, b):
+    """
+    Calculate log odds ratio for word frequencies in two corpora.
+
+    This function compares how often words appear in each corpus
+    (accounting for corpus size) and returns a number telling us
+    which corpus uses each word more and by how much.
+
+    Positive values = more common in corpus A (Democrats)
+    Negative values = more common in corpus B (Republicans)
+    Magnitude = how much more (1 = 2×, 2 = 4×, 3 = 8×, etc.)
+
+    Parameters:
+    -----------
+    a : array-like
+        Word counts in corpus A (e.g., Democratic speeches)
+    b : array-like
+        Word counts in corpus B (e.g., Republican speeches)
+
+    Returns:
+    --------
+    array-like
+        Log odds ratios (base 2) for each word
+    """
+    # Total corpus sizes
+    C = np.sum(a)  # Total words in corpus A
+    D = np.sum(b)  # Total words in corpus B
+
+    # Calculate proportions (what percentage of each corpus is this word?)
+    prop_a = a / C
+    prop_b = b / D
+
+    # Calculate log odds ratio
+    # Note: We add a tiny constant (1e-10) to avoid mathematical errors when counts are zero
+    lor = np.log2((prop_a + 1e-10) / (prop_b + 1e-10))
+
+    return lor
+```
+
+### Using log odds ratio to see which party uses each word
+
+```{python}
+# Calculate log odds ratio
+freq_table['log_odds'] = log_odds_ratio(
+    freq_table['democrat'].values,
+    freq_table['republican'].values
+)
+
+# Add to our content words table too
+content_words['log_odds'] = log_odds_ratio(
+    content_words['democrat'].values,
+    content_words['republican'].values
+)
+
+print("Words most strongly associated with Democrats (positive log odds):")
+print(content_words.nlargest(15, 'log_odds')[['lemma', 'democrat', 'republican', 'log_odds', 'g2']])
+
+print("\nWords most strongly associated with Republicans (negative log odds):")
+print(content_words.nsmallest(15, 'log_odds')[['lemma', 'democrat', 'republican', 'log_odds', 'g2']])
+```
+
+Now we can see the full picture! Look at the output:
+
+- **Positive log odds** (e.g., +2.5) means Democrats use this word more (roughly 2^2.5 ≈ 5-6× more often)
+- **Negative log odds** (e.g., -1.8) means Republicans use this word more (roughly 2^1.8 ≈ 3-4× more often)
+
+### Reading the results: Putting it all together
+
+For each word, we now have **three** key numbers:
+
+1. **Democrat count / Republican count**: Raw frequencies (affected by corpus size)
+2. **Log odds ratio**: Effect size - which party uses it more and by how much
+3. **G² value**: Statistical significance - how confident we can be
+
+**Example interpretation**:
+
+If you see a word with:
+- Log odds = +2.0
+- G² = 45.3
+
+This means: "Democrats use this word about 4× more often than Republicans, and we're extremely confident (p < 0.001) this is a real pattern, not chance."
+
+::: {.callout-tip}
+## Best practice: Filter for both significance AND effect size
+
+Not every statistically significant difference is interesting. And not every large difference is reliable.
+
+The most meaningful words are those that pass **three** tests:
+
+1. **Statistically significant**: G² > 6.63 (we're 99% confident it's real)
+2. **Large effect**: |log odds| > 0.5 (at least 40% more frequent in one corpus)
+3. **Not too rare**: Appears at least 5 times in both corpora (reliable measurement)
+
+Only words that pass all three tests are truly distinctive and reliable.
+:::
+
+### Finding the most meaningful differences
+
+Let's filter our results to find words that are both statistically significant AND show large effects:
+
+```{python}
+# Find meaningful differences - must pass all three tests
+meaningful = content_words[
+    (content_words['g2'] > 6.63) &                    # Test 1: Statistically significant
+    (np.abs(content_words['log_odds']) > 0.5) &       # Test 2: Large effect size
+    (content_words['democrat'] > 5) &                 # Test 3: Not too rare
+    (content_words['republican'] > 5)
+].copy()
+
+print(f"Words with significant AND large differences: {len(meaningful)}")
+print("\nTop 10 most distinctively Democratic words:")
+print(meaningful.nlargest(10, 'log_odds')[['lemma', 'democrat', 'republican', 'log_odds', 'g2']])
+
+print("\nTop 10 most distinctively Republican words:")
+print(meaningful.nsmallest(10, 'log_odds')[['lemma', 'democrat', 'republican', 'log_odds', 'g2']])
+```
+
+These are the words that truly distinguish Democratic from Republican political rhetoric - they're both statistically reliable and substantively important.
+
+---
+
+## Visualizing differences
+
+### Bar chart of log odds ratios
+
+```{python}
+# Get top 15 for each party
+top_dem = meaningful.nlargest(15, 'log_odds')
+top_rep = meaningful.nsmallest(15, 'log_odds')
+top_both = pd.concat([top_dem, top_rep])
+
+# Sort by log odds for plotting
+top_both = top_both.sort_values('log_odds')
+
+# Create plot
+fig, ax = plt.subplots(figsize=(10, 8))
+
+colors = ['#0015BC' if x > 0 else '#E81B23' for x in top_both['log_odds']]
+ax.barh(range(len(top_both)), top_both['log_odds'], color=colors, alpha=0.7)
+ax.set_yticks(range(len(top_both)))
+ax.set_yticklabels(top_both['lemma'])
+ax.axvline(0, color='black', linewidth=0.8, linestyle='--')
+ax.set_xlabel('Log Odds Ratio (negative = Republican, positive = Democrat)', fontsize=12)
+ax.set_title('Most Distinctive Words by Party', fontsize=14, fontweight='bold')
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='#0015BC', alpha=0.7, label='More Democratic'),
+    Patch(facecolor='#E81B23', alpha=0.7, label='More Republican')
+]
+ax.legend(handles=legend_elements, loc='lower right')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Scatter plot: Significance vs effect size
+
+A scatter plot helps us visualize the relationship between effect size (log odds ratio) and statistical significance (G²).
+
+However, we need to be careful about very rare words. Words that appear only once or twice in one corpus but zero times in the other create extreme log odds ratios (dividing by near-zero) with low statistical significance. These are statistical artifacts, not meaningful patterns.
+
+To avoid misleading visualizations, we'll filter out words that don't appear at least 5 times in both corpora:
+
+```{python}
+# Create scatter plot
+fig, ax = plt.subplots(figsize=(12, 8))
+
+# Filter for plotting - remove very rare words that create artifacts
+plot_data = content_words[
+    (content_words['democrat'] >= 5) &
+    (content_words['republican'] >= 5)
+].copy()
+
+# Color by which party uses word more
+colors = ['#0015BC' if x > 0 else '#E81B23' for x in plot_data['log_odds']]
+
+ax.scatter(plot_data['log_odds'], plot_data['g2'],
+           c=colors, alpha=0.5, s=30)
+
+# Add significance threshold line
+ax.axhline(6.63, color='gray', linestyle='--', linewidth=1, alpha=0.7, label='p < 0.01')
+
+# Add effect size threshold lines
+ax.axvline(-0.5, color='gray', linestyle=':', linewidth=1, alpha=0.5)
+ax.axvline(0.5, color='gray', linestyle=':', linewidth=1, alpha=0.5)
+
+ax.set_xlabel('Log Odds Ratio (negative = Republican, positive = Democrat)', fontsize=12)
+ax.set_ylabel('Log-Likelihood (G²)', fontsize=12)
+ax.set_title('Effect Size vs Statistical Significance', fontsize=14, fontweight='bold')
+
+# Annotate some interesting words
+for _, row in meaningful.head(10).iterrows():
+    ax.annotate(row['lemma'], 
+                (row['log_odds'], row['g2']),
+                fontsize=8, alpha=0.7,
+                xytext=(5, 5), textcoords='offset points')
+
+plt.tight_layout()
+plt.show()
+```
+
+This scatter plot shows the relationship between:
+
+- **X-axis**: Effect size (how different?)
+- **Y-axis**: Statistical significance (how confident?)
+
+The most interesting words are in the **upper left** and **upper right** corners - both statistically significant (high G²) and distinctive (large absolute log odds ratio). These are the words that show strong, reliable differences between the two parties.
+
+Words near the bottom (low G²) may have large log odds ratios but aren't statistically reliable - often because they're too rare. The horizontal line at G² = 6.63 marks the p < 0.01 significance threshold.
+
+---
+
+## Named entity recognition
+
+So far we've analyzed individual words (lemmas). But sometimes we're interested in references to real-world entities:
+
+- **PERSON**: Barack Obama, Hillary Clinton
+- **ORG**: United Nations, Department of Defense
+- **GPE**: America, Iraq, New York
+- **DATE**: tomorrow, 2020, next year
+- **MONEY**: $1 billion, five dollars
+
+This is called **Named Entity Recognition (NER)**, and spaCy does it automatically!
+
+### How NER works
+
+NER is a classification task:
+
+1. Identify spans of text that might be entities
+2. Classify each span into entity types
+3. Use machine learning models trained on annotated data
+
+Modern NER systems use neural networks trained on large corpora of hand-labeled examples.
+
+### Extracting entities with spaCy
+
+Let's look at entities in a sample speech:
+
+```{python}
+# Get one speech
+sample_speech = dem_speeches.iloc[0]['transcript'][:1000]  # First 1000 chars
+
+# Process it
+sample_doc = nlp(sample_speech)
+
+# Display entities
+print("Named entities found:\n")
+print(f"{'Entity':<25} {'Type':<15} {'Explanation'}")
+print("-" * 65)
+
+for ent in sample_doc.ents:
+    print(f"{ent.text:<25} {ent.label_:<15} {spacy.explain(ent.label_)}")
+```
+
+### Comparing entity usage across parties
+
+Let's extract all location entities (GPE = Geo-Political Entity) from both corpora:
+
+```{python}
+# Extract GPE entities from both corpora
+dem_locations = [ent.text.lower() for ent in dem_doc.ents if ent.label_ == 'GPE']
+rep_locations = [ent.text.lower() for ent in rep_doc.ents if ent.label_ == 'GPE']
+
+print(f"Democratic location mentions: {len(dem_locations)}")
+print(f"Republican location mentions: {len(rep_locations)}")
+
+# Count frequencies
+dem_loc_counts = pd.Series(dem_locations).value_counts().reset_index()
+dem_loc_counts.columns = ['location', 'democrat']
+
+rep_loc_counts = pd.Series(rep_locations).value_counts().reset_index()
+rep_loc_counts.columns = ['location', 'republican']
+
+# Merge
+location_freq = dem_loc_counts.merge(rep_loc_counts, on='location', how='outer').fillna(0)
+location_freq['democrat'] = location_freq['democrat'].astype(int)
+location_freq['republican'] = location_freq['republican'].astype(int)
+
+# Filter for locations mentioned at least 5 times
+location_freq = location_freq[
+    (location_freq['democrat'] >= 5) | (location_freq['republican'] >= 5)
+].copy()
+
+print(f"\nLocations mentioned frequently:")
+print(location_freq.head(15))
+```
+
+### Statistical comparison of locations
+
+```{python}
+# Calculate G² and log odds for locations
+location_freq['g2'] = log_likelihood(
+    location_freq['democrat'].values,
+    location_freq['republican'].values
+)
+
+location_freq['log_odds'] = log_odds_ratio(
+    location_freq['democrat'].values,
+    location_freq['republican'].values
+)
+
+# Find significant differences
+sig_locations = location_freq[
+    (location_freq['g2'] > 6.63) &
+    (location_freq['democrat'] >= 3) &
+    (location_freq['republican'] >= 3)
+].copy()
+
+print("Locations with significant usage differences:\n")
+print("Most Democratic:")
+print(sig_locations.nlargest(10, 'log_odds')[['location', 'democrat', 'republican', 'log_odds', 'g2']])
+
+print("\nMost Republican:")
+print(sig_locations.nsmallest(10, 'log_odds')[['location', 'democrat', 'republican', 'log_odds', 'g2']])
+```
+
+### Visualizing location mentions
+
+```{python}
+if len(sig_locations) > 0:
+    # Get top locations for each party
+    top_dem_loc = sig_locations.nlargest(10, 'log_odds')
+    top_rep_loc = sig_locations.nsmallest(10, 'log_odds')
+    top_loc = pd.concat([top_dem_loc, top_rep_loc]).drop_duplicates().sort_values('log_odds')
+    
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 6))
+    colors = ['#0015BC' if x > 0 else '#E81B23' for x in top_loc['log_odds']]
+    
+    ax.barh(range(len(top_loc)), top_loc['log_odds'], color=colors, alpha=0.7)
+    ax.set_yticks(range(len(top_loc)))
+    ax.set_yticklabels(top_loc['location'])
+    ax.axvline(0, color='black', linewidth=0.8, linestyle='--')
+    ax.set_xlabel('Log Odds Ratio (negative = Republican, positive = Democrat)', fontsize=12)
+    ax.set_title('Geographic Focus: Location Mentions by Party', fontsize=14, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.show()
+else:
+    print("Not enough significant location differences in our sample.")
+```
+
+::: {.callout-note}
+## Other entity types
+
+You can analyze other entity types the same way:
+
+- **PERSON**: Which individuals are mentioned?
+- **ORG**: What organizations are discussed?
+- **DATE**: How are temporal references used?
+- **MONEY**: How are financial amounts discussed?
+
+Try exploring these in the exercises!
+:::
+
+---
+
+## Summary and key takeaways
+
+### What we learned
+
+Today we covered methods for statistically comparing corpora:
+
+1. **Lemmatization** → Reducing words to dictionary forms
+2. **Corpus preparation** → Creating contrasting text collections
+3. **Log-likelihood (G²)** → Testing statistical significance
+4. **Log odds ratio** → Measuring effect size
+5. **Named entity recognition** → Extracting references to real-world entities
+
+### Key concepts
+
+**Lemmatization**
+: Reducing wordforms to their base dictionary form (lemma)
+
+**Contrasting corpora**
+: Collections of texts from different sources for comparison
+
+**Log-likelihood (G²)**
+: Statistical test for significance of frequency differences
+
+**Log odds ratio**
+: Measure of effect size (how much more frequent)
+
+**Named entity**
+: Reference to a real-world entity (person, place, organization)
+
+**Effect size vs significance**
+: Significance = confidence; effect size = magnitude
+
+### Critical insights
+
+::: {.callout-important}
+## Don't trust p-values alone!
+
+A word can be:
+
+- **Highly significant** but barely different (large sample)
+- **Highly different** but not significant (rare word)
+
+Always report *both* significance and effect size.
+:::
+
+::: {.callout-important}
+## Preprocessing choices matter
+
+- Lemmatize or not?
+- Remove stop words or not?
+- Filter by part of speech or not?
+
+Each choice affects your results. Make them **explicit** and **justified**.
+:::
+
+### Statistical comparison workflow
+
+1. **Prepare corpora** → Split data into contrasting groups
+2. **Lemmatize** → Reduce morphological variation (if appropriate)
+3. **Count frequencies** → Create frequency table
+4. **Filter** → Remove very rare words, stop words (if appropriate)
+5. **Calculate G²** → Test significance
+6. **Calculate log odds** → Measure effect size
+7. **Filter meaningful differences** → Both significant AND large
+8. **Interpret** → What do the differences tell us?
+
+---
+
+## Exercises
+
+### Exercise 1: Full corpus analysis
+
+We used samples for speed in this lab. Now process the *full* corpora:
+
+1. Process all Democratic and all Republican speeches (not just samples)
+2. Calculate G² and log odds ratio for all lemmas
+3. Identify the 20 most distinctive content words for each party
+4. Create visualizations
+
+**Note**: This will take 10-15 minutes to process!
+
+### Exercise 2: Stop word investigation
+
+Investigate whether stop words show political patterns:
+
+1. Filter for *only* stop words in your frequency table
+2. Calculate G² and log odds ratio
+3. Which stop words differ most between parties?
+4. Can you interpret why? (Think about formality, rhetorical style)
+
+### Exercise 3: Temporal comparison
+
+Instead of comparing parties, compare time periods:
+
+1. Split speeches into before/after 1970 (or another meaningful date)
+2. Calculate distinctive words for each period
+3. What changes in American political discourse can you observe?
+
+### Exercise 4: Named entity deep dive
+
+Choose one entity type (PERSON, ORG, or DATE) and:
+
+1. Extract all entities of that type from both corpora
+2. Calculate frequency differences
+3. Identify significant patterns
+4. Interpret: What do these patterns reveal about political priorities?
+
+### Exercise 5: Part-of-speech patterns (Advanced)
+
+Compare parts of speech:
+
+1. Count how often each POS tag appears in each corpus
+2. Do Democrats use more adjectives? Republicans more verbs?
+3. Calculate significance and effect size
+4. What might linguistic differences reveal about rhetorical style?
+
+### Exercise 6: Creating your own contrasting corpora
+
+Think of another comparison that interests you in the State of the Union data:
+
+- War vs peace time presidents
+- First term vs second term speeches
+- 19th vs 20th vs 21st century
+- High vs low approval ratings (you'd need to add this data)
+
+Design and execute your own corpus comparison study.
+
+---
+
+## References and further reading
+
+### Academic papers
+
+- Dunning, T. (1993). Accurate methods for the statistics of surprise and coincidence. *Computational Linguistics*, 19(1), 61-74. [https://aclanthology.org/J93-1003.pdf](https://aclanthology.org/J93-1003.pdf)
+- Rayson, P., & Garside, R. (2000). Comparing corpora using frequency profiling. *Proceedings of the Workshop on Comparing Corpora*, 1-6. [https://doi.org/10.3115/1117729.1117730](https://doi.org/10.3115/1117729.1117730)
+- Monroe, B. L., Colaresi, M. P., & Quinn, K. M. (2008). Fightin' words: Lexical feature selection and evaluation for identifying the content of political conflict. *Political Analysis*, 16(4), 372-403. [https://doi.org/10.1093/pan/mpn018](https://doi.org/10.1093/pan/mpn018) 
+
+### Textbooks
+
+- Jurafsky, D., & Martin, J. H. (2023). *Speech and Language Processing* (3rd ed., draft). Chapter 2 (Regular Expressions, Text Normalization, Edit Distance). [https://web.stanford.edu/~jurafsky/slp3/](https://web.stanford.edu/~jurafsky/slp3/)
+- Silge, J., & Robinson, D. (2017). *Text Mining with R*. Chapter 4 (Relationships between words). [https://www.tidytextmining.com/ngrams.html](https://www.tidytextmining.com/ngrams.html)
+
+### Tutorials
+
+- spaCy documentation on lemmatization: [https://spacy.io/usage/linguistic-features#lemmatization](https://spacy.io/usage/linguistic-features#lemmatization)
+- spaCy documentation on NER: [https://spacy.io/usage/linguistic-features#named-entities](https://spacy.io/usage/linguistic-features#named-entities)
+- Log-likelihood calculator and explanation: [http://ucrel.lancs.ac.uk/llwizard.html](http://ucrel.lancs.ac.uk/llwizard.html)
+
+### Tools
+
+- **spaCy**: Industrial-strength NLP library - [https://spacy.io](https://spacy.io)
+- **NLTK**: Classic Python NLP toolkit - [https://www.nltk.org](https://www.nltk.org)
+- **Lancaster Stats Tools**: Log-likelihood calculator - [http://ucrel.lancs.ac.uk/llwizard.html](http://ucrel.lancs.ac.uk/llwizard.html)
+
+---
+
+**End of Lab 02**
