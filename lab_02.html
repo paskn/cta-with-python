@@ -298,7 +298,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2025-11-01 13:14:28</p>
+      <p class="date">2025-11-01 13:32:40</p>
     </div>
   </div>
   
@@ -354,7 +354,7 @@ window.Quarto = {
 </section>
 <section id="setup-loading-packages" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="setup-loading-packages"><span class="header-section-number">3</span> Setup: Loading packages</h2>
-<div id="2722dd5a" class="cell" data-execution_count="1">
+<div id="3ff078f3" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -399,7 +399,7 @@ window.Quarto = {
 </div>
 <section id="loading-spacy-model" class="level3" data-number="3.1">
 <h3 data-number="3.1" class="anchored" data-anchor-id="loading-spacy-model"><span class="header-section-number">3.1</span> Loading spaCy model</h3>
-<div id="a6acd272" class="cell" data-execution_count="2">
+<div id="fca94580" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load English language model</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -420,7 +420,7 @@ window.Quarto = {
 <section id="loading-and-preparing-the-data" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="loading-and-preparing-the-data"><span class="header-section-number">4</span> Loading and preparing the data</h2>
 <p>Let’s load our State of the Union dataset:</p>
-<div id="945359a9" class="cell" data-execution_count="3">
+<div id="8a14acc4" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>speeches <span class="op">=</span> pd.read_csv(<span class="st">"data/transcripts.csv"</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -499,7 +499,7 @@ First few rows:</code></pre>
 <section id="creating-contrasting-corpora" class="level3" data-number="4.1">
 <h3 data-number="4.1" class="anchored" data-anchor-id="creating-contrasting-corpora"><span class="header-section-number">4.1</span> Creating contrasting corpora</h3>
 <p>We’ll split speeches by party affiliation. First, let’s define which presidents belong to which party (since 1917):</p>
-<div id="26e08712" class="cell" data-execution_count="4">
+<div id="0c592bcf" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Democratic presidents since 1917</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>democrats <span class="op">=</span> [</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Woodrow Wilson"</span>, </span>
@@ -589,7 +589,7 @@ Total Republican speeches: 59</code></pre>
 <section id="combining-texts-by-party" class="level3" data-number="4.2">
 <h3 data-number="4.2" class="anchored" data-anchor-id="combining-texts-by-party"><span class="header-section-number">4.2</span> Combining texts by party</h3>
 <p>For corpus comparison, we’ll combine all speeches from each party into two large text collections:</p>
-<div id="70ed1cb9" class="cell" data-execution_count="5">
+<div id="f72f1b02" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all speeches by party</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>dem_corpus <span class="op">=</span> <span class="st">" "</span>.join(dem_speeches[<span class="st">'transcript'</span>].tolist())</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rep_corpus <span class="op">=</span> <span class="st">" "</span>.join(rep_speeches[<span class="st">'transcript'</span>].tolist())</span>
@@ -652,7 +652,7 @@ Republican corpus: 4,176,938 characters</code></pre>
 <section id="lemmatization-with-spacy" class="level3" data-number="5.4">
 <h3 data-number="5.4" class="anchored" data-anchor-id="lemmatization-with-spacy"><span class="header-section-number">5.4</span> Lemmatization with spaCy</h3>
 <p>Let’s see lemmatization in action:</p>
-<div id="3de60c2c" class="cell" data-execution_count="6">
+<div id="316445ac" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example text</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>example <span class="op">=</span> <span class="st">"The regulations are regulating industries more effectively than previous regulatory frameworks."</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -738,7 +738,7 @@ frameworks      → framework       (NOUN)</code></pre>
 <p>For this lab, the processing should take 2-5 minutes.</p>
 </div>
 </div>
-<div id="954a7ab5" class="cell" data-execution_count="7">
+<div id="9e23d9f6" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Process Democratic speeches (this takes time!)</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Processing Democratic speeches..."</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>dem_doc <span class="op">=</span> nlp(dem_corpus)</span>
@@ -750,7 +750,7 @@ frameworks      → framework       (NOUN)</code></pre>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✓ Republican corpus processed"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>For the purposes of this lab, let’s work with a sample to speed things up:</p>
-<div id="208a2e5f" class="cell" data-execution_count="8">
+<div id="3444533f" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Take a sample of each corpus for faster processing</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>dem_sample <span class="op">=</span> <span class="st">" "</span>.join(dem_speeches.sample(n<span class="op">=</span><span class="bu">min</span>(<span class="dv">20</span>, <span class="bu">len</span>(dem_speeches)), random_state<span class="op">=</span><span class="dv">42</span>)[<span class="st">'transcript'</span>].tolist())</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>rep_sample <span class="op">=</span> <span class="st">" "</span>.join(rep_speeches.sample(n<span class="op">=</span><span class="bu">min</span>(<span class="dv">20</span>, <span class="bu">len</span>(rep_speeches)), random_state<span class="op">=</span><span class="dv">42</span>)[<span class="st">'transcript'</span>].tolist())</span>
@@ -781,7 +781,7 @@ Republican sample: 267382 tokens</code></pre>
 <li>Proper nouns (specific names of people and places)</li>
 <li>Stop words (optional - let’s keep them for now to see what happens)</li>
 </ul>
-<div id="7654376d" class="cell" data-execution_count="9">
+<div id="4e52f7e7" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract lemmas from Democratic speeches</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>dem_lemmas <span class="op">=</span> []</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> token <span class="kw">in</span> dem_doc:</span>
@@ -832,7 +832,7 @@ Sample of Democratic lemmas:
 <section id="creating-frequency-tables" class="level3" data-number="6.2">
 <h3 data-number="6.2" class="anchored" data-anchor-id="creating-frequency-tables"><span class="header-section-number">6.2</span> Creating frequency tables</h3>
 <p>Now let’s count how often each lemma appears in each corpus:</p>
-<div id="2f074465" class="cell" data-execution_count="10">
+<div id="e12df5c1" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count frequencies by party</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>dem_counts <span class="op">=</span> dem_df[<span class="st">'lemma'</span>].value_counts().reset_index()</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>dem_counts.columns <span class="op">=</span> [<span class="st">'lemma'</span>, <span class="st">'democrat'</span>]</span>
@@ -889,7 +889,7 @@ Top 20 by total frequency:
 <p>Looking at raw frequencies is tempting, but it can be misleading. Let’s see why.</p>
 <section id="corpus-size-matters" class="level3" data-number="7.1">
 <h3 data-number="7.1" class="anchored" data-anchor-id="corpus-size-matters"><span class="header-section-number">7.1</span> Corpus size matters</h3>
-<div id="18e74124" class="cell" data-execution_count="11">
+<div id="461c72fe" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total tokens per party</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>total_dem <span class="op">=</span> freq_table[<span class="st">'democrat'</span>].<span class="bu">sum</span>()</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>total_rep <span class="op">=</span> freq_table[<span class="st">'republican'</span>].<span class="bu">sum</span>()</span>
@@ -907,7 +907,7 @@ Ratio (Dem/Rep): 1.11</code></pre>
 </section>
 <section id="example-the-word-people" class="level3" data-number="7.2">
 <h3 data-number="7.2" class="anchored" data-anchor-id="example-the-word-people"><span class="header-section-number">7.2</span> Example: The word “people”</h3>
-<div id="5d566fcb" class="cell" data-execution_count="12">
+<div id="402d1c1e" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at a specific word</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>people_row <span class="op">=</span> freq_table[freq_table[<span class="st">'lemma'</span>] <span class="op">==</span> <span class="st">'people'</span>]</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1105,7 +1105,7 @@ Normalized rates (per 1,000 words):
 <section id="calculating-g²-in-python" class="level3" data-number="8.4">
 <h3 data-number="8.4" class="anchored" data-anchor-id="calculating-g²-in-python"><span class="header-section-number">8.4</span> Calculating G² in Python</h3>
 <p>We’ll create a function that does all the mathematical work for us:</p>
-<div id="6dd32828" class="cell" data-execution_count="13">
+<div id="3bb88793" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_likelihood(a, b):</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate log-likelihood (G²) for word frequencies in two corpora.</span></span>
@@ -1143,7 +1143,7 @@ Normalized rates (per 1,000 words):
 </section>
 <section id="using-g²-to-find-significant-differences" class="level3" data-number="8.5">
 <h3 data-number="8.5" class="anchored" data-anchor-id="using-g²-to-find-significant-differences"><span class="header-section-number">8.5</span> Using G² to find significant differences</h3>
-<div id="8730a6a4" class="cell" data-execution_count="14">
+<div id="315db282" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate log-likelihood for all words</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>freq_table[<span class="st">'g2'</span>] <span class="op">=</span> log_likelihood(</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    freq_table[<span class="st">'democrat'</span>].values, </span>
@@ -1185,7 +1185,7 @@ Normalized rates (per 1,000 words):
 <section id="how-many-significant-differences-did-we-find" class="level3" data-number="8.6">
 <h3 data-number="8.6" class="anchored" data-anchor-id="how-many-significant-differences-did-we-find"><span class="header-section-number">8.6</span> How many significant differences did we find?</h3>
 <p>Let’s count how many words show statistically significant differences at different confidence levels:</p>
-<div id="e074f198" class="cell" data-execution_count="15">
+<div id="fa7867f2" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count significant differences</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>sig_05 <span class="op">=</span> (freq_table[<span class="st">'g2'</span>] <span class="op">&gt;</span> <span class="fl">3.84</span>).<span class="bu">sum</span>()</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>sig_01 <span class="op">=</span> (freq_table[<span class="st">'g2'</span>] <span class="op">&gt;</span> <span class="fl">6.63</span>).<span class="bu">sum</span>()</span>
@@ -1210,7 +1210,7 @@ Total words tested: 2072</code></pre>
 <section id="the-problem-stop-words-dominate" class="level3" data-number="8.7">
 <h3 data-number="8.7" class="anchored" data-anchor-id="the-problem-stop-words-dominate"><span class="header-section-number">8.7</span> The problem: Stop words dominate</h3>
 <p>Not all statistically significant differences are interesting. Let’s check what kinds of words have the highest G² values:</p>
-<div id="075dc515" class="cell" data-execution_count="16">
+<div id="fbeb684f" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load stop words from spaCy</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>stop_words <span class="op">=</span> nlp.Defaults.stop_words</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1252,7 +1252,7 @@ Total words tested: 2072</code></pre>
 <li>A word that’s 51% vs 49% between corpora can have higher G² than a word that’s 90% vs 10%, just because the first word is more common overall</li>
 </ul>
 <p><strong>The solution</strong>: Filter to focus on content words (nouns, verbs, adjectives) by removing stop words.</p>
-<div id="a4c45f7b" class="cell" data-execution_count="17">
+<div id="e27d99b3" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Focus on content words by removing stop words</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>content_words <span class="op">=</span> freq_table_sorted[<span class="op">~</span>freq_table_sorted[<span class="st">'is_stopword'</span>]].copy()</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1440,7 +1440,7 @@ Total words tested: 2072</code></pre>
 <section id="calculating-log-odds-ratio-in-python" class="level3" data-number="9.5">
 <h3 data-number="9.5" class="anchored" data-anchor-id="calculating-log-odds-ratio-in-python"><span class="header-section-number">9.5</span> Calculating log odds ratio in Python</h3>
 <p>Let’s create a function to calculate log odds ratio for all our words:</p>
-<div id="68318a34" class="cell" data-execution_count="18">
+<div id="0508dfe4" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_odds_ratio(a, b):</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate log odds ratio for word frequencies in two corpora.</span></span>
@@ -1482,7 +1482,7 @@ Total words tested: 2072</code></pre>
 </section>
 <section id="using-log-odds-ratio-to-see-which-party-uses-each-word" class="level3" data-number="9.6">
 <h3 data-number="9.6" class="anchored" data-anchor-id="using-log-odds-ratio-to-see-which-party-uses-each-word"><span class="header-section-number">9.6</span> Using log odds ratio to see which party uses each word</h3>
-<div id="76d2fcb0" class="cell" data-execution_count="19">
+<div id="75651389" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate log odds ratio</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>freq_table[<span class="st">'log_odds'</span>] <span class="op">=</span> log_odds_ratio(</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    freq_table[<span class="st">'democrat'</span>].values,</span>
@@ -1553,7 +1553,11 @@ Words most strongly associated with Republicans (negative log odds):
 <li><strong>G² value</strong>: Statistical significance - how confident we can be</li>
 </ol>
 <p><strong>Example interpretation</strong>:</p>
-<p>If you see a word with: - Log odds = +2.0 - G² = 45.3</p>
+<p>If you see a word with:</p>
+<ul>
+<li>Log odds = +2.0</li>
+<li>G² = 45.3</li>
+</ul>
 <p>This means: “Democrats use this word about 4× more often than Republicans, and we’re extremely confident (p &lt; 0.001) this is a real pattern, not chance.”</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1579,7 +1583,7 @@ Words most strongly associated with Republicans (negative log odds):
 <section id="finding-the-most-meaningful-differences" class="level3" data-number="9.8">
 <h3 data-number="9.8" class="anchored" data-anchor-id="finding-the-most-meaningful-differences"><span class="header-section-number">9.8</span> Finding the most meaningful differences</h3>
 <p>Let’s filter our results to find words that are both statistically significant AND show large effects:</p>
-<div id="0538d856" class="cell" data-execution_count="20">
+<div id="3b6a3cec" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find meaningful differences - must pass all three tests</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>meaningful <span class="op">=</span> content_words[</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    (content_words[<span class="st">'g2'</span>] <span class="op">&gt;</span> <span class="fl">6.63</span>) <span class="op">&amp;</span>                    <span class="co"># Test 1: Statistically significant</span></span>
@@ -1632,7 +1636,7 @@ Top 10 most distinctively Republican words:
 <h2 data-number="10" class="anchored" data-anchor-id="visualizing-differences"><span class="header-section-number">10</span> Visualizing differences</h2>
 <section id="bar-chart-of-log-odds-ratios" class="level3" data-number="10.1">
 <h3 data-number="10.1" class="anchored" data-anchor-id="bar-chart-of-log-odds-ratios"><span class="header-section-number">10.1</span> Bar chart of log odds ratios</h3>
-<div id="b49184f0" class="cell" data-execution_count="21">
+<div id="8b9a100a" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get top 15 for each party</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>top_dem <span class="op">=</span> meaningful.nlargest(<span class="dv">15</span>, <span class="st">'log_odds'</span>)</span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>top_rep <span class="op">=</span> meaningful.nsmallest(<span class="dv">15</span>, <span class="st">'log_odds'</span>)</span>
@@ -1676,7 +1680,7 @@ Top 10 most distinctively Republican words:
 <p>A scatter plot helps us visualize the relationship between effect size (log odds ratio) and statistical significance (G²).</p>
 <p>However, we need to be careful about very rare words. Words that appear only once or twice in one corpus but zero times in the other create extreme log odds ratios (dividing by near-zero) with low statistical significance. These are statistical artifacts, not meaningful patterns.</p>
 <p>To avoid misleading visualizations, we’ll filter out words that don’t appear at least 5 times in both corpora:</p>
-<div id="30f9b329" class="cell" data-execution_count="22">
+<div id="6a80ad0a" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create scatter plot</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">8</span>))</span>
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1754,7 +1758,7 @@ Top 10 most distinctively Republican words:
 <section id="extracting-entities-with-spacy" class="level3" data-number="11.2">
 <h3 data-number="11.2" class="anchored" data-anchor-id="extracting-entities-with-spacy"><span class="header-section-number">11.2</span> Extracting entities with spaCy</h3>
 <p>Let’s look at entities in a sample speech:</p>
-<div id="31e9b4cb" class="cell" data-execution_count="23">
+<div id="6964bede" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get one speech</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>sample_speech <span class="op">=</span> dem_speeches.iloc[<span class="dv">0</span>][<span class="st">'transcript'</span>][:<span class="dv">1000</span>]  <span class="co"># First 1000 chars</span></span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1794,7 +1798,7 @@ Don                       PERSON          People, including fictional</code></pr
 <section id="comparing-entity-usage-across-parties" class="level3" data-number="11.3">
 <h3 data-number="11.3" class="anchored" data-anchor-id="comparing-entity-usage-across-parties"><span class="header-section-number">11.3</span> Comparing entity usage across parties</h3>
 <p>Let’s extract all location entities (GPE = Geo-Political Entity) from both corpora:</p>
-<div id="265fb32a" class="cell" data-execution_count="24">
+<div id="38d751a6" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract GPE entities from both corpora</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>dem_locations <span class="op">=</span> [ent.text.lower() <span class="cf">for</span> ent <span class="kw">in</span> dem_doc.ents <span class="cf">if</span> ent.label_ <span class="op">==</span> <span class="st">'GPE'</span>]</span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>rep_locations <span class="op">=</span> [ent.text.lower() <span class="cf">for</span> ent <span class="kw">in</span> rep_doc.ents <span class="cf">if</span> ent.label_ <span class="op">==</span> <span class="st">'GPE'</span>]</span>
@@ -1847,7 +1851,7 @@ Locations mentioned frequently:
 </section>
 <section id="statistical-comparison-of-locations" class="level3" data-number="11.4">
 <h3 data-number="11.4" class="anchored" data-anchor-id="statistical-comparison-of-locations"><span class="header-section-number">11.4</span> Statistical comparison of locations</h3>
-<div id="87fc4e54" class="cell" data-execution_count="25">
+<div id="cb97b92f" class="cell" data-execution_count="25">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate G² and log odds for locations</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>location_freq[<span class="st">'g2'</span>] <span class="op">=</span> log_likelihood(</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    location_freq[<span class="st">'democrat'</span>].values,</span>
@@ -1905,7 +1909,7 @@ Most Republican:
 </section>
 <section id="visualizing-location-mentions" class="level3" data-number="11.5">
 <h3 data-number="11.5" class="anchored" data-anchor-id="visualizing-location-mentions"><span class="header-section-number">11.5</span> Visualizing location mentions</h3>
-<div id="93177c3a" class="cell" data-execution_count="26">
+<div id="168a49fa" class="cell" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(sig_locations) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get top locations for each party</span></span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    top_dem_loc <span class="op">=</span> sig_locations.nlargest(<span class="dv">10</span>, <span class="st">'log_odds'</span>)</span>
