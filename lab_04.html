@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lab 04: Comparing documents – Computational Text Analysis with Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-960d9d362f81d399278ec3e29b622b37.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Computational Text Analysis with Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./basic-python.html"> 
+<span class="menu-text">Python Basics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">1</span> Learning objectives</a></li>
+  <li><a href="#introduction-from-words-to-documents" id="toc-introduction-from-words-to-documents" class="nav-link" data-scroll-target="#introduction-from-words-to-documents"><span class="header-section-number">2</span> Introduction: From words to documents</a>
+  <ul>
+  <li><a href="#the-challenge-how-do-you-compare-documents" id="toc-the-challenge-how-do-you-compare-documents" class="nav-link" data-scroll-target="#the-challenge-how-do-you-compare-documents"><span class="header-section-number">2.1</span> The challenge: How do you compare documents?</a></li>
+  <li><a href="#the-solution-vector-space-models" id="toc-the-solution-vector-space-models" class="nav-link" data-scroll-target="#the-solution-vector-space-models"><span class="header-section-number">2.2</span> The solution: Vector space models</a></li>
+  </ul></li>
+  <li><a href="#setup-loading-packages" id="toc-setup-loading-packages" class="nav-link" data-scroll-target="#setup-loading-packages"><span class="header-section-number">3</span> Setup: Loading packages</a>
+  <ul>
+  <li><a href="#loading-spacy-model" id="toc-loading-spacy-model" class="nav-link" data-scroll-target="#loading-spacy-model"><span class="header-section-number">3.1</span> Loading spaCy model</a></li>
+  </ul></li>
+  <li><a href="#loading-and-preparing-the-data" id="toc-loading-and-preparing-the-data" class="nav-link" data-scroll-target="#loading-and-preparing-the-data"><span class="header-section-number">4</span> Loading and preparing the data</a>
+  <ul>
+  <li><a href="#creating-a-working-sample" id="toc-creating-a-working-sample" class="nav-link" data-scroll-target="#creating-a-working-sample"><span class="header-section-number">4.1</span> Creating a working sample</a></li>
+  </ul></li>
+  <li><a href="#from-text-to-vectors-the-document-term-matrix" id="toc-from-text-to-vectors-the-document-term-matrix" class="nav-link" data-scroll-target="#from-text-to-vectors-the-document-term-matrix"><span class="header-section-number">5</span> From text to vectors: The document-term matrix</a>
+  <ul>
+  <li><a href="#what-is-a-document-term-matrix" id="toc-what-is-a-document-term-matrix" class="nav-link" data-scroll-target="#what-is-a-document-term-matrix"><span class="header-section-number">5.1</span> What is a document-term matrix?</a></li>
+  <li><a href="#creating-a-document-term-matrix-with-scikit-learn" id="toc-creating-a-document-term-matrix-with-scikit-learn" class="nav-link" data-scroll-target="#creating-a-document-term-matrix-with-scikit-learn"><span class="header-section-number">5.2</span> Creating a document-term matrix with scikit-learn</a></li>
+  <li><a href="#inspecting-the-matrix" id="toc-inspecting-the-matrix" class="nav-link" data-scroll-target="#inspecting-the-matrix"><span class="header-section-number">5.3</span> Inspecting the matrix</a></li>
+  </ul></li>
+  <li><a href="#the-problem-with-raw-counts" id="toc-the-problem-with-raw-counts" class="nav-link" data-scroll-target="#the-problem-with-raw-counts"><span class="header-section-number">6</span> The problem with raw counts</a>
+  <ul>
+  <li><a href="#what-is-tf-idf" id="toc-what-is-tf-idf" class="nav-link" data-scroll-target="#what-is-tf-idf"><span class="header-section-number">6.1</span> What is TF-IDF?</a></li>
+  <li><a href="#creating-tf-idf-weighted-vectors" id="toc-creating-tf-idf-weighted-vectors" class="nav-link" data-scroll-target="#creating-tf-idf-weighted-vectors"><span class="header-section-number">6.2</span> Creating TF-IDF weighted vectors</a></li>
+  </ul></li>
+  <li><a href="#measuring-document-similarity-with-cosine-similarity" id="toc-measuring-document-similarity-with-cosine-similarity" class="nav-link" data-scroll-target="#measuring-document-similarity-with-cosine-similarity"><span class="header-section-number">7</span> Measuring document similarity with cosine similarity</a>
+  <ul>
+  <li><a href="#what-is-cosine-similarity" id="toc-what-is-cosine-similarity" class="nav-link" data-scroll-target="#what-is-cosine-similarity"><span class="header-section-number">7.1</span> What is cosine similarity?</a></li>
+  <li><a href="#a-simple-example" id="toc-a-simple-example" class="nav-link" data-scroll-target="#a-simple-example"><span class="header-section-number">7.2</span> A simple example</a></li>
+  <li><a href="#computing-similarity-for-all-pairs" id="toc-computing-similarity-for-all-pairs" class="nav-link" data-scroll-target="#computing-similarity-for-all-pairs"><span class="header-section-number">7.3</span> Computing similarity for all pairs</a></li>
+  </ul></li>
+  <li><a href="#visualizing-document-similarity" id="toc-visualizing-document-similarity" class="nav-link" data-scroll-target="#visualizing-document-similarity"><span class="header-section-number">8</span> Visualizing document similarity</a>
+  <ul>
+  <li><a href="#creating-a-basic-heatmap" id="toc-creating-a-basic-heatmap" class="nav-link" data-scroll-target="#creating-a-basic-heatmap"><span class="header-section-number">8.1</span> Creating a basic heatmap</a></li>
+  <li><a href="#improving-the-visualization" id="toc-improving-the-visualization" class="nav-link" data-scroll-target="#improving-the-visualization"><span class="header-section-number">8.2</span> Improving the visualization</a></li>
+  </ul></li>
+  <li><a href="#identifying-the-most-and-least-similar-speeches" id="toc-identifying-the-most-and-least-similar-speeches" class="nav-link" data-scroll-target="#identifying-the-most-and-least-similar-speeches"><span class="header-section-number">9</span> Identifying the most and least similar speeches</a>
+  <ul>
+  <li><a href="#most-similar-speech-pairs" id="toc-most-similar-speech-pairs" class="nav-link" data-scroll-target="#most-similar-speech-pairs"><span class="header-section-number">9.1</span> Most similar speech pairs</a></li>
+  <li><a href="#most-different-speech-pairs" id="toc-most-different-speech-pairs" class="nav-link" data-scroll-target="#most-different-speech-pairs"><span class="header-section-number">9.2</span> Most different speech pairs</a></li>
+  </ul></li>
+  <li><a href="#temporal-patterns-tracking-linguistic-change" id="toc-temporal-patterns-tracking-linguistic-change" class="nav-link" data-scroll-target="#temporal-patterns-tracking-linguistic-change"><span class="header-section-number">10</span> Temporal patterns: Tracking linguistic change</a>
+  <ul>
+  <li><a href="#average-similarity-to-surrounding-years" id="toc-average-similarity-to-surrounding-years" class="nav-link" data-scroll-target="#average-similarity-to-surrounding-years"><span class="header-section-number">10.1</span> Average similarity to surrounding years</a></li>
+  <li><a href="#visualizing-temporal-stability" id="toc-visualizing-temporal-stability" class="nav-link" data-scroll-target="#visualizing-temporal-stability"><span class="header-section-number">10.2</span> Visualizing temporal stability</a></li>
+  <li><a href="#finding-moments-of-rhetorical-innovation" id="toc-finding-moments-of-rhetorical-innovation" class="nav-link" data-scroll-target="#finding-moments-of-rhetorical-innovation"><span class="header-section-number">10.3</span> Finding moments of rhetorical innovation</a></li>
+  </ul></li>
+  <li><a href="#scaling-up-analyzing-the-full-dataset" id="toc-scaling-up-analyzing-the-full-dataset" class="nav-link" data-scroll-target="#scaling-up-analyzing-the-full-dataset"><span class="header-section-number">11</span> Scaling up: Analyzing the full dataset</a>
+  <ul>
+  <li><a href="#preparing-the-full-dataset" id="toc-preparing-the-full-dataset" class="nav-link" data-scroll-target="#preparing-the-full-dataset"><span class="header-section-number">11.1</span> Preparing the full dataset</a></li>
+  <li><a href="#computing-similarity-for-all-speeches" id="toc-computing-similarity-for-all-speeches" class="nav-link" data-scroll-target="#computing-similarity-for-all-speeches"><span class="header-section-number">11.2</span> Computing similarity for all speeches</a></li>
+  <li><a href="#visualizing-200-years-of-rhetorical-similarity" id="toc-visualizing-200-years-of-rhetorical-similarity" class="nav-link" data-scroll-target="#visualizing-200-years-of-rhetorical-similarity"><span class="header-section-number">11.3</span> Visualizing 200 years of rhetorical similarity</a></li>
+  </ul></li>
+  <li><a href="#identifying-historical-eras-through-clustering" id="toc-identifying-historical-eras-through-clustering" class="nav-link" data-scroll-target="#identifying-historical-eras-through-clustering"><span class="header-section-number">12</span> Identifying historical eras through clustering</a>
+  <ul>
+  <li><a href="#average-similarity-by-decade" id="toc-average-similarity-by-decade" class="nav-link" data-scroll-target="#average-similarity-by-decade"><span class="header-section-number">12.1</span> Average similarity by decade</a></li>
+  <li><a href="#visualizing-rhetorical-coherence-by-era" id="toc-visualizing-rhetorical-coherence-by-era" class="nav-link" data-scroll-target="#visualizing-rhetorical-coherence-by-era"><span class="header-section-number">12.2</span> Visualizing rhetorical coherence by era</a></li>
+  </ul></li>
+  <li><a href="#finding-the-most-distinctive-speeches" id="toc-finding-the-most-distinctive-speeches" class="nav-link" data-scroll-target="#finding-the-most-distinctive-speeches"><span class="header-section-number">13</span> Finding the most distinctive speeches</a>
+  <ul>
+  <li><a href="#computing-average-similarity-to-all-other-speeches" id="toc-computing-average-similarity-to-all-other-speeches" class="nav-link" data-scroll-target="#computing-average-similarity-to-all-other-speeches"><span class="header-section-number">13.1</span> Computing average similarity to all other speeches</a></li>
+  <li><a href="#most-distinctive-unique-speeches" id="toc-most-distinctive-unique-speeches" class="nav-link" data-scroll-target="#most-distinctive-unique-speeches"><span class="header-section-number">13.2</span> Most distinctive (unique) speeches</a></li>
+  <li><a href="#most-typical-speeches" id="toc-most-typical-speeches" class="nav-link" data-scroll-target="#most-typical-speeches"><span class="header-section-number">13.3</span> Most typical speeches</a></li>
+  </ul></li>
+  <li><a href="#applications-and-extensions" id="toc-applications-and-extensions" class="nav-link" data-scroll-target="#applications-and-extensions"><span class="header-section-number">14</span> Applications and extensions</a>
+  <ul>
+  <li><a href="#detecting-plagiarism-or-borrowing" id="toc-detecting-plagiarism-or-borrowing" class="nav-link" data-scroll-target="#detecting-plagiarism-or-borrowing"><span class="header-section-number">14.1</span> 1. Detecting plagiarism or borrowing</a></li>
+  <li><a href="#finding-speeches-similar-to-a-query" id="toc-finding-speeches-similar-to-a-query" class="nav-link" data-scroll-target="#finding-speeches-similar-to-a-query"><span class="header-section-number">14.2</span> 2. Finding speeches similar to a query</a></li>
+  <li><a href="#tracking-specific-topics-over-time" id="toc-tracking-specific-topics-over-time" class="nav-link" data-scroll-target="#tracking-specific-topics-over-time"><span class="header-section-number">14.3</span> 3. Tracking specific topics over time</a></li>
+  </ul></li>
+  <li><a href="#summary-and-key-takeaways" id="toc-summary-and-key-takeaways" class="nav-link" data-scroll-target="#summary-and-key-takeaways"><span class="header-section-number">15</span> Summary and key takeaways</a>
+  <ul>
+  <li><a href="#core-concepts" id="toc-core-concepts" class="nav-link" data-scroll-target="#core-concepts"><span class="header-section-number">15.1</span> Core concepts</a></li>
+  <li><a href="#what-we-built" id="toc-what-we-built" class="nav-link" data-scroll-target="#what-we-built"><span class="header-section-number">15.2</span> What we built</a></li>
+  <li><a href="#key-insights" id="toc-key-insights" class="nav-link" data-scroll-target="#key-insights"><span class="header-section-number">15.3</span> Key insights</a></li>
+  <li><a href="#comparison-to-earlier-labs" id="toc-comparison-to-earlier-labs" class="nav-link" data-scroll-target="#comparison-to-earlier-labs"><span class="header-section-number">15.4</span> Comparison to earlier labs</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">16</span> Exercises</a>
+  <ul>
+  <li><a href="#exercise-1-party-based-clustering" id="toc-exercise-1-party-based-clustering" class="nav-link" data-scroll-target="#exercise-1-party-based-clustering"><span class="header-section-number">16.1</span> Exercise 1: Party-based clustering</a></li>
+  <li><a href="#exercise-2-presidential-signature-rhetoric" id="toc-exercise-2-presidential-signature-rhetoric" class="nav-link" data-scroll-target="#exercise-2-presidential-signature-rhetoric"><span class="header-section-number">16.2</span> Exercise 2: Presidential signature rhetoric</a></li>
+  <li><a href="#exercise-3-foreign-vs-domestic-policy" id="toc-exercise-3-foreign-vs-domestic-policy" class="nav-link" data-scroll-target="#exercise-3-foreign-vs-domestic-policy"><span class="header-section-number">16.3</span> Exercise 3: Foreign vs domestic policy</a></li>
+  <li><a href="#exercise-4-influential-speeches" id="toc-exercise-4-influential-speeches" class="nav-link" data-scroll-target="#exercise-4-influential-speeches"><span class="header-section-number">16.4</span> Exercise 4: Influential speeches</a></li>
+  <li><a href="#exercise-5-shortest-path-through-history" id="toc-exercise-5-shortest-path-through-history" class="nav-link" data-scroll-target="#exercise-5-shortest-path-through-history"><span class="header-section-number">16.5</span> Exercise 5: Shortest path through history</a></li>
+  <li><a href="#exercise-6-validation-with-known-events" id="toc-exercise-6-validation-with-known-events" class="nav-link" data-scroll-target="#exercise-6-validation-with-known-events"><span class="header-section-number">16.6</span> Exercise 6: Validation with known events</a></li>
+  </ul></li>
+  <li><a href="#references-and-further-reading" id="toc-references-and-further-reading" class="nav-link" data-scroll-target="#references-and-further-reading"><span class="header-section-number">17</span> References and further reading</a>
+  <ul>
+  <li><a href="#foundational-papers" id="toc-foundational-papers" class="nav-link" data-scroll-target="#foundational-papers"><span class="header-section-number">17.1</span> Foundational papers</a></li>
+  <li><a href="#applications-in-political-science" id="toc-applications-in-political-science" class="nav-link" data-scroll-target="#applications-in-political-science"><span class="header-section-number">17.2</span> Applications in political science</a></li>
+  <li><a href="#technical-resources" id="toc-technical-resources" class="nav-link" data-scroll-target="#technical-resources"><span class="header-section-number">17.3</span> Technical resources</a></li>
+  <li><a href="#extensions-and-advanced-topics" id="toc-extensions-and-advanced-topics" class="nav-link" data-scroll-target="#extensions-and-advanced-topics"><span class="header-section-number">17.4</span> Extensions and advanced topics</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 04: Comparing documents</h1>
+<p class="subtitle lead">Document similarity, clustering, and temporal patterns</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2025-11-09 17:03:30</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">1</span> Learning objectives</h2>
+<p>By the end of this lab, you will understand:</p>
+<ul>
+<li>How to represent documents as vectors in a shared space</li>
+<li>What cosine similarity is and why it works for comparing texts</li>
+<li>How TF-IDF weighting helps identify similar documents</li>
+<li>How to create document similarity matrices and heatmaps</li>
+<li>How to track linguistic change over time</li>
+<li>How to identify periods of rhetorical innovation and stability</li>
+<li>The difference between word-level and document-level analysis</li>
+</ul>
+<hr>
+</section>
+<section id="introduction-from-words-to-documents" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="introduction-from-words-to-documents"><span class="header-section-number">2</span> Introduction: From words to documents</h2>
+<p>In Labs 01-03, we focused on analyzing individual <strong>words</strong> - counting them, comparing their frequencies, finding distinctive vocabulary with PMI. These are powerful techniques, but they all share one limitation: they treat each word independently.</p>
+<p>But what if we want to ask questions like:</p>
+<ul>
+<li>Which two presidential speeches are most similar overall?</li>
+<li>Do speeches cluster by party, president, or historical era?</li>
+<li>When did American political language change most dramatically?</li>
+<li>Can we detect plagiarism or borrowed rhetoric?</li>
+</ul>
+<p>These questions require us to think about <strong>entire documents</strong>, not just individual words. We need to compare whole texts and measure how similar or different they are.</p>
+<section id="the-challenge-how-do-you-compare-documents" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="the-challenge-how-do-you-compare-documents"><span class="header-section-number">2.1</span> The challenge: How do you compare documents?</h3>
+<p>Here’s the problem: Documents are long, complex objects. A State of the Union address might contain 5,000 words. How do we reduce all that complexity to a single number that tells us “these two speeches are similar”?</p>
+<p>You might think: “Just count how many words they share!” But that doesn’t work well:</p>
+<p><strong>Example</strong>: Imagine three speeches:</p>
+<ul>
+<li>Speech A: “We must strengthen our economy and create jobs for workers.”</li>
+<li>Speech B: “We need to build our economy and provide employment for citizens.”<br>
+</li>
+<li>Speech C: “The weather today is sunny and warm.”</li>
+</ul>
+<p>Speeches A and B share <em>zero</em> words in common (different vocabulary for the same ideas), but they’re clearly more similar than A and C (which happen to share “and” and “our”).</p>
+<p>We need a smarter approach.</p>
+</section>
+<section id="the-solution-vector-space-models" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="the-solution-vector-space-models"><span class="header-section-number">2.2</span> The solution: Vector space models</h3>
+<p>The key insight is this: If we represent each document as a <strong>vector</strong> (a list of numbers), we can use mathematical tools to measure how similar vectors are.</p>
+<p>Here’s how it works:</p>
+<ol type="1">
+<li><strong>Create a vocabulary</strong>: List all unique words across all documents</li>
+<li><strong>Count words in each document</strong>: For each document, count how many times each vocabulary word appears</li>
+<li><strong>Represent as vector</strong>: Each document becomes a vector where position i = count of word i</li>
+<li><strong>Measure similarity</strong>: Use mathematical distance or angle between vectors</li>
+</ol>
+<p>This transforms the problem of comparing texts into the problem of comparing vectors - and we have excellent tools for that.</p>
+<p><strong>What we’ll build</strong>: By the end of this lab, you’ll be able to create a heatmap showing which presidential speeches are most similar to each other across 200+ years of American history. This reveals patterns invisible to word-level analysis.</p>
+<hr>
+</section>
+</section>
+<section id="setup-loading-packages" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="setup-loading-packages"><span class="header-section-number">3</span> Setup: Loading packages</h2>
+<div id="40773fc5" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Text processing</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> spacy</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_extraction.text <span class="im">import</span> TfidfVectorizer</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics.pairwise <span class="im">import</span> cosine_similarity</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Set visualization style</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> (<span class="dv">14</span>, <span class="dv">8</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✓ Packages loaded successfully"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✓ Packages loaded successfully</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>About these packages
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>New packages in this lab:</p>
+<ul>
+<li><strong>sklearn (scikit-learn)</strong>: Machine learning library with text processing tools
+<ul>
+<li><code>TfidfVectorizer</code>: Converts text to TF-IDF weighted vectors</li>
+<li><code>cosine_similarity</code>: Measures similarity between vectors</li>
+</ul></li>
+<li><strong>numpy</strong>: Numerical computing for matrix operations</li>
+</ul>
+<p>We continue using pandas, matplotlib, and seaborn from previous labs.</p>
+</div>
+</div>
+<section id="loading-spacy-model" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="loading-spacy-model"><span class="header-section-number">3.1</span> Loading spaCy model</h3>
+<div id="03647e9e" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load English language model for text processing</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>nlp.max_length <span class="op">=</span> <span class="dv">1530000</span>  <span class="co"># Increase limit for long documents</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✓ spaCy model loaded: </span><span class="sc">{</span>nlp<span class="sc">.</span>meta[<span class="st">'name'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✓ spaCy model loaded: core_web_sm</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="loading-and-preparing-the-data" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="loading-and-preparing-the-data"><span class="header-section-number">4</span> Loading and preparing the data</h2>
+<p>Let’s load our familiar State of the Union dataset:</p>
+<div id="7f8ae651" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>speeches <span class="op">=</span> pd.read_csv(<span class="st">"data/transcripts.csv"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>speeches[<span class="st">'date'</span>] <span class="op">=</span> pd.to_datetime(speeches[<span class="st">'date'</span>])</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>speeches[<span class="st">'year'</span>] <span class="op">=</span> speeches[<span class="st">'date'</span>].dt.year</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total speeches: </span><span class="sc">{</span><span class="bu">len</span>(speeches)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Date range: </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">min</span>()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">First few rows:"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>speeches.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total speeches: 244
+Date range: 1790 to 2018
+
+First few rows:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th">president</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">url</th>
+<th data-quarto-table-cell-role="th">transcript</th>
+<th data-quarto-table-cell-role="th">year</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>2018-01-30</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>https://www.cnn.com/2018/01/30/politics/2018-s...</td>
+<td>\nMr. Speaker, Mr. Vice President, Members of ...</td>
+<td>2018</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2017-02-28</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you very much. Mr. Speaker, Mr. Vice Pre...</td>
+<td>2017</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2016-01-12</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you. Mr. Speaker, Mr. Vice President, Me...</td>
+<td>2016</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>2015-01-20</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+<td>2015</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>2014-01-28</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+<td>2014</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="creating-a-working-sample" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="creating-a-working-sample"><span class="header-section-number">4.1</span> Creating a working sample</h3>
+<p>To start, let’s work with a manageable subset - the 50 most recent speeches. This will help us understand the concepts before scaling up to the full dataset.</p>
+<div id="88efbc43" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Select 50 most recent speeches</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>recent_speeches <span class="op">=</span> speeches.nlargest(<span class="dv">50</span>, <span class="st">'year'</span>).copy()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>recent_speeches <span class="op">=</span> recent_speeches.sort_values(<span class="st">'year'</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Working with </span><span class="sc">{</span><span class="bu">len</span>(recent_speeches)<span class="sc">}</span><span class="ss"> speeches"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Date range: </span><span class="sc">{</span>recent_speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">min</span>()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>recent_speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Presidents included:"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(recent_speeches[<span class="st">'president'</span>].value_counts())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Working with 50 speeches
+Date range: 1974 to 2018
+
+Presidents included:
+president
+Ronald Reagan         8
+George W. Bush        8
+Barack Obama          8
+William J. Clinton    8
+Jimmy Carter          7
+George Bush           4
+Gerald R. Ford        3
+Richard Nixon         2
+Donald J. Trump       2
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="from-text-to-vectors-the-document-term-matrix" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="from-text-to-vectors-the-document-term-matrix"><span class="header-section-number">5</span> From text to vectors: The document-term matrix</h2>
+<section id="what-is-a-document-term-matrix" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="what-is-a-document-term-matrix"><span class="header-section-number">5.1</span> What is a document-term matrix?</h3>
+<p>A <strong>document-term matrix</strong> (DTM) is a table where:</p>
+<ul>
+<li>Each <strong>row</strong> represents one document</li>
+<li>Each <strong>column</strong> represents one unique word (from the entire vocabulary)</li>
+<li>Each <strong>cell</strong> contains the count of how many times that word appears in that document</li>
+</ul>
+<p><strong>Example</strong>: Imagine we have three tiny “speeches”:</p>
+<ul>
+<li>Doc 1: “the economy is strong”</li>
+<li>Doc 2: “the economy needs help”<br>
+</li>
+<li>Doc 3: “strong leadership helps”</li>
+</ul>
+<p>The vocabulary is: {the, economy, is, strong, needs, help, leadership, helps}</p>
+<p>The document-term matrix looks like:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 15%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 11%">
+<col style="width: 10%">
+<col style="width: 20%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>the</th>
+<th>economy</th>
+<th>is</th>
+<th>strong</th>
+<th>needs</th>
+<th>help</th>
+<th>leadership</th>
+<th>helps</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Doc 1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>Doc 2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>Doc 3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Each row is a <strong>vector</strong>. Doc 1’s vector is <code>[1, 1, 1, 1, 0, 0, 0, 0]</code>.</p>
+</section>
+<section id="creating-a-document-term-matrix-with-scikit-learn" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="creating-a-document-term-matrix-with-scikit-learn"><span class="header-section-number">5.2</span> Creating a document-term matrix with scikit-learn</h3>
+<p>We’ll use scikit-learn’s <code>CountVectorizer</code> to create a DTM from our speeches. First, let’s do basic preprocessing:</p>
+<div id="a753785f" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_extraction.text <span class="im">import</span> CountVectorizer</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a simple document-term matrix</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This counts word occurrences and removes very common/rare words</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>count_vectorizer <span class="op">=</span> CountVectorizer(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    max_features<span class="op">=</span><span class="dv">1000</span>,      <span class="co"># Keep only top 1000 most frequent words</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    stop_words<span class="op">=</span><span class="st">'english'</span>,   <span class="co"># Remove stop words</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    min_df<span class="op">=</span><span class="dv">2</span>,               <span class="co"># Word must appear in at least 2 documents</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    lowercase<span class="op">=</span><span class="va">True</span>          <span class="co"># Convert to lowercase</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit and transform the speeches</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>dtm_counts <span class="op">=</span> count_vectorizer.fit_transform(recent_speeches[<span class="st">'transcript'</span>])</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Get vocabulary (column names)</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>vocab <span class="op">=</span> count_vectorizer.get_feature_names_out()</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Document-term matrix shape: </span><span class="sc">{</span>dtm_counts<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>dtm_counts<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> documents (speeches)"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>dtm_counts<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> words (vocabulary)"</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">First 20 words in vocabulary:"</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(vocab[:<span class="dv">20</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Document-term matrix shape: (50, 1000)
+  50 documents (speeches)
+  1000 words (vocabulary)
+
+First 20 words in vocabulary:
+['000' '10' '100' '12' '15' '1974' '1975' '1977' '1978' '1979' '1980'
+ '1981' '20' '200' '21st' '25' '30' '40' '50' '500']</code></pre>
+</div>
+</div>
+</section>
+<section id="inspecting-the-matrix" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="inspecting-the-matrix"><span class="header-section-number">5.3</span> Inspecting the matrix</h3>
+<p>Let’s look at the word counts for one speech:</p>
+<div id="1e2342a8" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to dense array (from sparse matrix) for one document</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>doc_idx <span class="op">=</span> <span class="dv">0</span>  <span class="co"># First speech</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>word_counts <span class="op">=</span> dtm_counts[doc_idx].toarray().flatten()</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a DataFrame for easier viewing</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>word_count_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">'word'</span>: vocab,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">'count'</span>: word_counts</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">'count'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Top 20 words in speech from </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[doc_idx, <span class="st">'year'</span>]<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"President: </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[doc_idx, <span class="st">'president'</span>]<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(word_count_df.head(<span class="dv">20</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 20 words in speech from 1974:
+President: Richard Nixon
+
+          word  count
+996      years     80
+67     america     72
+995       year     60
+637      peace     54
+993      world     52
+601        new     44
+639     people     44
+68    american     42
+189   congress     39
+918       time     38
+309     energy     34
+863     states     32
+397      great     32
+550       make     30
+51         ago     28
+589     nation     26
+947     united     24
+920      today     24
+671  president     23
+69   americans     23</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Sparse matrices
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The DTM is stored as a <strong>sparse matrix</strong> - a special data structure that only stores non-zero values. This is efficient because most cells in a DTM are zero (most words don’t appear in most documents).</p>
+<p>For 50 documents × 1000 words = 50,000 cells, but maybe only 5,000 have non-zero counts. Sparse matrices save memory by only storing those 5,000 values.</p>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="the-problem-with-raw-counts" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="the-problem-with-raw-counts"><span class="header-section-number">6</span> The problem with raw counts</h2>
+<p>Raw word counts have a problem: They treat all words equally. But some words are more informative than others.</p>
+<p>Consider two words:</p>
+<ul>
+<li><strong>“government”</strong>: Appears in 48 out of 50 speeches</li>
+<li><strong>“healthcare”</strong>: Appears in 15 out of 50 speeches</li>
+</ul>
+<p>If a speech mentions “government” 10 times, that doesn’t tell us much - almost every speech talks about government! But if it mentions “healthcare” 10 times, that’s distinctive - this speech is really focusing on healthcare policy.</p>
+<p><strong>The insight</strong>: Words that appear in <em>many</em> documents are less useful for distinguishing documents than words that appear in <em>few</em> documents.</p>
+<p>This is where <strong>TF-IDF</strong> comes in.</p>
+<section id="what-is-tf-idf" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="what-is-tf-idf"><span class="header-section-number">6.1</span> What is TF-IDF?</h3>
+<p>TF-IDF stands for <strong>Term Frequency - Inverse Document Frequency</strong>. It’s a weighting scheme that gives higher scores to words that are:</p>
+<ol type="1">
+<li><strong>Frequent in the document</strong> (TF = Term Frequency)</li>
+<li><strong>Rare across the corpus</strong> (IDF = Inverse Document Frequency)</li>
+</ol>
+<p>Think of it as a “distinctiveness score” for each word in each document.</p>
+<p><strong>How it works</strong>:</p>
+<ul>
+<li><strong>Term Frequency (TF)</strong>: How many times does this word appear in this document?</li>
+<li><strong>Document Frequency (DF)</strong>: In how many documents does this word appear?</li>
+<li><strong>Inverse Document Frequency (IDF)</strong>: <span class="math inline">\(\log(\frac{\text{total documents}}{\text{document frequency}})\)</span></li>
+<li><strong>TF-IDF</strong>: <span class="math inline">\(\text{TF} \times \text{IDF}\)</span></li>
+</ul>
+<p><strong>Result</strong>:</p>
+<ul>
+<li>Common words (appearing everywhere) get low IDF → low TF-IDF</li>
+<li>Rare words (appearing in few documents) get high IDF → high TF-IDF (if they appear in this document)</li>
+<li>Words appearing frequently in one document but rarely overall get highest TF-IDF</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>A concrete example
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Suppose we have 100 documents (speeches).</p>
+<p><strong>Word: “government”</strong></p>
+<ul>
+<li>Appears in 95 documents (very common)</li>
+<li>IDF = log(100/95) = log(1.05) ≈ 0.05 (very low)</li>
+<li>Even if it appears 20 times in one speech, TF-IDF ≈ 20 × 0.05 = 1.0</li>
+</ul>
+<p><strong>Word: “pandemic”</strong></p>
+<ul>
+<li>Appears in 5 documents (rare)</li>
+<li>IDF = log(100/5) = log(20) ≈ 3.0 (high)</li>
+<li>If it appears 20 times in one speech, TF-IDF ≈ 20 × 3.0 = 60.0</li>
+</ul>
+<p>TF-IDF captures that “pandemic” is more distinctive for identifying what makes a document unique.</p>
+</div>
+</div>
+</section>
+<section id="creating-tf-idf-weighted-vectors" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="creating-tf-idf-weighted-vectors"><span class="header-section-number">6.2</span> Creating TF-IDF weighted vectors</h3>
+<p>Let’s create TF-IDF vectors for our speeches:</p>
+<div id="c70d75c3" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_extraction.text <span class="im">import</span> TfidfVectorizer</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create TF-IDF vectorizer</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>tfidf_vectorizer <span class="op">=</span> TfidfVectorizer(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    max_features<span class="op">=</span><span class="dv">1000</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    stop_words<span class="op">=</span><span class="st">'english'</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    min_df<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    lowercase<span class="op">=</span><span class="va">True</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit and transform</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>tfidf_matrix <span class="op">=</span> tfidf_vectorizer.fit_transform(recent_speeches[<span class="st">'transcript'</span>])</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>tfidf_vocab <span class="op">=</span> tfidf_vectorizer.get_feature_names_out()</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"TF-IDF matrix shape: </span><span class="sc">{</span>tfidf_matrix<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">TF-IDF values are continuous (not integers):"</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Show TF-IDF values for one speech</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>doc_idx <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>tfidf_scores <span class="op">=</span> tfidf_matrix[doc_idx].toarray().flatten()</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>tfidf_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'word'</span>: tfidf_vocab,</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'tfidf'</span>: tfidf_scores</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">'tfidf'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Top 20 words by TF-IDF for </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[doc_idx, <span class="st">'year'</span>]<span class="sc">}</span><span class="ss"> speech:"</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(tfidf_df.head(<span class="dv">20</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>TF-IDF matrix shape: (50, 1000)
+
+TF-IDF values are continuous (not integers):
+
+Top 20 words by TF-IDF for 1974 speech:
+          word     tfidf
+996      years  0.296561
+67     america  0.266905
+995       year  0.222421
+637      peace  0.212315
+5         1974  0.202744
+993      world  0.192765
+601        new  0.163109
+639     people  0.163109
+68    american  0.155695
+189   congress  0.144574
+309     energy  0.141814
+918       time  0.140867
+397      great  0.118625
+863     states  0.118625
+550       make  0.111210
+51         ago  0.107949
+589     nation  0.096382
+947     united  0.092528
+920      today  0.088968
+69   americans  0.085261</code></pre>
+</div>
+</div>
+<p>Notice how TF-IDF values are <strong>decimals</strong> (0 to ~1 range), not integer counts. Words with higher TF-IDF are more characteristic of this specific document.</p>
+<hr>
+</section>
+</section>
+<section id="measuring-document-similarity-with-cosine-similarity" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="measuring-document-similarity-with-cosine-similarity"><span class="header-section-number">7</span> Measuring document similarity with cosine similarity</h2>
+<p>Now that we have TF-IDF vectors, we need a way to compare them. The standard measure is <strong>cosine similarity</strong>.</p>
+<section id="what-is-cosine-similarity" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="what-is-cosine-similarity"><span class="header-section-number">7.1</span> What is cosine similarity?</h3>
+<p>Imagine two speeches as arrows (vectors) in high-dimensional space (1000 dimensions, one per word). Cosine similarity measures the <strong>angle</strong> between these arrows:</p>
+<ul>
+<li><strong>Angle = 0°</strong> (arrows point same direction): Cosine = 1.0 (identical documents)</li>
+<li><strong>Angle = 90°</strong> (arrows perpendicular): Cosine = 0.0 (completely different documents)</li>
+<li><strong>Angle = 180°</strong> (arrows opposite directions): Cosine = -1.0 (in text, this rarely happens)</li>
+</ul>
+<p><strong>Why angle instead of distance?</strong></p>
+<ul>
+<li>Documents of different lengths would always be “far apart” by distance</li>
+<li>Angle captures <em>proportional</em> similarity - two speeches about the same topic are similar even if one is twice as long</li>
+</ul>
+<p><strong>The formula</strong>:</p>
+<p><span class="math display">\[\text{cosine similarity} = \frac{A \cdot B}{||A|| \times ||B||}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(A \cdot B\)</span> = dot product (sum of elementwise multiplication)</li>
+<li><span class="math inline">\(||A||\)</span> = length of vector A</li>
+<li><span class="math inline">\(||B||\)</span> = length of vector B</li>
+</ul>
+<p>Don’t worry about the math - scikit-learn does this for us!</p>
+</section>
+<section id="a-simple-example" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="a-simple-example"><span class="header-section-number">7.2</span> A simple example</h3>
+<p>Let’s compare two specific speeches:</p>
+<div id="6c71a698" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics.pairwise <span class="im">import</span> cosine_similarity</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Pick two speeches to compare</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>speech_a <span class="op">=</span> <span class="dv">0</span>  <span class="co"># Index of first speech</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>speech_b <span class="op">=</span> <span class="dv">1</span>  <span class="co"># Index of second speech</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Get their TF-IDF vectors</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>vec_a <span class="op">=</span> tfidf_matrix[speech_a]</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>vec_b <span class="op">=</span> tfidf_matrix[speech_b]</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate cosine similarity</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>similarity <span class="op">=</span> cosine_similarity(vec_a, vec_b)[<span class="dv">0</span>, <span class="dv">0</span>]</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Speech A: </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[speech_a, <span class="st">'year'</span>]<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[speech_a, <span class="st">'president'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Speech B: </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[speech_b, <span class="st">'year'</span>]<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>recent_speeches<span class="sc">.</span>loc[speech_b, <span class="st">'president'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Cosine similarity: </span><span class="sc">{</span>similarity<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> similarity <span class="op">&gt;</span> <span class="fl">0.8</span>:</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"→ Very similar speeches"</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> similarity <span class="op">&gt;</span> <span class="fl">0.5</span>:</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"→ Moderately similar speeches"</span>)</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> similarity <span class="op">&gt;</span> <span class="fl">0.3</span>:</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"→ Somewhat similar speeches"</span>)</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"→ Not very similar speeches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Speech A: 1974 - Richard Nixon
+Speech B: 1974 - Richard Nixon
+
+Cosine similarity: 0.6282
+→ Moderately similar speeches</code></pre>
+</div>
+</div>
+</section>
+<section id="computing-similarity-for-all-pairs" class="level3" data-number="7.3">
+<h3 data-number="7.3" class="anchored" data-anchor-id="computing-similarity-for-all-pairs"><span class="header-section-number">7.3</span> Computing similarity for all pairs</h3>
+<p>Now let’s calculate similarity between <em>all</em> pairs of speeches:</p>
+<div id="24214c0e" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate pairwise cosine similarities</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>similarity_matrix <span class="op">=</span> cosine_similarity(tfidf_matrix)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Similarity matrix shape: </span><span class="sc">{</span>similarity_matrix<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>similarity_matrix<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> speeches × </span><span class="sc">{</span>similarity_matrix<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> speeches"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Diagonal values (self-similarity) should be 1.0:"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  First 5 diagonal values: </span><span class="sc">{</span>np<span class="sc">.</span>diag(similarity_matrix)[:<span class="dv">5</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Similarity matrix shape: (50, 50)
+  50 speeches × 50 speeches
+
+Diagonal values (self-similarity) should be 1.0:
+  First 5 diagonal values: [1. 1. 1. 1. 1.]</code></pre>
+</div>
+</div>
+<p>This gives us a <strong>similarity matrix</strong> where:</p>
+<ul>
+<li>Rows and columns both represent speeches (in the same order)</li>
+<li>Cell [i, j] = similarity between speech i and speech j</li>
+<li>Diagonal = 1.0 (each speech is identical to itself)</li>
+<li>Matrix is symmetric (similarity of A to B = similarity of B to A)</li>
+</ul>
+<p>Let’s inspect it:</p>
+<div id="a16ad75f" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to DataFrame for easier viewing</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>similarity_df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    similarity_matrix,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>recent_speeches[<span class="st">'year'</span>],</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>recent_speeches[<span class="st">'year'</span>]</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Similarity matrix (first 10 rows/columns):"</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(similarity_df.iloc[:<span class="dv">10</span>, :<span class="dv">10</span>].<span class="bu">round</span>(<span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Similarity matrix (first 10 rows/columns):
+year   1974   1974   1975   1976   1977   1978   1978   1979   1979   1980
+year                                                                      
+1974  1.000  0.628  0.574  0.581  0.666  0.586  0.486  0.541  0.567  0.519
+1974  0.628  1.000  0.670  0.673  0.627  0.573  0.749  0.823  0.488  0.390
+1975  0.574  0.670  1.000  0.641  0.662  0.603  0.573  0.597  0.476  0.487
+1976  0.581  0.673  0.641  1.000  0.637  0.623  0.574  0.608  0.561  0.410
+1977  0.666  0.627  0.662  0.637  1.000  0.616  0.516  0.583  0.578  0.519
+1978  0.586  0.573  0.603  0.623  0.616  1.000  0.580  0.590  0.675  0.506
+1978  0.486  0.749  0.573  0.574  0.516  0.580  1.000  0.852  0.494  0.393
+1979  0.541  0.823  0.597  0.608  0.583  0.590  0.852  1.000  0.564  0.410
+1979  0.567  0.488  0.476  0.561  0.578  0.675  0.494  0.564  1.000  0.576
+1980  0.519  0.390  0.487  0.410  0.519  0.506  0.393  0.410  0.576  1.000</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="visualizing-document-similarity" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="visualizing-document-similarity"><span class="header-section-number">8</span> Visualizing document similarity</h2>
+<p>Numbers are hard to interpret. Let’s create a <strong>heatmap</strong> - a visual representation of the similarity matrix where color intensity shows similarity strength.</p>
+<section id="creating-a-basic-heatmap" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="creating-a-basic-heatmap"><span class="header-section-number">8.1</span> Creating a basic heatmap</h3>
+<div id="453f28e3" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create heatmap</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">12</span>))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    similarity_df,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'YlOrRd'</span>,           <span class="co"># Yellow-Orange-Red colormap</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="dv">0</span>, vmax<span class="op">=</span><span class="dv">1</span>,          <span class="co"># Similarity ranges from 0 to 1</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    square<span class="op">=</span><span class="va">True</span>,             <span class="co"># Make cells square</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Cosine similarity'</span>}</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'State of the Union speech similarity (50 most recent)'</span>, </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>          fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, pad<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Year'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Year'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_04_files/figure-html/cell-12-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="lab_04_files/figure-html/cell-12-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>How to read this heatmap</strong>:</p>
+<ul>
+<li><strong>Each cell</strong> represents similarity between two speeches</li>
+<li><strong>Color intensity</strong>: Darker red = more similar, lighter yellow = less similar</li>
+<li><strong>Diagonal</strong>: Always dark red (each speech is identical to itself)</li>
+<li><strong>Symmetric</strong>: Upper-right mirrors lower-left</li>
+<li><strong>Patterns</strong>: Clusters of dark red reveal groups of similar speeches</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What to look for
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Scan the heatmap for patterns:</p>
+<ul>
+<li><strong>Stripes</strong>: One speech similar to many others (maybe very generic language)</li>
+<li><strong>Blocks</strong>: Groups of consecutive years with high similarity (stable period)</li>
+<li><strong>Isolates</strong>: Speeches unlike anything around them (rhetorical innovation?)</li>
+<li><strong>Diagonal bands</strong>: Speeches similar to nearby years (temporal autocorrelation)</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="improving-the-visualization" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="improving-the-visualization"><span class="header-section-number">8.2</span> Improving the visualization</h3>
+<p>Let’s add president names to make patterns clearer:</p>
+<div id="eba055cf" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create labels with year and president last name</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> [</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>row[<span class="st">'year'</span>]<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>row[<span class="st">'president'</span>]<span class="sc">.</span>split()[<span class="op">-</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span> </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, row <span class="kw">in</span> recent_speeches.iterrows()</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create improved heatmap</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">14</span>))</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    similarity_df,</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'YlOrRd'</span>,</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="fl">0.3</span>, vmax<span class="op">=</span><span class="fl">1.0</span>,  <span class="co"># Adjust range to emphasize differences</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    square<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Cosine similarity'</span>},</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    xticklabels<span class="op">=</span>labels,</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    yticklabels<span class="op">=</span>labels</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'State of the Union speech similarity (with president names)'</span>, </span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>          fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, pad<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Year - President'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Year - President'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>plt.xticks(rotation<span class="op">=</span><span class="dv">90</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>plt.yticks(rotation<span class="op">=</span><span class="dv">0</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_04_files/figure-html/cell-13-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="lab_04_files/figure-html/cell-13-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Questions to ask the heatmap</strong>:</p>
+<ol type="1">
+<li>Do speeches by the same president cluster together (high similarity)?</li>
+<li>Do speeches from the same decade cluster together?</li>
+<li>Are there any outlier speeches very different from all others?</li>
+<li>Can you spot transitions between different rhetorical eras?</li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="identifying-the-most-and-least-similar-speeches" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="identifying-the-most-and-least-similar-speeches"><span class="header-section-number">9</span> Identifying the most and least similar speeches</h2>
+<p>Let’s find specific examples of highly similar and highly different speeches:</p>
+<section id="most-similar-speech-pairs" class="level3" data-number="9.1">
+<h3 data-number="9.1" class="anchored" data-anchor-id="most-similar-speech-pairs"><span class="header-section-number">9.1</span> Most similar speech pairs</h3>
+<div id="d61c7f81" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract upper triangle (to avoid counting each pair twice)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>upper_triangle_indices <span class="op">=</span> np.triu_indices_from(similarity_matrix, k<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>similarities_upper <span class="op">=</span> similarity_matrix[upper_triangle_indices]</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Get indices of top 10 most similar pairs</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>top_indices <span class="op">=</span> np.argsort(similarities_upper)[<span class="op">-</span><span class="dv">10</span>:][::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract speech pairs</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>most_similar <span class="op">=</span> []</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx <span class="kw">in</span> top_indices:</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> upper_triangle_indices[<span class="dv">0</span>][idx]</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> upper_triangle_indices[<span class="dv">1</span>][idx]</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    most_similar.append({</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_1_year'</span>: recent_speeches.loc[i, <span class="st">'year'</span>],</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_1_pres'</span>: recent_speeches.loc[i, <span class="st">'president'</span>],</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_2_year'</span>: recent_speeches.loc[j, <span class="st">'year'</span>],</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_2_pres'</span>: recent_speeches.loc[j, <span class="st">'president'</span>],</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">'similarity'</span>: similarity_matrix[i, j]</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>most_similar_df <span class="op">=</span> pd.DataFrame(most_similar)</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 10 most similar speech pairs:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(most_similar_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 10 most similar speech pairs:
+
+ speech_1_year      speech_1_pres  speech_2_year      speech_2_pres  similarity
+          1980       Jimmy Carter           1981       Jimmy Carter    0.920566
+          1979       Jimmy Carter           1980       Jimmy Carter    0.909339
+          1979       Jimmy Carter           1981       Jimmy Carter    0.876421
+          1978       Jimmy Carter           1979       Jimmy Carter    0.851648
+          1978       Jimmy Carter           1980       Jimmy Carter    0.842294
+          1998 William J. Clinton           2000 William J. Clinton    0.834129
+          1974      Richard Nixon           1979       Jimmy Carter    0.823473
+          1997 William J. Clinton           1998 William J. Clinton    0.820596
+          2013       Barack Obama           2014       Barack Obama    0.819733
+          1998 William J. Clinton           1999 William J. Clinton    0.819171</code></pre>
+</div>
+</div>
+<p><strong>Interpretation</strong>: High similarity pairs often come from:</p>
+<ul>
+<li>Consecutive years by the same president (consistent themes)</li>
+<li>Same historical period with shared concerns</li>
+<li>Similar political circumstances or crises</li>
+</ul>
+</section>
+<section id="most-different-speech-pairs" class="level3" data-number="9.2">
+<h3 data-number="9.2" class="anchored" data-anchor-id="most-different-speech-pairs"><span class="header-section-number">9.2</span> Most different speech pairs</h3>
+<div id="e14dd998" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get indices of bottom 10 (most different pairs)</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>bottom_indices <span class="op">=</span> np.argsort(similarities_upper)[:<span class="dv">10</span>]</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract speech pairs</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>most_different <span class="op">=</span> []</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx <span class="kw">in</span> bottom_indices:</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> upper_triangle_indices[<span class="dv">0</span>][idx]</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> upper_triangle_indices[<span class="dv">1</span>][idx]</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    most_different.append({</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_1_year'</span>: recent_speeches.loc[i, <span class="st">'year'</span>],</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_1_pres'</span>: recent_speeches.loc[i, <span class="st">'president'</span>],</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_2_year'</span>: recent_speeches.loc[j, <span class="st">'year'</span>],</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">'speech_2_pres'</span>: recent_speeches.loc[j, <span class="st">'president'</span>],</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">'similarity'</span>: similarity_matrix[i, j]</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>most_different_df <span class="op">=</span> pd.DataFrame(most_different)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 10 most different speech pairs:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(most_different_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 10 most different speech pairs:
+
+ speech_1_year speech_1_pres  speech_2_year      speech_2_pres  similarity
+          1980  Jimmy Carter           1981      Ronald Reagan    0.282940
+          1978  Jimmy Carter           2002     George W. Bush    0.303841
+          1981 Ronald Reagan           2002     George W. Bush    0.307277
+          1981 Ronald Reagan           2003     George W. Bush    0.326915
+          1980  Jimmy Carter           1993 William J. Clinton    0.331248
+          1978  Jimmy Carter           2016       Barack Obama    0.336520
+          1978  Jimmy Carter           2007     George W. Bush    0.347287
+          1978  Jimmy Carter           1986      Ronald Reagan    0.348026
+          1978  Jimmy Carter           2003     George W. Bush    0.349533
+          1978  Jimmy Carter           1990        George Bush    0.349626</code></pre>
+</div>
+</div>
+<p><strong>Interpretation</strong>: Low similarity pairs often come from:</p>
+<ul>
+<li>Very different historical eras (e.g., Cold War vs post-9/11)</li>
+<li>Different dominant issues (economy vs war, domestic vs foreign policy)</li>
+<li>Different rhetorical styles (formal vs informal, optimistic vs somber)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="temporal-patterns-tracking-linguistic-change" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="temporal-patterns-tracking-linguistic-change"><span class="header-section-number">10</span> Temporal patterns: Tracking linguistic change</h2>
+<p>Now let’s use document similarity to study how political language changes over time. We’ll ask: When did American political rhetoric shift most dramatically?</p>
+<section id="average-similarity-to-surrounding-years" class="level3" data-number="10.1">
+<h3 data-number="10.1" class="anchored" data-anchor-id="average-similarity-to-surrounding-years"><span class="header-section-number">10.1</span> Average similarity to surrounding years</h3>
+<p>One way to detect change is to measure how similar each speech is to speeches from nearby years:</p>
+<div id="03321954" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each speech, calculate average similarity to speeches within ±5 years</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>temporal_similarity <span class="op">=</span> []</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, row <span class="kw">in</span> recent_speeches.iterrows():</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    year <span class="op">=</span> row[<span class="st">'year'</span>]</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find speeches within ±5 years</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    nearby_mask <span class="op">=</span> (recent_speeches[<span class="st">'year'</span>] <span class="op">&gt;=</span> year <span class="op">-</span> <span class="dv">5</span>) <span class="op">&amp;</span> <span class="op">\</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                  (recent_speeches[<span class="st">'year'</span>] <span class="op">&lt;=</span> year <span class="op">+</span> <span class="dv">5</span>) <span class="op">&amp;</span> <span class="op">\</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>                  (recent_speeches[<span class="st">'year'</span>] <span class="op">!=</span> year)  <span class="co"># Exclude the speech itself</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> nearby_mask.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">0</span>:  <span class="co"># If there are nearby speeches</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>        nearby_indices <span class="op">=</span> recent_speeches[nearby_mask].index</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        similarities_to_nearby <span class="op">=</span> similarity_matrix[idx, nearby_indices]</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>        avg_similarity <span class="op">=</span> similarities_to_nearby.mean()</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>        avg_similarity <span class="op">=</span> np.nan</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    temporal_similarity.append({</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">'year'</span>: year,</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">'president'</span>: row[<span class="st">'president'</span>],</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">'avg_similarity_to_nearby'</span>: avg_similarity</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>temporal_df <span class="op">=</span> pd.DataFrame(temporal_similarity)</span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Temporal similarity to nearby years (sample):"</span>)</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(temporal_df.head(<span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Temporal similarity to nearby years (sample):
+   year       president  avg_similarity_to_nearby
+0  1974   Richard Nixon                  0.571503
+1  1974   Richard Nixon                  0.657587
+2  1975  Gerald R. Ford                  0.592873
+3  1976  Gerald R. Ford                  0.586381
+4  1977  Gerald R. Ford                  0.592274
+5  1978    Jimmy Carter                  0.603011
+6  1978    Jimmy Carter                  0.604526
+7  1979    Jimmy Carter                  0.639264
+8  1979    Jimmy Carter                  0.545035
+9  1980    Jimmy Carter                  0.460207</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-temporal-stability" class="level3" data-number="10.2">
+<h3 data-number="10.2" class="anchored" data-anchor-id="visualizing-temporal-stability"><span class="header-section-number">10.2</span> Visualizing temporal stability</h3>
+<div id="8844fb51" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot temporal similarity over time</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>plt.plot(temporal_df[<span class="st">'year'</span>], temporal_df[<span class="st">'avg_similarity_to_nearby'</span>],</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>         marker<span class="op">=</span><span class="st">'o'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, markersize<span class="op">=</span><span class="dv">6</span>, color<span class="op">=</span><span class="st">'#1976D2'</span>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>plt.axhline(y<span class="op">=</span>temporal_df[<span class="st">'avg_similarity_to_nearby'</span>].mean(), </span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.7</span>,</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"Average similarity: </span><span class="sc">{</span>temporal_df[<span class="st">'avg_similarity_to_nearby'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Year'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Average similarity to nearby years (±5)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Temporal stability of political rhetoric'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_04_files/figure-html/cell-17-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="lab_04_files/figure-html/cell-17-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>How to interpret this plot</strong>:</p>
+<ul>
+<li><strong>High points</strong>: Speech is very similar to nearby years (stable period, consistent rhetoric)</li>
+<li><strong>Low points</strong>: Speech is different from nearby years (innovation, major shift, unique circumstances)</li>
+<li><strong>Trends</strong>: Overall increase/decrease in similarity over time</li>
+<li><strong>Drops</strong>: Sudden changes in political language</li>
+</ul>
+</section>
+<section id="finding-moments-of-rhetorical-innovation" class="level3" data-number="10.3">
+<h3 data-number="10.3" class="anchored" data-anchor-id="finding-moments-of-rhetorical-innovation"><span class="header-section-number">10.3</span> Finding moments of rhetorical innovation</h3>
+<p>Let’s identify speeches that are most different from their temporal neighbors - these are moments of rhetorical change:</p>
+<div id="422a0912" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find speeches with lowest similarity to nearby years</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>innovations <span class="op">=</span> temporal_df.nsmallest(<span class="dv">10</span>, <span class="st">'avg_similarity_to_nearby'</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 10 speeches most different from their era:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(innovations[[<span class="st">'year'</span>, <span class="st">'president'</span>, <span class="st">'avg_similarity_to_nearby'</span>]].to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 10 speeches most different from their era:
+
+ year      president  avg_similarity_to_nearby
+ 1980   Jimmy Carter                  0.460207
+ 1981  Ronald Reagan                  0.509312
+ 1979   Jimmy Carter                  0.545035
+ 1991    George Bush                  0.552880
+ 1974  Richard Nixon                  0.571503
+ 1984  Ronald Reagan                  0.578964
+ 2001 George W. Bush                  0.585065
+ 1976 Gerald R. Ford                  0.586381
+ 2003 George W. Bush                  0.591457
+ 1977 Gerald R. Ford                  0.592274</code></pre>
+</div>
+</div>
+<p>These speeches represent moments when presidential rhetoric broke from recent patterns. Research question: What historical events coincide with these rhetorical innovations?</p>
+<hr>
+</section>
+</section>
+<section id="scaling-up-analyzing-the-full-dataset" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="scaling-up-analyzing-the-full-dataset"><span class="header-section-number">11</span> Scaling up: Analyzing the full dataset</h2>
+<p>Now that we understand the concepts, let’s apply them to the <strong>entire</strong> State of the Union corpus (200+ years). This will reveal long-term patterns invisible in our 50-speech sample.</p>
+<section id="preparing-the-full-dataset" class="level3" data-number="11.1">
+<h3 data-number="11.1" class="anchored" data-anchor-id="preparing-the-full-dataset"><span class="header-section-number">11.1</span> Preparing the full dataset</h3>
+<div id="2529d161" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use all speeches</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Full dataset: </span><span class="sc">{</span><span class="bu">len</span>(speeches)<span class="sc">}</span><span class="ss"> speeches from </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">min</span>()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># For very large datasets, we might want to limit vocabulary more aggressively</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co"># to keep computation manageable</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>full_tfidf_vectorizer <span class="op">=</span> TfidfVectorizer(</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    max_features<span class="op">=</span><span class="dv">500</span>,       <span class="co"># Reduce to top 500 words for speed</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    stop_words<span class="op">=</span><span class="st">'english'</span>,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    min_df<span class="op">=</span><span class="dv">5</span>,               <span class="co"># Word must appear in at least 5 speeches</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    max_df<span class="op">=</span><span class="fl">0.8</span>,             <span class="co"># Ignore words in &gt;80% of speeches (too common)</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    lowercase<span class="op">=</span><span class="va">True</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create TF-IDF matrix</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Creating TF-IDF matrix for full corpus..."</span>)</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>full_tfidf_matrix <span class="op">=</span> full_tfidf_vectorizer.fit_transform(speeches[<span class="st">'transcript'</span>])</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✓ TF-IDF matrix created: </span><span class="sc">{</span>full_tfidf_matrix<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Full dataset: 244 speeches from 1790 to 2018
+
+Creating TF-IDF matrix for full corpus...
+✓ TF-IDF matrix created: (244, 500)</code></pre>
+</div>
+</div>
+</section>
+<section id="computing-similarity-for-all-speeches" class="level3" data-number="11.2">
+<h3 data-number="11.2" class="anchored" data-anchor-id="computing-similarity-for-all-speeches"><span class="header-section-number">11.2</span> Computing similarity for all speeches</h3>
+<div id="92809b3f" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate pairwise similarities</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Computing pairwise similarities..."</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>full_similarity_matrix <span class="op">=</span> cosine_similarity(full_tfidf_matrix)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✓ Similarity matrix computed: </span><span class="sc">{</span>full_similarity_matrix<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Computing pairwise similarities...
+✓ Similarity matrix computed: (244, 244)</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Computational note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Computing similarity for all pairs requires calculating <span class="math inline">\(n \times n\)</span> comparisons where <span class="math inline">\(n\)</span> = number of documents. For 244 speeches, this means 59,536 comparisons.</p>
+<p>For very large corpora (10,000+ documents), this becomes computationally expensive. In those cases, you’d use approximation methods or only compute similarities to a subset of documents.</p>
+</div>
+</div>
+</section>
+<section id="visualizing-200-years-of-rhetorical-similarity" class="level3" data-number="11.3">
+<h3 data-number="11.3" class="anchored" data-anchor-id="visualizing-200-years-of-rhetorical-similarity"><span class="header-section-number">11.3</span> Visualizing 200 years of rhetorical similarity</h3>
+<div id="ad8a83c0" class="cell" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create DataFrame with year labels</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>full_similarity_df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    full_similarity_matrix,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span>speeches[<span class="st">'year'</span>],</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>speeches[<span class="st">'year'</span>]</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create heatmap for full timeline</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">18</span>, <span class="dv">16</span>))</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    full_similarity_df,</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'YlOrRd'</span>,</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="fl">0.2</span>, vmax<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Cosine similarity'</span>},</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    xticklabels<span class="op">=</span><span class="dv">10</span>,  <span class="co"># Show every 10th year label (too many to show all)</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>    yticklabels<span class="op">=</span><span class="dv">10</span></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'State of the Union speech similarity (1790-2020)'</span>, </span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>          fontsize<span class="op">=</span><span class="dv">16</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>, pad<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Year'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Year'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_04_files/figure-html/cell-21-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="lab_04_files/figure-html/cell-21-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>What this reveals</strong>: Look for:</p>
+<ol type="1">
+<li><strong>Diagonal structure</strong>: Speeches similar to nearby years (temporal continuity)</li>
+<li><strong>Block patterns</strong>: Eras of sustained similarity (stable periods)</li>
+<li><strong>Breaks</strong>: Sudden transitions between eras (e.g., Civil War, World Wars, modern era)</li>
+<li><strong>Recent vs historical</strong>: Are recent speeches more similar to each other than to 19th century speeches?</li>
+</ol>
+<p>This single visualization summarizes 200 years of American political language evolution.</p>
+<hr>
+</section>
+</section>
+<section id="identifying-historical-eras-through-clustering" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="identifying-historical-eras-through-clustering"><span class="header-section-number">12</span> Identifying historical eras through clustering</h2>
+<p>The heatmap suggests there are distinct “eras” of political rhetoric. Let’s make this more explicit by identifying periods of high internal similarity.</p>
+<section id="average-similarity-by-decade" class="level3" data-number="12.1">
+<h3 data-number="12.1" class="anchored" data-anchor-id="average-similarity-by-decade"><span class="header-section-number">12.1</span> Average similarity by decade</h3>
+<div id="ab113446" class="cell" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add decade to speeches</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>speeches_with_decade <span class="op">=</span> speeches.copy()</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>speeches_with_decade[<span class="st">'decade'</span>] <span class="op">=</span> (speeches_with_decade[<span class="st">'year'</span>] <span class="op">//</span> <span class="dv">10</span>) <span class="op">*</span> <span class="dv">10</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average similarity within each decade</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>decade_similarities <span class="op">=</span> []</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> decade <span class="kw">in</span> <span class="bu">sorted</span>(speeches_with_decade[<span class="st">'decade'</span>].unique()):</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    decade_speeches <span class="op">=</span> speeches_with_decade[speeches_with_decade[<span class="st">'decade'</span>] <span class="op">==</span> decade]</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    decade_indices <span class="op">=</span> decade_speeches.index.tolist()</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(decade_indices) <span class="op">&gt;</span> <span class="dv">1</span>:  <span class="co"># Need at least 2 speeches to compute similarity</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Extract similarities within this decade</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>        decade_sim_matrix <span class="op">=</span> full_similarity_matrix[np.ix_(decade_indices, decade_indices)]</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Get upper triangle (exclude diagonal and duplicates)</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>        upper_tri <span class="op">=</span> np.triu_indices_from(decade_sim_matrix, k<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>        within_decade_similarities <span class="op">=</span> decade_sim_matrix[upper_tri]</span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>        avg_sim <span class="op">=</span> within_decade_similarities.mean()</span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>        avg_sim <span class="op">=</span> np.nan</span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>    decade_similarities.append({</span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">'decade'</span>: decade,</span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">'avg_similarity'</span>: avg_sim,</span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">'n_speeches'</span>: <span class="bu">len</span>(decade_indices)</span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a>decade_df <span class="op">=</span> pd.DataFrame(decade_similarities)</span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Average similarity within each decade:"</span>)</span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(decade_df.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Average similarity within each decade:
+ decade  avg_similarity  n_speeches
+   1790        0.413269          11
+   1800        0.458640          10
+   1810        0.457573          10
+   1820        0.596372          10
+   1830        0.657082          10
+   1840        0.650552          10
+   1850        0.672951          10
+   1860        0.590873          10
+   1870        0.677595          10
+   1880        0.672625          10
+   1890        0.652285          10
+   1900        0.689320          10
+   1910        0.463186          10
+   1920        0.629488          10
+   1930        0.410519           9
+   1940        0.447736          11
+   1950        0.567445          12
+   1960        0.559366          11
+   1970        0.521320          19
+   1980        0.576283          12
+   1990        0.699462          10
+   2000        0.701069          10
+   2010        0.769988           9</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-rhetorical-coherence-by-era" class="level3" data-number="12.2">
+<h3 data-number="12.2" class="anchored" data-anchor-id="visualizing-rhetorical-coherence-by-era"><span class="header-section-number">12.2</span> Visualizing rhetorical coherence by era</h3>
+<div id="6a72344d" class="cell" data-execution_count="22">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot within-decade similarity over time</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>plt.bar(decade_df[<span class="st">'decade'</span>], decade_df[<span class="st">'avg_similarity'</span>],</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>        width<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span><span class="st">'#1976D2'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>plt.axhline(y<span class="op">=</span>decade_df[<span class="st">'avg_similarity'</span>].mean(), </span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, alpha<span class="op">=</span><span class="fl">0.7</span>,</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"Overall average: </span><span class="sc">{</span>decade_df[<span class="st">'avg_similarity'</span>]<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Decade'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Average within-decade similarity'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Rhetorical coherence by decade'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, axis<span class="op">=</span><span class="st">'y'</span>)</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_04_files/figure-html/cell-23-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="lab_04_files/figure-html/cell-23-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Interpretation</strong>:</p>
+<ul>
+<li><strong>High bars</strong>: Decades with consistent rhetoric (presidents using similar language)</li>
+<li><strong>Low bars</strong>: Decades with diverse rhetoric (presidents diverging in language use)</li>
+<li><strong>Trends</strong>: Are recent decades more or less coherent than historical ones?</li>
+</ul>
+<p>This captures whether each era had a distinctive “voice” or was linguistically fragmented.</p>
+<hr>
+</section>
+</section>
+<section id="finding-the-most-distinctive-speeches" class="level2" data-number="13">
+<h2 data-number="13" class="anchored" data-anchor-id="finding-the-most-distinctive-speeches"><span class="header-section-number">13</span> Finding the most distinctive speeches</h2>
+<p>Which individual speeches are most unlike all others? These are the rhetorical outliers - speeches that broke the mold.</p>
+<section id="computing-average-similarity-to-all-other-speeches" class="level3" data-number="13.1">
+<h3 data-number="13.1" class="anchored" data-anchor-id="computing-average-similarity-to-all-other-speeches"><span class="header-section-number">13.1</span> Computing average similarity to all other speeches</h3>
+<div id="1fedee9b" class="cell" data-execution_count="23">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each speech, calculate average similarity to all others</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>speech_distinctiveness <span class="op">=</span> []</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(speeches)):</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get similarities to all other speeches (excluding self)</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    other_indices <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(speeches)) <span class="cf">if</span> i <span class="op">!=</span> idx]</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    similarities_to_others <span class="op">=</span> full_similarity_matrix[idx, other_indices]</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    avg_similarity <span class="op">=</span> similarities_to_others.mean()</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>    speech_distinctiveness.append({</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">'year'</span>: speeches.loc[idx, <span class="st">'year'</span>],</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">'president'</span>: speeches.loc[idx, <span class="st">'president'</span>],</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">'avg_similarity_to_others'</span>: avg_similarity</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>distinctiveness_df <span class="op">=</span> pd.DataFrame(speech_distinctiveness)</span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Distinctiveness calculated for all speeches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Distinctiveness calculated for all speeches</code></pre>
+</div>
+</div>
+</section>
+<section id="most-distinctive-unique-speeches" class="level3" data-number="13.2">
+<h3 data-number="13.2" class="anchored" data-anchor-id="most-distinctive-unique-speeches"><span class="header-section-number">13.2</span> Most distinctive (unique) speeches</h3>
+<div id="bb5d1ae2" class="cell" data-execution_count="24">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find speeches least similar to all others</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>most_distinctive <span class="op">=</span> distinctiveness_df.nsmallest(<span class="dv">15</span>, <span class="st">'avg_similarity_to_others'</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 15 most distinctive (unique) speeches:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(most_distinctive.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 15 most distinctive (unique) speeches:
+
+ year            president  avg_similarity_to_others
+ 1980         Jimmy Carter                  0.194556
+ 1973        Richard Nixon                  0.210759
+ 1973        Richard Nixon                  0.217444
+ 1813        James Madison                  0.228440
+ 1956 Dwight D. Eisenhower                  0.228784
+ 1895     Grover Cleveland                  0.229446
+ 1809        James Madison                  0.229787
+ 1790    George Washington                  0.230277
+ 1819         James Monroe                  0.231735
+ 1814        James Madison                  0.237407
+ 1887     Grover Cleveland                  0.241124
+ 1811        James Madison                  0.249762
+ 1797           John Adams                  0.250698
+ 1973        Richard Nixon                  0.252397
+ 1795    George Washington                  0.253289</code></pre>
+</div>
+</div>
+<p>These speeches used language very different from typical State of the Union rhetoric. Possible reasons:</p>
+<ul>
+<li>Unique historical circumstances (war, crisis, scandal)</li>
+<li>Unusual rhetorical strategy</li>
+<li>Different format (written vs oral, short vs long)</li>
+<li>Linguistic innovation</li>
+</ul>
+</section>
+<section id="most-typical-speeches" class="level3" data-number="13.3">
+<h3 data-number="13.3" class="anchored" data-anchor-id="most-typical-speeches"><span class="header-section-number">13.3</span> Most typical speeches</h3>
+<div id="8e6aa502" class="cell" data-execution_count="25">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find speeches most similar to all others</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>most_typical <span class="op">=</span> distinctiveness_df.nlargest(<span class="dv">15</span>, <span class="st">'avg_similarity_to_others'</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 15 most typical (representative) speeches:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(most_typical.to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Top 15 most typical (representative) speeches:
+
+ year           president  avg_similarity_to_others
+ 1912 William Howard Taft                  0.440187
+ 1886    Grover Cleveland                  0.435741
+ 1907  Theodore Roosevelt                  0.430657
+ 1880 Rutherford B. Hayes                  0.419834
+ 1911 William Howard Taft                  0.419200
+ 1851    Millard Fillmore                  0.418387
+ 1899    William McKinley                  0.417140
+ 1888    Grover Cleveland                  0.416887
+ 1875    Ulysses S. Grant                  0.416650
+ 1854     Franklin Pierce                  0.415680
+ 1883   Chester A. Arthur                  0.414415
+ 1885    Grover Cleveland                  0.413796
+ 1829      Andrew Jackson                  0.412433
+ 1858      James Buchanan                  0.412172
+ 1879 Rutherford B. Hayes                  0.411754</code></pre>
+</div>
+</div>
+<p>These speeches exemplify “standard” State of the Union rhetoric - they use language common across the entire corpus. If you wanted to understand what a “typical” presidential speech sounds like, these are good examples.</p>
+<hr>
+</section>
+</section>
+<section id="applications-and-extensions" class="level2" data-number="14">
+<h2 data-number="14" class="anchored" data-anchor-id="applications-and-extensions"><span class="header-section-number">14</span> Applications and extensions</h2>
+<p>Now that you understand document similarity, here are ways to apply and extend these techniques:</p>
+<section id="detecting-plagiarism-or-borrowing" class="level3" data-number="14.1">
+<h3 data-number="14.1" class="anchored" data-anchor-id="detecting-plagiarism-or-borrowing"><span class="header-section-number">14.1</span> 1. Detecting plagiarism or borrowing</h3>
+<p>High similarity between speeches by different presidents might indicate:</p>
+<ul>
+<li>Borrowing of phrases or themes</li>
+<li>Shared speechwriters</li>
+<li>Common policy priorities</li>
+</ul>
+<div id="d6d07aa9" class="cell" data-execution_count="26">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find high-similarity pairs by different presidents</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>different_president_pairs <span class="op">=</span> []</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(speeches)):</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i<span class="op">+</span><span class="dv">1</span>, <span class="bu">len</span>(speeches)):</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> speeches.loc[i, <span class="st">'president'</span>] <span class="op">!=</span> speeches.loc[j, <span class="st">'president'</span>]:</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>            sim <span class="op">=</span> full_similarity_matrix[i, j]</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> sim <span class="op">&gt;</span> <span class="fl">0.7</span>:  <span class="co"># High similarity threshold</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>                different_president_pairs.append({</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'pres_1'</span>: speeches.loc[i, <span class="st">'president'</span>],</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'year_1'</span>: speeches.loc[i, <span class="st">'year'</span>],</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'pres_2'</span>: speeches.loc[j, <span class="st">'president'</span>],</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'year_2'</span>: speeches.loc[j, <span class="st">'year'</span>],</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'similarity'</span>: sim</span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>                })</span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> different_president_pairs:</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>    borrowing_df <span class="op">=</span> pd.DataFrame(different_president_pairs).sort_values(<span class="st">'similarity'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Highly similar speeches by different presidents (top 10):</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(borrowing_df.head(<span class="dv">10</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span>
+<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"No speech pairs by different presidents exceed 0.7 similarity"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Highly similar speeches by different presidents (top 10):
+
+           pres_1  year_1              pres_2  year_2  similarity
+     Jimmy Carter    1979       Richard Nixon    1974    0.873915
+     Jimmy Carter    1981       Richard Nixon    1974    0.850204
+     Jimmy Carter    1980       Richard Nixon    1974    0.843814
+     Jimmy Carter    1978       Richard Nixon    1974    0.833850
+  Donald J. Trump    2017        Barack Obama    2015    0.794668
+ Grover Cleveland    1885 Rutherford B. Hayes    1877    0.794271
+     Jimmy Carter    1979       Richard Nixon    1972    0.793148
+  Donald J. Trump    2017        Barack Obama    2011    0.792755
+     Barack Obama    2014  William J. Clinton    1998    0.790826
+Benjamin Harrison    1889    Grover Cleveland    1885    0.789958</code></pre>
+</div>
+</div>
+</section>
+<section id="finding-speeches-similar-to-a-query" class="level3" data-number="14.2">
+<h3 data-number="14.2" class="anchored" data-anchor-id="finding-speeches-similar-to-a-query"><span class="header-section-number">14.2</span> 2. Finding speeches similar to a query</h3>
+<p>If you have new text (e.g., a recent speech not in the corpus), you can find which historical speeches are most similar:</p>
+<div id="3368f7a5" class="cell" data-execution_count="27">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Find speeches most similar to the most recent one</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>query_idx <span class="op">=</span> speeches[<span class="st">'year'</span>].idxmax()  <span class="co"># Index of most recent speech</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>query_year <span class="op">=</span> speeches.loc[query_idx, <span class="st">'year'</span>]</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>query_pres <span class="op">=</span> speeches.loc[query_idx, <span class="st">'president'</span>]</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Get similarities to all other speeches</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>similarities_to_query <span class="op">=</span> full_similarity_matrix[query_idx]</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Create DataFrame and sort</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>similar_to_query <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">'year'</span>: speeches[<span class="st">'year'</span>],</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">'president'</span>: speeches[<span class="st">'president'</span>],</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">'similarity'</span>: similarities_to_query</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Exclude the query speech itself</span></span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>similar_to_query <span class="op">=</span> similar_to_query[similar_to_query[<span class="st">'year'</span>] <span class="op">!=</span> query_year]</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Speeches most similar to </span><span class="sc">{</span>query_year<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>query_pres<span class="sc">}</span><span class="ss">):</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(similar_to_query.nlargest(<span class="dv">10</span>, <span class="st">'similarity'</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Speeches most similar to 2018 (Donald J. Trump):
+
+ year          president  similarity
+ 2017    Donald J. Trump    0.742176
+ 2003     George W. Bush    0.720348
+ 1997 William J. Clinton    0.707636
+ 2004     George W. Bush    0.691119
+ 2006     George W. Bush    0.679458
+ 1998 William J. Clinton    0.679391
+ 2014       Barack Obama    0.675868
+ 2013       Barack Obama    0.666606
+ 1986      Ronald Reagan    0.664662
+ 1999 William J. Clinton    0.655298</code></pre>
+</div>
+</div>
+<p>This reveals which past rhetoric most closely resembles a given speech - useful for understanding historical precedents.</p>
+</section>
+<section id="tracking-specific-topics-over-time" class="level3" data-number="14.3">
+<h3 data-number="14.3" class="anchored" data-anchor-id="tracking-specific-topics-over-time"><span class="header-section-number">14.3</span> 3. Tracking specific topics over time</h3>
+<p>You could filter the vocabulary to topic-specific words (e.g., only economy-related words) and track similarity within that topic area:</p>
+<div id="03025e85" class="cell" data-execution_count="28">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Create TF-IDF matrix using only economy-related words</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>economy_words <span class="op">=</span> [<span class="st">'economy'</span>, <span class="st">'economic'</span>, <span class="st">'jobs'</span>, <span class="st">'employment'</span>, <span class="st">'trade'</span>, </span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">'business'</span>, <span class="st">'industry'</span>, <span class="st">'commerce'</span>, <span class="st">'prosperity'</span>, <span class="st">'growth'</span>,</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>                 <span class="st">'unemployment'</span>, <span class="st">'recession'</span>, <span class="st">'inflation'</span>, <span class="st">'budget'</span>, <span class="st">'deficit'</span>]</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>economy_tfidf <span class="op">=</span> TfidfVectorizer(</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    vocabulary<span class="op">=</span>economy_words,  <span class="co"># Only use these words</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    lowercase<span class="op">=</span><span class="va">True</span></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="co"># This would create vectors based only on economic vocabulary</span></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="co"># allowing you to measure similarity specifically in economic rhetoric</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>economy_matrix <span class="op">=</span> economy_tfidf.fit_transform(speeches[<span class="st">'transcript'</span>])</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Economy-focused TF-IDF matrix: </span><span class="sc">{</span>economy_matrix<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"This captures similarity in economic rhetoric only"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Economy-focused TF-IDF matrix: (244, 15)
+This captures similarity in economic rhetoric only</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="summary-and-key-takeaways" class="level2" data-number="15">
+<h2 data-number="15" class="anchored" data-anchor-id="summary-and-key-takeaways"><span class="header-section-number">15</span> Summary and key takeaways</h2>
+<p>In this lab, we learned how to compare entire documents using vector representations and cosine similarity.</p>
+<section id="core-concepts" class="level3" data-number="15.1">
+<h3 data-number="15.1" class="anchored" data-anchor-id="core-concepts"><span class="header-section-number">15.1</span> Core concepts</h3>
+<dl>
+<dt><strong>Document-term matrix</strong></dt>
+<dd>
+Table where rows = documents, columns = words, cells = counts
+</dd>
+<dt><strong>TF-IDF weighting</strong></dt>
+<dd>
+Emphasizes words that are frequent in a document but rare across the corpus
+</dd>
+<dt><strong>Vector representation</strong></dt>
+<dd>
+Each document is a point (or arrow) in high-dimensional space
+</dd>
+<dt><strong>Cosine similarity</strong></dt>
+<dd>
+Measures the angle between document vectors (0 = different, 1 = identical)
+</dd>
+<dt><strong>Temporal analysis</strong></dt>
+<dd>
+Using document similarity to track linguistic change over time
+</dd>
+</dl>
+</section>
+<section id="what-we-built" class="level3" data-number="15.2">
+<h3 data-number="15.2" class="anchored" data-anchor-id="what-we-built"><span class="header-section-number">15.2</span> What we built</h3>
+<p>Starting from raw text, we created:</p>
+<ol type="1">
+<li>TF-IDF weighted vectors for all speeches</li>
+<li>Pairwise similarity matrix (all speeches compared to all others)</li>
+<li>Heatmap visualization of 200 years of rhetoric</li>
+<li>Identification of rhetorical eras, outliers, and transitions</li>
+<li>Temporal trends in linguistic stability</li>
+</ol>
+</section>
+<section id="key-insights" class="level3" data-number="15.3">
+<h3 data-number="15.3" class="anchored" data-anchor-id="key-insights"><span class="header-section-number">15.3</span> Key insights</h3>
+<p>Document-level analysis reveals patterns invisible to word-level analysis:</p>
+<ul>
+<li><strong>Temporal continuity</strong>: Speeches cluster by time period (language changes slowly)</li>
+<li><strong>Rhetorical eras</strong>: Distinct periods of shared language (e.g., Cold War, post-9/11)</li>
+<li><strong>Outliers</strong>: Speeches that broke from contemporary norms</li>
+<li><strong>Borrowing</strong>: High similarity across presidents suggests shared themes or language</li>
+</ul>
+</section>
+<section id="comparison-to-earlier-labs" class="level3" data-number="15.4">
+<h3 data-number="15.4" class="anchored" data-anchor-id="comparison-to-earlier-labs"><span class="header-section-number">15.4</span> Comparison to earlier labs</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 23%">
+<col style="width: 33%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Lab</th>
+<th>Level</th>
+<th>Question</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Lab 01</td>
+<td>Word</td>
+<td>How often is word X used?</td>
+<td>Frequency counting</td>
+</tr>
+<tr class="even">
+<td>Lab 02</td>
+<td>Word</td>
+<td>Is word X more Democratic or Republican?</td>
+<td>Log-likelihood, log odds</td>
+</tr>
+<tr class="odd">
+<td>Lab 03</td>
+<td>Word</td>
+<td>Which words cluster with category Y?</td>
+<td>PMI, dictionary induction</td>
+</tr>
+<tr class="even">
+<td><strong>Lab 04</strong></td>
+<td><strong>Document</strong></td>
+<td><strong>Which documents are similar?</strong></td>
+<td><strong>TF-IDF, cosine similarity</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Each lab builds on previous ones, adding new levels of analysis.</p>
+<hr>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="16">
+<h2 data-number="16" class="anchored" data-anchor-id="exercises"><span class="header-section-number">16</span> Exercises</h2>
+<p>Try these to deepen your understanding:</p>
+<section id="exercise-1-party-based-clustering" class="level3" data-number="16.1">
+<h3 data-number="16.1" class="anchored" data-anchor-id="exercise-1-party-based-clustering"><span class="header-section-number">16.1</span> Exercise 1: Party-based clustering</h3>
+<p>Split speeches by party (Democratic vs Republican) and compute average within-party vs between-party similarity. Are speeches more similar within party or across party lines? Has this changed over time?</p>
+</section>
+<section id="exercise-2-presidential-signature-rhetoric" class="level3" data-number="16.2">
+<h3 data-number="16.2" class="anchored" data-anchor-id="exercise-2-presidential-signature-rhetoric"><span class="header-section-number">16.2</span> Exercise 2: Presidential signature rhetoric</h3>
+<p>For each president with at least 5 speeches, compute:</p>
+<ol type="1">
+<li>Average similarity among their own speeches (rhetorical consistency)</li>
+<li>Average similarity to all other presidents’ speeches (distinctiveness)</li>
+</ol>
+<p>Who is the most consistent? Who is the most distinctive?</p>
+</section>
+<section id="exercise-3-foreign-vs-domestic-policy" class="level3" data-number="16.3">
+<h3 data-number="16.3" class="anchored" data-anchor-id="exercise-3-foreign-vs-domestic-policy"><span class="header-section-number">16.3</span> Exercise 3: Foreign vs domestic policy</h3>
+<p>Create two TF-IDF matrices:</p>
+<ol type="1">
+<li>Using only foreign policy vocabulary (war, peace, treaty, alliance, defense, etc.)</li>
+<li>Using only domestic policy vocabulary (jobs, health, education, infrastructure, etc.)</li>
+</ol>
+<p>Compute similarity matrices for each. Do speeches cluster differently based on policy domain?</p>
+</section>
+<section id="exercise-4-influential-speeches" class="level3" data-number="16.4">
+<h3 data-number="16.4" class="anchored" data-anchor-id="exercise-4-influential-speeches"><span class="header-section-number">16.4</span> Exercise 4: Influential speeches</h3>
+<p>Hypothesis: “Influential” speeches are those highly similar to <em>later</em> speeches (not earlier ones) - they set trends rather than follow them.</p>
+<p>For each speech, compute:</p>
+<ul>
+<li>Average similarity to speeches in the <em>previous</em> 5 years</li>
+<li>Average similarity to speeches in the <em>next</em> 5 years</li>
+</ul>
+<p>Speeches with high “future similarity” but low “past similarity” might be rhetorical innovators that later presidents emulated.</p>
+</section>
+<section id="exercise-5-shortest-path-through-history" class="level3" data-number="16.5">
+<h3 data-number="16.5" class="anchored" data-anchor-id="exercise-5-shortest-path-through-history"><span class="header-section-number">16.5</span> Exercise 5: Shortest path through history</h3>
+<p>Using the full similarity matrix as a “network” where speeches are nodes and similarity scores are edge weights, find the “path” through history that maximizes total similarity. This would reveal the smoothest rhetorical evolution from 1790 to 2020.</p>
+<p>Hint: At each step, move to the most similar speech that’s later in time.</p>
+</section>
+<section id="exercise-6-validation-with-known-events" class="level3" data-number="16.6">
+<h3 data-number="16.6" class="anchored" data-anchor-id="exercise-6-validation-with-known-events"><span class="header-section-number">16.6</span> Exercise 6: Validation with known events</h3>
+<p>Choose 3-5 major historical events (World War II, 9/11, 2008 financial crisis, etc.). Do speeches given during/after these events show distinctive patterns in:</p>
+<ol type="1">
+<li>Similarity to surrounding years?</li>
+<li>Similarity to other crisis speeches?</li>
+<li>Overall distinctiveness?</li>
+</ol>
+<p>This validates whether your method detects known rhetorical shifts.</p>
+<hr>
+</section>
+</section>
+<section id="references-and-further-reading" class="level2" data-number="17">
+<h2 data-number="17" class="anchored" data-anchor-id="references-and-further-reading"><span class="header-section-number">17</span> References and further reading</h2>
+<section id="foundational-papers" class="level3" data-number="17.1">
+<h3 data-number="17.1" class="anchored" data-anchor-id="foundational-papers"><span class="header-section-number">17.1</span> Foundational papers</h3>
+<ul>
+<li>Silge, J., &amp; Robinson, D. (2017). <em>Text Mining with R</em>. Chapter 3 Analyzing word and document frequency: tf-idf. <a href="https://www.tidytextmining.com/tfidf">https://www.tidytextmining.com/tfidf</a></li>
+<li>Manning, C. D., Raghavan, P., &amp; Schütze, H. (2008). Introduction to information retrieval. Cambridge university press. Chapter 6 Scoring, term weighting and the vector space model. <a href="https://nlp.stanford.edu/IR-book/pdf/06vect.pdf">https://nlp.stanford.edu/IR-book/pdf/06vect.pdf</a></li>
+<li>Rule, A., Cointet, J.-P., &amp; Bearman, P. S. (2015). Lexical shifts, substantive changes, and continuity in State of the Union discourse, 1790–2014. <em>Proceedings of the National Academy of Sciences</em>, 112(35), 10837-10844. <a href="https://doi.org/10.1073/pnas.1512221112">https://doi.org/10.1073/pnas.1512221112</a></li>
+</ul>
+</section>
+<section id="applications-in-political-science" class="level3" data-number="17.2">
+<h3 data-number="17.2" class="anchored" data-anchor-id="applications-in-political-science"><span class="header-section-number">17.2</span> Applications in political science</h3>
+<ul>
+<li>Grimmer, J., &amp; Stewart, B. M. (2013). Text as data: The promise and pitfalls of automatic content analysis methods for political texts. <em>Political Analysis</em>, 21(3), 267-297. <a href="https://doi.org/10.1093/pan/mps028">https://doi.org/10.1093/pan/mps028</a></li>
+<li>Laver, M., Benoit, K., &amp; Garry, J. (2003). Extracting policy positions from political texts using words as data. <em>American Political Science Review</em>, 97(2), 311-331. <a href="https://doi.org/10.1017/S0003055403000698">https://doi.org/10.1017/S0003055403000698</a></li>
+</ul>
+</section>
+<section id="technical-resources" class="level3" data-number="17.3">
+<h3 data-number="17.3" class="anchored" data-anchor-id="technical-resources"><span class="header-section-number">17.3</span> Technical resources</h3>
+<ul>
+<li>Scikit-learn documentation: TF-IDF - <a href="https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting">https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting</a></li>
+<li>Cosine similarity explained - <a href="https://scikit-learn.org/stable/modules/metrics.html#cosine-similarity">https://scikit-learn.org/stable/modules/metrics.html#cosine-similarity</a></li>
+</ul>
+</section>
+<section id="extensions-and-advanced-topics" class="level3" data-number="17.4">
+<h3 data-number="17.4" class="anchored" data-anchor-id="extensions-and-advanced-topics"><span class="header-section-number">17.4</span> Extensions and advanced topics</h3>
+<ul>
+<li><strong>Dimensionality reduction</strong>: PCA, t-SNE, UMAP for visualizing document spaces in 2D</li>
+<li><strong>Clustering algorithms</strong>: K-means, hierarchical clustering to automatically group similar documents</li>
+<li><strong>Topic modeling</strong>: LDA (Latent Dirichlet Allocation) for discovering latent themes</li>
+<li><strong>Word embeddings</strong>: Word2Vec, GloVe for semantic similarity (not just lexical overlap)</li>
+<li><strong>Document embeddings</strong>: Doc2Vec, BERT embeddings for context-aware similarity</li>
+</ul>
+<hr>
+<p><strong>End of Lab 04</strong></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/paskn\.github\.io\/cta-with-python\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
