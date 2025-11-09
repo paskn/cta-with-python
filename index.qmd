@@ -3,6 +3,7 @@ title: "Computational Text Analysis with Python"
 ---
 
 1. Start here: [Python Basics](basic-python.qmd)
-2. [Lab 01: Words as data points I](lab_01.qmd)
-2. [Lab 02: Words as data points II](lab_02.qmd)
-2. [Lab 03: Dictionary methods](lab_03.qmd)
+3. [Lab 01: Words as data points I](lab_01.qmd)
+4. [Lab 02: Words as data points II](lab_02.qmd)
+5. [Lab 03: Dictionary methods](lab_03.qmd)
+6. [Lab 04: Comparing documents](lab_04.qmd)

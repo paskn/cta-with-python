@@ -1,0 +1,1125 @@
+---
+title: "Lab 04: Comparing documents"
+subtitle: "Document similarity, clustering, and temporal patterns"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+## Learning objectives
+
+By the end of this lab, you will understand:
+
+- How to represent documents as vectors in a shared space
+- What cosine similarity is and why it works for comparing texts
+- How TF-IDF weighting helps identify similar documents
+- How to create document similarity matrices and heatmaps
+- How to track linguistic change over time
+- How to identify periods of rhetorical innovation and stability
+- The difference between word-level and document-level analysis
+
+---
+
+## Introduction: From words to documents
+
+In Labs 01-03, we focused on analyzing individual **words** - counting them, comparing their frequencies, finding distinctive vocabulary with PMI. These are powerful techniques, but they all share one limitation: they treat each word independently.
+
+But what if we want to ask questions like:
+
+- Which two presidential speeches are most similar overall?
+- Do speeches cluster by party, president, or historical era?
+- When did American political language change most dramatically?
+- Can we detect plagiarism or borrowed rhetoric?
+
+These questions require us to think about **entire documents**, not just individual words. We need to compare whole texts and measure how similar or different they are.
+
+### The challenge: How do you compare documents?
+
+Here's the problem: Documents are long, complex objects. A State of the Union address might contain 5,000 words. How do we reduce all that complexity to a single number that tells us "these two speeches are similar"?
+
+You might think: "Just count how many words they share!" But that doesn't work well:
+
+**Example**: Imagine three speeches:
+
+- Speech A: "We must strengthen our economy and create jobs for workers."
+- Speech B: "We need to build our economy and provide employment for citizens."  
+- Speech C: "The weather today is sunny and warm."
+
+Speeches A and B share *zero* words in common (different vocabulary for the same ideas), but they're clearly more similar than A and C (which happen to share "and" and "our").
+
+We need a smarter approach.
+
+### The solution: Vector space models
+
+The key insight is this: If we represent each document as a **vector** (a list of numbers), we can use mathematical tools to measure how similar vectors are.
+
+Here's how it works:
+
+1. **Create a vocabulary**: List all unique words across all documents
+2. **Count words in each document**: For each document, count how many times each vocabulary word appears
+3. **Represent as vector**: Each document becomes a vector where position i = count of word i
+4. **Measure similarity**: Use mathematical distance or angle between vectors
+
+This transforms the problem of comparing texts into the problem of comparing vectors - and we have excellent tools for that.
+
+**What we'll build**: By the end of this lab, you'll be able to create a heatmap showing which presidential speeches are most similar to each other across 200+ years of American history. This reveals patterns invisible to word-level analysis.
+
+---
+
+## Setup: Loading packages
+
+```{python}
+# Data manipulation
+import pandas as pd
+import numpy as np
+
+# Text processing
+import spacy
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (14, 8)
+
+print("✓ Packages loaded successfully")
+```
+
+::: {.callout-note}
+## About these packages
+
+New packages in this lab:
+
+- **sklearn (scikit-learn)**: Machine learning library with text processing tools
+  - `TfidfVectorizer`: Converts text to TF-IDF weighted vectors
+  - `cosine_similarity`: Measures similarity between vectors
+- **numpy**: Numerical computing for matrix operations
+
+We continue using pandas, matplotlib, and seaborn from previous labs.
+:::
+
+### Loading spaCy model
+
+```{python}
+# Load English language model for text processing
+nlp = spacy.load("en_core_web_sm")
+nlp.max_length = 1530000  # Increase limit for long documents
+
+print(f"✓ spaCy model loaded: {nlp.meta['name']}")
+```
+
+---
+
+## Loading and preparing the data
+
+Let's load our familiar State of the Union dataset:
+
+```{python}
+# Load the data
+speeches = pd.read_csv("data/transcripts.csv")
+speeches['date'] = pd.to_datetime(speeches['date'])
+speeches['year'] = speeches['date'].dt.year
+
+print(f"Total speeches: {len(speeches)}")
+print(f"Date range: {speeches['year'].min()} to {speeches['year'].max()}")
+print(f"\nFirst few rows:")
+speeches.head()
+```
+
+### Creating a working sample
+
+To start, let's work with a manageable subset - the 50 most recent speeches. This will help us understand the concepts before scaling up to the full dataset.
+
+```{python}
+# Select 50 most recent speeches
+recent_speeches = speeches.nlargest(50, 'year').copy()
+recent_speeches = recent_speeches.sort_values('year').reset_index(drop=True)
+
+print(f"Working with {len(recent_speeches)} speeches")
+print(f"Date range: {recent_speeches['year'].min()} to {recent_speeches['year'].max()}")
+print(f"\nPresidents included:")
+print(recent_speeches['president'].value_counts())
+```
+
+---
+
+## From text to vectors: The document-term matrix
+
+### What is a document-term matrix?
+
+A **document-term matrix** (DTM) is a table where:
+
+- Each **row** represents one document
+- Each **column** represents one unique word (from the entire vocabulary)
+- Each **cell** contains the count of how many times that word appears in that document
+
+**Example**: Imagine we have three tiny "speeches":
+
+- Doc 1: "the economy is strong"
+- Doc 2: "the economy needs help"  
+- Doc 3: "strong leadership helps"
+
+The vocabulary is: {the, economy, is, strong, needs, help, leadership, helps}
+
+The document-term matrix looks like:
+
+|     | the | economy | is | strong | needs | help | leadership | helps |
+|-----|-----|---------|----|----|-------|------|------------|-------|
+| Doc 1 | 1   | 1       | 1  | 1  | 0     | 0    | 0          | 0     |
+| Doc 2 | 1   | 1       | 0  | 0  | 1     | 1    | 0          | 0     |
+| Doc 3 | 0   | 0       | 0  | 1  | 0     | 0    | 1          | 1     |
+
+Each row is a **vector**. Doc 1's vector is `[1, 1, 1, 1, 0, 0, 0, 0]`.
+
+### Creating a document-term matrix with scikit-learn
+
+We'll use scikit-learn's `CountVectorizer` to create a DTM from our speeches. First, let's do basic preprocessing:
+
+```{python}
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Create a simple document-term matrix
+# This counts word occurrences and removes very common/rare words
+count_vectorizer = CountVectorizer(
+    max_features=1000,      # Keep only top 1000 most frequent words
+    stop_words='english',   # Remove stop words
+    min_df=2,               # Word must appear in at least 2 documents
+    lowercase=True          # Convert to lowercase
+)
+
+# Fit and transform the speeches
+dtm_counts = count_vectorizer.fit_transform(recent_speeches['transcript'])
+
+# Get vocabulary (column names)
+vocab = count_vectorizer.get_feature_names_out()
+
+print(f"Document-term matrix shape: {dtm_counts.shape}")
+print(f"  {dtm_counts.shape[0]} documents (speeches)")
+print(f"  {dtm_counts.shape[1]} words (vocabulary)")
+print(f"\nFirst 20 words in vocabulary:")
+print(vocab[:20])
+```
+
+### Inspecting the matrix
+
+Let's look at the word counts for one speech:
+
+```{python}
+# Convert to dense array (from sparse matrix) for one document
+doc_idx = 0  # First speech
+word_counts = dtm_counts[doc_idx].toarray().flatten()
+
+# Create a DataFrame for easier viewing
+word_count_df = pd.DataFrame({
+    'word': vocab,
+    'count': word_counts
+}).sort_values('count', ascending=False)
+
+print(f"Top 20 words in speech from {recent_speeches.loc[doc_idx, 'year']}:")
+print(f"President: {recent_speeches.loc[doc_idx, 'president']}\n")
+print(word_count_df.head(20))
+```
+
+::: {.callout-tip}
+## Sparse matrices
+
+The DTM is stored as a **sparse matrix** - a special data structure that only stores non-zero values. This is efficient because most cells in a DTM are zero (most words don't appear in most documents).
+
+For 50 documents × 1000 words = 50,000 cells, but maybe only 5,000 have non-zero counts. Sparse matrices save memory by only storing those 5,000 values.
+:::
+
+---
+
+## The problem with raw counts
+
+Raw word counts have a problem: They treat all words equally. But some words are more informative than others.
+
+Consider two words:
+
+- **"government"**: Appears in 48 out of 50 speeches
+- **"healthcare"**: Appears in 15 out of 50 speeches
+
+If a speech mentions "government" 10 times, that doesn't tell us much - almost every speech talks about government! But if it mentions "healthcare" 10 times, that's distinctive - this speech is really focusing on healthcare policy.
+
+**The insight**: Words that appear in *many* documents are less useful for distinguishing documents than words that appear in *few* documents.
+
+This is where **TF-IDF** comes in.
+
+### What is TF-IDF?
+
+TF-IDF stands for **Term Frequency - Inverse Document Frequency**. It's a weighting scheme that gives higher scores to words that are:
+
+1. **Frequent in the document** (TF = Term Frequency)
+2. **Rare across the corpus** (IDF = Inverse Document Frequency)
+
+Think of it as a "distinctiveness score" for each word in each document.
+
+**How it works**:
+
+- **Term Frequency (TF)**: How many times does this word appear in this document?
+- **Document Frequency (DF)**: In how many documents does this word appear?
+- **Inverse Document Frequency (IDF)**: $\log(\frac{\text{total documents}}{\text{document frequency}})$
+- **TF-IDF**: $\text{TF} \times \text{IDF}$
+
+**Result**:
+
+- Common words (appearing everywhere) get low IDF → low TF-IDF
+- Rare words (appearing in few documents) get high IDF → high TF-IDF (if they appear in this document)
+- Words appearing frequently in one document but rarely overall get highest TF-IDF
+
+::: {.callout-note}
+## A concrete example
+
+Suppose we have 100 documents (speeches).
+
+**Word: "government"**
+
+- Appears in 95 documents (very common)
+- IDF = log(100/95) = log(1.05) ≈ 0.05 (very low)
+- Even if it appears 20 times in one speech, TF-IDF ≈ 20 × 0.05 = 1.0
+
+**Word: "pandemic"**
+
+- Appears in 5 documents (rare)
+- IDF = log(100/5) = log(20) ≈ 3.0 (high)
+- If it appears 20 times in one speech, TF-IDF ≈ 20 × 3.0 = 60.0
+
+TF-IDF captures that "pandemic" is more distinctive for identifying what makes a document unique.
+:::
+
+### Creating TF-IDF weighted vectors
+
+Let's create TF-IDF vectors for our speeches:
+
+```{python}
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Create TF-IDF vectorizer
+tfidf_vectorizer = TfidfVectorizer(
+    max_features=1000,
+    stop_words='english',
+    min_df=2,
+    lowercase=True
+)
+
+# Fit and transform
+tfidf_matrix = tfidf_vectorizer.fit_transform(recent_speeches['transcript'])
+tfidf_vocab = tfidf_vectorizer.get_feature_names_out()
+
+print(f"TF-IDF matrix shape: {tfidf_matrix.shape}")
+print(f"\nTF-IDF values are continuous (not integers):")
+
+# Show TF-IDF values for one speech
+doc_idx = 0
+tfidf_scores = tfidf_matrix[doc_idx].toarray().flatten()
+tfidf_df = pd.DataFrame({
+    'word': tfidf_vocab,
+    'tfidf': tfidf_scores
+}).sort_values('tfidf', ascending=False)
+
+print(f"\nTop 20 words by TF-IDF for {recent_speeches.loc[doc_idx, 'year']} speech:")
+print(tfidf_df.head(20))
+```
+
+Notice how TF-IDF values are **decimals** (0 to ~1 range), not integer counts. Words with higher TF-IDF are more characteristic of this specific document.
+
+---
+
+## Measuring document similarity with cosine similarity
+
+Now that we have TF-IDF vectors, we need a way to compare them. The standard measure is **cosine similarity**.
+
+### What is cosine similarity?
+
+Imagine two speeches as arrows (vectors) in high-dimensional space (1000 dimensions, one per word). Cosine similarity measures the **angle** between these arrows:
+
+- **Angle = 0°** (arrows point same direction): Cosine = 1.0 (identical documents)
+- **Angle = 90°** (arrows perpendicular): Cosine = 0.0 (completely different documents)
+- **Angle = 180°** (arrows opposite directions): Cosine = -1.0 (in text, this rarely happens)
+
+**Why angle instead of distance?**
+
+- Documents of different lengths would always be "far apart" by distance
+- Angle captures *proportional* similarity - two speeches about the same topic are similar even if one is twice as long
+
+**The formula**:
+
+$$\text{cosine similarity} = \frac{A \cdot B}{||A|| \times ||B||}$$
+
+Where:
+
+- $A \cdot B$ = dot product (sum of elementwise multiplication)
+- $||A||$ = length of vector A
+- $||B||$ = length of vector B
+
+Don't worry about the math - scikit-learn does this for us!
+
+### A simple example
+
+Let's compare two specific speeches:
+
+```{python}
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Pick two speeches to compare
+speech_a = 0  # Index of first speech
+speech_b = 1  # Index of second speech
+
+# Get their TF-IDF vectors
+vec_a = tfidf_matrix[speech_a]
+vec_b = tfidf_matrix[speech_b]
+
+# Calculate cosine similarity
+similarity = cosine_similarity(vec_a, vec_b)[0, 0]
+
+print(f"Speech A: {recent_speeches.loc[speech_a, 'year']} - {recent_speeches.loc[speech_a, 'president']}")
+print(f"Speech B: {recent_speeches.loc[speech_b, 'year']} - {recent_speeches.loc[speech_b, 'president']}")
+print(f"\nCosine similarity: {similarity:.4f}")
+
+if similarity > 0.8:
+    print("→ Very similar speeches")
+elif similarity > 0.5:
+    print("→ Moderately similar speeches")
+elif similarity > 0.3:
+    print("→ Somewhat similar speeches")
+else:
+    print("→ Not very similar speeches")
+```
+
+### Computing similarity for all pairs
+
+Now let's calculate similarity between *all* pairs of speeches:
+
+```{python}
+# Calculate pairwise cosine similarities
+similarity_matrix = cosine_similarity(tfidf_matrix)
+
+print(f"Similarity matrix shape: {similarity_matrix.shape}")
+print(f"  {similarity_matrix.shape[0]} speeches × {similarity_matrix.shape[1]} speeches")
+print(f"\nDiagonal values (self-similarity) should be 1.0:")
+print(f"  First 5 diagonal values: {np.diag(similarity_matrix)[:5]}")
+```
+
+This gives us a **similarity matrix** where:
+
+- Rows and columns both represent speeches (in the same order)
+- Cell [i, j] = similarity between speech i and speech j
+- Diagonal = 1.0 (each speech is identical to itself)
+- Matrix is symmetric (similarity of A to B = similarity of B to A)
+
+Let's inspect it:
+
+```{python}
+# Convert to DataFrame for easier viewing
+similarity_df = pd.DataFrame(
+    similarity_matrix,
+    index=recent_speeches['year'],
+    columns=recent_speeches['year']
+)
+
+print("Similarity matrix (first 10 rows/columns):")
+print(similarity_df.iloc[:10, :10].round(3))
+```
+
+---
+
+## Visualizing document similarity
+
+Numbers are hard to interpret. Let's create a **heatmap** - a visual representation of the similarity matrix where color intensity shows similarity strength.
+
+### Creating a basic heatmap
+
+```{python}
+# Create heatmap
+plt.figure(figsize=(14, 12))
+
+sns.heatmap(
+    similarity_df,
+    cmap='YlOrRd',           # Yellow-Orange-Red colormap
+    vmin=0, vmax=1,          # Similarity ranges from 0 to 1
+    square=True,             # Make cells square
+    cbar_kws={'label': 'Cosine similarity'}
+)
+
+plt.title('State of the Union speech similarity (50 most recent)', 
+          fontsize=14, fontweight='bold', pad=20)
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('Year', fontsize=12)
+plt.tight_layout()
+plt.show()
+```
+
+**How to read this heatmap**:
+
+- **Each cell** represents similarity between two speeches
+- **Color intensity**: Darker red = more similar, lighter yellow = less similar
+- **Diagonal**: Always dark red (each speech is identical to itself)
+- **Symmetric**: Upper-right mirrors lower-left
+- **Patterns**: Clusters of dark red reveal groups of similar speeches
+
+::: {.callout-tip}
+## What to look for
+
+Scan the heatmap for patterns:
+
+- **Stripes**: One speech similar to many others (maybe very generic language)
+- **Blocks**: Groups of consecutive years with high similarity (stable period)
+- **Isolates**: Speeches unlike anything around them (rhetorical innovation?)
+- **Diagonal bands**: Speeches similar to nearby years (temporal autocorrelation)
+:::
+
+### Improving the visualization
+
+Let's add president names to make patterns clearer:
+
+```{python}
+# Create labels with year and president last name
+labels = [
+    f"{row['year']} {row['president'].split()[-1]}" 
+    for _, row in recent_speeches.iterrows()
+]
+
+# Create improved heatmap
+plt.figure(figsize=(16, 14))
+
+sns.heatmap(
+    similarity_df,
+    cmap='YlOrRd',
+    vmin=0.3, vmax=1.0,  # Adjust range to emphasize differences
+    square=True,
+    cbar_kws={'label': 'Cosine similarity'},
+    xticklabels=labels,
+    yticklabels=labels
+)
+
+plt.title('State of the Union speech similarity (with president names)', 
+          fontsize=14, fontweight='bold', pad=20)
+plt.xlabel('Year - President', fontsize=12)
+plt.ylabel('Year - President', fontsize=12)
+plt.xticks(rotation=90, fontsize=8)
+plt.yticks(rotation=0, fontsize=8)
+plt.tight_layout()
+plt.show()
+```
+
+**Questions to ask the heatmap**:
+
+1. Do speeches by the same president cluster together (high similarity)?
+2. Do speeches from the same decade cluster together?
+3. Are there any outlier speeches very different from all others?
+4. Can you spot transitions between different rhetorical eras?
+
+---
+
+## Identifying the most and least similar speeches
+
+Let's find specific examples of highly similar and highly different speeches:
+
+### Most similar speech pairs
+
+```{python}
+# Extract upper triangle (to avoid counting each pair twice)
+upper_triangle_indices = np.triu_indices_from(similarity_matrix, k=1)
+similarities_upper = similarity_matrix[upper_triangle_indices]
+
+# Get indices of top 10 most similar pairs
+top_indices = np.argsort(similarities_upper)[-10:][::-1]
+
+# Extract speech pairs
+most_similar = []
+for idx in top_indices:
+    i = upper_triangle_indices[0][idx]
+    j = upper_triangle_indices[1][idx]
+    most_similar.append({
+        'speech_1_year': recent_speeches.loc[i, 'year'],
+        'speech_1_pres': recent_speeches.loc[i, 'president'],
+        'speech_2_year': recent_speeches.loc[j, 'year'],
+        'speech_2_pres': recent_speeches.loc[j, 'president'],
+        'similarity': similarity_matrix[i, j]
+    })
+
+most_similar_df = pd.DataFrame(most_similar)
+print("Top 10 most similar speech pairs:\n")
+print(most_similar_df.to_string(index=False))
+```
+
+**Interpretation**: High similarity pairs often come from:
+
+- Consecutive years by the same president (consistent themes)
+- Same historical period with shared concerns
+- Similar political circumstances or crises
+
+### Most different speech pairs
+
+```{python}
+# Get indices of bottom 10 (most different pairs)
+bottom_indices = np.argsort(similarities_upper)[:10]
+
+# Extract speech pairs
+most_different = []
+for idx in bottom_indices:
+    i = upper_triangle_indices[0][idx]
+    j = upper_triangle_indices[1][idx]
+    most_different.append({
+        'speech_1_year': recent_speeches.loc[i, 'year'],
+        'speech_1_pres': recent_speeches.loc[i, 'president'],
+        'speech_2_year': recent_speeches.loc[j, 'year'],
+        'speech_2_pres': recent_speeches.loc[j, 'president'],
+        'similarity': similarity_matrix[i, j]
+    })
+
+most_different_df = pd.DataFrame(most_different)
+print("Top 10 most different speech pairs:\n")
+print(most_different_df.to_string(index=False))
+```
+
+**Interpretation**: Low similarity pairs often come from:
+
+- Very different historical eras (e.g., Cold War vs post-9/11)
+- Different dominant issues (economy vs war, domestic vs foreign policy)
+- Different rhetorical styles (formal vs informal, optimistic vs somber)
+
+---
+
+## Temporal patterns: Tracking linguistic change
+
+Now let's use document similarity to study how political language changes over time. We'll ask: When did American political rhetoric shift most dramatically?
+
+### Average similarity to surrounding years
+
+One way to detect change is to measure how similar each speech is to speeches from nearby years:
+
+```{python}
+# For each speech, calculate average similarity to speeches within ±5 years
+temporal_similarity = []
+
+for idx, row in recent_speeches.iterrows():
+    year = row['year']
+    
+    # Find speeches within ±5 years
+    nearby_mask = (recent_speeches['year'] >= year - 5) & \
+                  (recent_speeches['year'] <= year + 5) & \
+                  (recent_speeches['year'] != year)  # Exclude the speech itself
+    
+    if nearby_mask.sum() > 0:  # If there are nearby speeches
+        nearby_indices = recent_speeches[nearby_mask].index
+        similarities_to_nearby = similarity_matrix[idx, nearby_indices]
+        avg_similarity = similarities_to_nearby.mean()
+    else:
+        avg_similarity = np.nan
+    
+    temporal_similarity.append({
+        'year': year,
+        'president': row['president'],
+        'avg_similarity_to_nearby': avg_similarity
+    })
+
+temporal_df = pd.DataFrame(temporal_similarity)
+
+print("Temporal similarity to nearby years (sample):")
+print(temporal_df.head(10))
+```
+
+### Visualizing temporal stability
+
+```{python}
+# Plot temporal similarity over time
+plt.figure(figsize=(14, 6))
+
+plt.plot(temporal_df['year'], temporal_df['avg_similarity_to_nearby'],
+         marker='o', linewidth=2, markersize=6, color='#1976D2')
+
+plt.axhline(y=temporal_df['avg_similarity_to_nearby'].mean(), 
+            color='red', linestyle='--', linewidth=1, alpha=0.7,
+            label=f"Average similarity: {temporal_df['avg_similarity_to_nearby'].mean():.3f}")
+
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('Average similarity to nearby years (±5)', fontsize=12)
+plt.title('Temporal stability of political rhetoric', fontsize=14, fontweight='bold')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+**How to interpret this plot**:
+
+- **High points**: Speech is very similar to nearby years (stable period, consistent rhetoric)
+- **Low points**: Speech is different from nearby years (innovation, major shift, unique circumstances)
+- **Trends**: Overall increase/decrease in similarity over time
+- **Drops**: Sudden changes in political language
+
+### Finding moments of rhetorical innovation
+
+Let's identify speeches that are most different from their temporal neighbors - these are moments of rhetorical change:
+
+```{python}
+# Find speeches with lowest similarity to nearby years
+innovations = temporal_df.nsmallest(10, 'avg_similarity_to_nearby')
+
+print("Top 10 speeches most different from their era:\n")
+print(innovations[['year', 'president', 'avg_similarity_to_nearby']].to_string(index=False))
+```
+
+These speeches represent moments when presidential rhetoric broke from recent patterns. Research question: What historical events coincide with these rhetorical innovations?
+
+---
+
+## Scaling up: Analyzing the full dataset
+
+Now that we understand the concepts, let's apply them to the **entire** State of the Union corpus (200+ years). This will reveal long-term patterns invisible in our 50-speech sample.
+
+### Preparing the full dataset
+
+```{python}
+# Use all speeches
+print(f"Full dataset: {len(speeches)} speeches from {speeches['year'].min()} to {speeches['year'].max()}")
+
+# For very large datasets, we might want to limit vocabulary more aggressively
+# to keep computation manageable
+
+full_tfidf_vectorizer = TfidfVectorizer(
+    max_features=500,       # Reduce to top 500 words for speed
+    stop_words='english',
+    min_df=5,               # Word must appear in at least 5 speeches
+    max_df=0.8,             # Ignore words in >80% of speeches (too common)
+    lowercase=True
+)
+
+# Create TF-IDF matrix
+print("\nCreating TF-IDF matrix for full corpus...")
+full_tfidf_matrix = full_tfidf_vectorizer.fit_transform(speeches['transcript'])
+print(f"✓ TF-IDF matrix created: {full_tfidf_matrix.shape}")
+```
+
+### Computing similarity for all speeches
+
+```{python}
+# Calculate pairwise similarities
+print("Computing pairwise similarities...")
+full_similarity_matrix = cosine_similarity(full_tfidf_matrix)
+print(f"✓ Similarity matrix computed: {full_similarity_matrix.shape}")
+```
+
+::: {.callout-warning}
+## Computational note
+
+Computing similarity for all pairs requires calculating $n \times n$ comparisons where $n$ = number of documents. For 244 speeches, this means 59,536 comparisons.
+
+For very large corpora (10,000+ documents), this becomes computationally expensive. In those cases, you'd use approximation methods or only compute similarities to a subset of documents.
+:::
+
+### Visualizing 200 years of rhetorical similarity
+
+```{python}
+# Create DataFrame with year labels
+full_similarity_df = pd.DataFrame(
+    full_similarity_matrix,
+    index=speeches['year'],
+    columns=speeches['year']
+)
+
+# Create heatmap for full timeline
+plt.figure(figsize=(18, 16))
+
+sns.heatmap(
+    full_similarity_df,
+    cmap='YlOrRd',
+    vmin=0.2, vmax=1.0,
+    cbar_kws={'label': 'Cosine similarity'},
+    xticklabels=10,  # Show every 10th year label (too many to show all)
+    yticklabels=10
+)
+
+plt.title('State of the Union speech similarity (1790-2020)', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.xlabel('Year', fontsize=13)
+plt.ylabel('Year', fontsize=13)
+plt.tight_layout()
+plt.show()
+```
+
+**What this reveals**: Look for:
+
+1. **Diagonal structure**: Speeches similar to nearby years (temporal continuity)
+2. **Block patterns**: Eras of sustained similarity (stable periods)
+3. **Breaks**: Sudden transitions between eras (e.g., Civil War, World Wars, modern era)
+4. **Recent vs historical**: Are recent speeches more similar to each other than to 19th century speeches?
+
+This single visualization summarizes 200 years of American political language evolution.
+
+---
+
+## Identifying historical eras through clustering
+
+The heatmap suggests there are distinct "eras" of political rhetoric. Let's make this more explicit by identifying periods of high internal similarity.
+
+### Average similarity by decade
+
+```{python}
+# Add decade to speeches
+speeches_with_decade = speeches.copy()
+speeches_with_decade['decade'] = (speeches_with_decade['year'] // 10) * 10
+
+# Calculate average similarity within each decade
+decade_similarities = []
+
+for decade in sorted(speeches_with_decade['decade'].unique()):
+    decade_speeches = speeches_with_decade[speeches_with_decade['decade'] == decade]
+    decade_indices = decade_speeches.index.tolist()
+    
+    if len(decade_indices) > 1:  # Need at least 2 speeches to compute similarity
+        # Extract similarities within this decade
+        decade_sim_matrix = full_similarity_matrix[np.ix_(decade_indices, decade_indices)]
+        
+        # Get upper triangle (exclude diagonal and duplicates)
+        upper_tri = np.triu_indices_from(decade_sim_matrix, k=1)
+        within_decade_similarities = decade_sim_matrix[upper_tri]
+        
+        avg_sim = within_decade_similarities.mean()
+    else:
+        avg_sim = np.nan
+    
+    decade_similarities.append({
+        'decade': decade,
+        'avg_similarity': avg_sim,
+        'n_speeches': len(decade_indices)
+    })
+
+decade_df = pd.DataFrame(decade_similarities)
+
+print("Average similarity within each decade:")
+print(decade_df.to_string(index=False))
+```
+
+### Visualizing rhetorical coherence by era
+
+```{python}
+# Plot within-decade similarity over time
+plt.figure(figsize=(14, 6))
+
+plt.bar(decade_df['decade'], decade_df['avg_similarity'],
+        width=8, color='#1976D2', alpha=0.7, edgecolor='black')
+
+plt.axhline(y=decade_df['avg_similarity'].mean(), 
+            color='red', linestyle='--', linewidth=2, alpha=0.7,
+            label=f"Overall average: {decade_df['avg_similarity'].mean():.3f}")
+
+plt.xlabel('Decade', fontsize=12)
+plt.ylabel('Average within-decade similarity', fontsize=12)
+plt.title('Rhetorical coherence by decade', fontsize=14, fontweight='bold')
+plt.legend()
+plt.grid(True, alpha=0.3, axis='y')
+plt.tight_layout()
+plt.show()
+```
+
+**Interpretation**:
+
+- **High bars**: Decades with consistent rhetoric (presidents using similar language)
+- **Low bars**: Decades with diverse rhetoric (presidents diverging in language use)
+- **Trends**: Are recent decades more or less coherent than historical ones?
+
+This captures whether each era had a distinctive "voice" or was linguistically fragmented.
+
+---
+
+## Finding the most distinctive speeches
+
+Which individual speeches are most unlike all others? These are the rhetorical outliers - speeches that broke the mold.
+
+### Computing average similarity to all other speeches
+
+```{python}
+# For each speech, calculate average similarity to all others
+speech_distinctiveness = []
+
+for idx in range(len(speeches)):
+    # Get similarities to all other speeches (excluding self)
+    other_indices = [i for i in range(len(speeches)) if i != idx]
+    similarities_to_others = full_similarity_matrix[idx, other_indices]
+    avg_similarity = similarities_to_others.mean()
+    
+    speech_distinctiveness.append({
+        'year': speeches.loc[idx, 'year'],
+        'president': speeches.loc[idx, 'president'],
+        'avg_similarity_to_others': avg_similarity
+    })
+
+distinctiveness_df = pd.DataFrame(speech_distinctiveness)
+
+print("Distinctiveness calculated for all speeches")
+```
+
+### Most distinctive (unique) speeches
+
+```{python}
+# Find speeches least similar to all others
+most_distinctive = distinctiveness_df.nsmallest(15, 'avg_similarity_to_others')
+
+print("Top 15 most distinctive (unique) speeches:\n")
+print(most_distinctive.to_string(index=False))
+```
+
+These speeches used language very different from typical State of the Union rhetoric. Possible reasons:
+
+- Unique historical circumstances (war, crisis, scandal)
+- Unusual rhetorical strategy
+- Different format (written vs oral, short vs long)
+- Linguistic innovation
+
+### Most typical speeches
+
+```{python}
+# Find speeches most similar to all others
+most_typical = distinctiveness_df.nlargest(15, 'avg_similarity_to_others')
+
+print("Top 15 most typical (representative) speeches:\n")
+print(most_typical.to_string(index=False))
+```
+
+These speeches exemplify "standard" State of the Union rhetoric - they use language common across the entire corpus. If you wanted to understand what a "typical" presidential speech sounds like, these are good examples.
+
+---
+
+## Applications and extensions
+
+Now that you understand document similarity, here are ways to apply and extend these techniques:
+
+### 1. Detecting plagiarism or borrowing
+
+High similarity between speeches by different presidents might indicate:
+
+- Borrowing of phrases or themes
+- Shared speechwriters
+- Common policy priorities
+
+```{python}
+# Find high-similarity pairs by different presidents
+different_president_pairs = []
+
+for i in range(len(speeches)):
+    for j in range(i+1, len(speeches)):
+        if speeches.loc[i, 'president'] != speeches.loc[j, 'president']:
+            sim = full_similarity_matrix[i, j]
+            if sim > 0.7:  # High similarity threshold
+                different_president_pairs.append({
+                    'pres_1': speeches.loc[i, 'president'],
+                    'year_1': speeches.loc[i, 'year'],
+                    'pres_2': speeches.loc[j, 'president'],
+                    'year_2': speeches.loc[j, 'year'],
+                    'similarity': sim
+                })
+
+if different_president_pairs:
+    borrowing_df = pd.DataFrame(different_president_pairs).sort_values('similarity', ascending=False)
+    print("Highly similar speeches by different presidents (top 10):\n")
+    print(borrowing_df.head(10).to_string(index=False))
+else:
+    print("No speech pairs by different presidents exceed 0.7 similarity")
+```
+
+### 2. Finding speeches similar to a query
+
+If you have new text (e.g., a recent speech not in the corpus), you can find which historical speeches are most similar:
+
+```{python}
+# Example: Find speeches most similar to the most recent one
+query_idx = speeches['year'].idxmax()  # Index of most recent speech
+query_year = speeches.loc[query_idx, 'year']
+query_pres = speeches.loc[query_idx, 'president']
+
+# Get similarities to all other speeches
+similarities_to_query = full_similarity_matrix[query_idx]
+
+# Create DataFrame and sort
+similar_to_query = pd.DataFrame({
+    'year': speeches['year'],
+    'president': speeches['president'],
+    'similarity': similarities_to_query
+})
+
+# Exclude the query speech itself
+similar_to_query = similar_to_query[similar_to_query['year'] != query_year]
+
+print(f"Speeches most similar to {query_year} ({query_pres}):\n")
+print(similar_to_query.nlargest(10, 'similarity').to_string(index=False))
+```
+
+This reveals which past rhetoric most closely resembles a given speech - useful for understanding historical precedents.
+
+### 3. Tracking specific topics over time
+
+You could filter the vocabulary to topic-specific words (e.g., only economy-related words) and track similarity within that topic area:
+
+```{python}
+# Example: Create TF-IDF matrix using only economy-related words
+economy_words = ['economy', 'economic', 'jobs', 'employment', 'trade', 
+                 'business', 'industry', 'commerce', 'prosperity', 'growth',
+                 'unemployment', 'recession', 'inflation', 'budget', 'deficit']
+
+economy_tfidf = TfidfVectorizer(
+    vocabulary=economy_words,  # Only use these words
+    lowercase=True
+)
+
+# This would create vectors based only on economic vocabulary
+# allowing you to measure similarity specifically in economic rhetoric
+economy_matrix = economy_tfidf.fit_transform(speeches['transcript'])
+print(f"Economy-focused TF-IDF matrix: {economy_matrix.shape}")
+print("This captures similarity in economic rhetoric only")
+```
+
+---
+
+## Summary and key takeaways
+
+In this lab, we learned how to compare entire documents using vector representations and cosine similarity.
+
+### Core concepts
+
+**Document-term matrix**
+: Table where rows = documents, columns = words, cells = counts
+
+**TF-IDF weighting**
+: Emphasizes words that are frequent in a document but rare across the corpus
+
+**Vector representation**
+: Each document is a point (or arrow) in high-dimensional space
+
+**Cosine similarity**
+: Measures the angle between document vectors (0 = different, 1 = identical)
+
+**Temporal analysis**
+: Using document similarity to track linguistic change over time
+
+### What we built
+
+Starting from raw text, we created:
+
+1. TF-IDF weighted vectors for all speeches
+2. Pairwise similarity matrix (all speeches compared to all others)
+3. Heatmap visualization of 200 years of rhetoric
+4. Identification of rhetorical eras, outliers, and transitions
+5. Temporal trends in linguistic stability
+
+### Key insights
+
+Document-level analysis reveals patterns invisible to word-level analysis:
+
+- **Temporal continuity**: Speeches cluster by time period (language changes slowly)
+- **Rhetorical eras**: Distinct periods of shared language (e.g., Cold War, post-9/11)
+- **Outliers**: Speeches that broke from contemporary norms
+- **Borrowing**: High similarity across presidents suggests shared themes or language
+
+### Comparison to earlier labs
+
+| Lab | Level | Question | Method |
+|-----|-------|----------|--------|
+| Lab 01 | Word | How often is word X used? | Frequency counting |
+| Lab 02 | Word | Is word X more Democratic or Republican? | Log-likelihood, log odds |
+| Lab 03 | Word | Which words cluster with category Y? | PMI, dictionary induction |
+| **Lab 04** | **Document** | **Which documents are similar?** | **TF-IDF, cosine similarity** |
+
+Each lab builds on previous ones, adding new levels of analysis.
+
+---
+
+## Exercises
+
+Try these to deepen your understanding:
+
+### Exercise 1: Party-based clustering
+
+Split speeches by party (Democratic vs Republican) and compute average within-party vs between-party similarity. Are speeches more similar within party or across party lines? Has this changed over time?
+
+### Exercise 2: Presidential signature rhetoric
+
+For each president with at least 5 speeches, compute:
+
+1. Average similarity among their own speeches (rhetorical consistency)
+2. Average similarity to all other presidents' speeches (distinctiveness)
+
+Who is the most consistent? Who is the most distinctive?
+
+### Exercise 3: Foreign vs domestic policy
+
+Create two TF-IDF matrices:
+
+1. Using only foreign policy vocabulary (war, peace, treaty, alliance, defense, etc.)
+2. Using only domestic policy vocabulary (jobs, health, education, infrastructure, etc.)
+
+Compute similarity matrices for each. Do speeches cluster differently based on policy domain?
+
+### Exercise 4: Influential speeches
+
+Hypothesis: "Influential" speeches are those highly similar to *later* speeches (not earlier ones) - they set trends rather than follow them.
+
+For each speech, compute:
+
+- Average similarity to speeches in the *previous* 5 years
+- Average similarity to speeches in the *next* 5 years
+
+Speeches with high "future similarity" but low "past similarity" might be rhetorical innovators that later presidents emulated.
+
+### Exercise 5: Shortest path through history
+
+Using the full similarity matrix as a "network" where speeches are nodes and similarity scores are edge weights, find the "path" through history that maximizes total similarity. This would reveal the smoothest rhetorical evolution from 1790 to 2020.
+
+Hint: At each step, move to the most similar speech that's later in time.
+
+### Exercise 6: Validation with known events
+
+Choose 3-5 major historical events (World War II, 9/11, 2008 financial crisis, etc.). Do speeches given during/after these events show distinctive patterns in:
+
+1. Similarity to surrounding years?
+2. Similarity to other crisis speeches?
+3. Overall distinctiveness?
+
+This validates whether your method detects known rhetorical shifts.
+
+---
+
+## References and further reading
+
+### Foundational papers
+
+- Silge, J., & Robinson, D. (2017). *Text Mining with R*. Chapter 3
+  Analyzing word and document frequency: tf-idf. [https://www.tidytextmining.com/tfidf](https://www.tidytextmining.com/tfidf)
+- Manning, C. D., Raghavan, P., & Schütze, H. (2008). Introduction to
+  information retrieval. Cambridge university press. Chapter 6
+  Scoring, term weighting and the vector space model. [https://nlp.stanford.edu/IR-book/pdf/06vect.pdf](https://nlp.stanford.edu/IR-book/pdf/06vect.pdf)
+- Rule, A., Cointet, J.-P., & Bearman, P. S. (2015). Lexical shifts, substantive changes, and continuity in State of the Union discourse, 1790–2014. *Proceedings of the National Academy of Sciences*, 112(35), 10837-10844. [https://doi.org/10.1073/pnas.1512221112](https://doi.org/10.1073/pnas.1512221112)
+
+### Applications in political science
+
+- Grimmer, J., & Stewart, B. M. (2013). Text as data: The promise and pitfalls of automatic content analysis methods for political texts. *Political Analysis*, 21(3), 267-297. [https://doi.org/10.1093/pan/mps028](https://doi.org/10.1093/pan/mps028)
+- Laver, M., Benoit, K., & Garry, J. (2003). Extracting policy positions from political texts using words as data. *American Political Science Review*, 97(2), 311-331. [https://doi.org/10.1017/S0003055403000698](https://doi.org/10.1017/S0003055403000698)
+
+### Technical resources
+
+- Scikit-learn documentation: TF-IDF - [https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting](https://scikit-learn.org/stable/modules/feature_extraction.html#tfidf-term-weighting)
+- Cosine similarity explained - [https://scikit-learn.org/stable/modules/metrics.html#cosine-similarity](https://scikit-learn.org/stable/modules/metrics.html#cosine-similarity)
+
+### Extensions and advanced topics
+
+- **Dimensionality reduction**: PCA, t-SNE, UMAP for visualizing document spaces in 2D
+- **Clustering algorithms**: K-means, hierarchical clustering to automatically group similar documents
+- **Topic modeling**: LDA (Latent Dirichlet Allocation) for discovering latent themes
+- **Word embeddings**: Word2Vec, GloVe for semantic similarity (not just lexical overlap)
+- **Document embeddings**: Doc2Vec, BERT embeddings for context-aware similarity
+
+---
+
+**End of Lab 04**
