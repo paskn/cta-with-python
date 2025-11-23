@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lab 05.1: Collocations – Computational Text Analysis with Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-960d9d362f81d399278ec3e29b622b37.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Computational Text Analysis with Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./basic-python.html"> 
+<span class="menu-text">Python Basics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">1</span> Learning objectives</a></li>
+  <li><a href="#a-note-on-the-dataset-and-our-goals" id="toc-a-note-on-the-dataset-and-our-goals" class="nav-link" data-scroll-target="#a-note-on-the-dataset-and-our-goals"><span class="header-section-number">2</span> A note on the dataset and our goals</a></li>
+  <li><a href="#introduction-the-multi-word-phrase-problem" id="toc-introduction-the-multi-word-phrase-problem" class="nav-link" data-scroll-target="#introduction-the-multi-word-phrase-problem"><span class="header-section-number">3</span> Introduction: the multi-word phrase problem</a>
+  <ul>
+  <li><a href="#why-word-counting-fails" id="toc-why-word-counting-fails" class="nav-link" data-scroll-target="#why-word-counting-fails"><span class="header-section-number">3.1</span> Why word counting fails</a></li>
+  <li><a href="#what-are-collocations" id="toc-what-are-collocations" class="nav-link" data-scroll-target="#what-are-collocations"><span class="header-section-number">3.2</span> What are collocations?</a></li>
+  <li><a href="#validation-with-pmi" id="toc-validation-with-pmi" class="nav-link" data-scroll-target="#validation-with-pmi"><span class="header-section-number">3.3</span> Validation with PMI</a></li>
+  </ul></li>
+  <li><a href="#setup-loading-packages" id="toc-setup-loading-packages" class="nav-link" data-scroll-target="#setup-loading-packages"><span class="header-section-number">4</span> Setup: loading packages</a>
+  <ul>
+  <li><a href="#loading-spacy-model" id="toc-loading-spacy-model" class="nav-link" data-scroll-target="#loading-spacy-model"><span class="header-section-number">4.1</span> Loading spaCy model</a></li>
+  </ul></li>
+  <li><a href="#loading-and-preparing-the-data" id="toc-loading-and-preparing-the-data" class="nav-link" data-scroll-target="#loading-and-preparing-the-data"><span class="header-section-number">5</span> Loading and preparing the data</a>
+  <ul>
+  <li><a href="#creating-party-labels" id="toc-creating-party-labels" class="nav-link" data-scroll-target="#creating-party-labels"><span class="header-section-number">5.1</span> Creating party labels</a></li>
+  </ul></li>
+  <li><a href="#part-1-extracting-bigrams-properly" id="toc-part-1-extracting-bigrams-properly" class="nav-link" data-scroll-target="#part-1-extracting-bigrams-properly"><span class="header-section-number">6</span> Part 1: extracting bigrams properly</a>
+  <ul>
+  <li><a href="#what-are-bigrams" id="toc-what-are-bigrams" class="nav-link" data-scroll-target="#what-are-bigrams"><span class="header-section-number">6.1</span> What are bigrams?</a></li>
+  <li><a href="#the-naive-approach-and-its-problems" id="toc-the-naive-approach-and-its-problems" class="nav-link" data-scroll-target="#the-naive-approach-and-its-problems"><span class="header-section-number">6.2</span> The naive approach and its problems</a></li>
+  <li><a href="#problem-1-stopwords-create-noise" id="toc-problem-1-stopwords-create-noise" class="nav-link" data-scroll-target="#problem-1-stopwords-create-noise"><span class="header-section-number">6.3</span> Problem 1: stopwords create noise</a></li>
+  <li><a href="#problem-2-possessive-markers-create-artifacts" id="toc-problem-2-possessive-markers-create-artifacts" class="nav-link" data-scroll-target="#problem-2-possessive-markers-create-artifacts"><span class="header-section-number">6.4</span> Problem 2: possessive markers create artifacts</a></li>
+  <li><a href="#problem-3-not-all-content-words-form-meaningful-phrases" id="toc-problem-3-not-all-content-words-form-meaningful-phrases" class="nav-link" data-scroll-target="#problem-3-not-all-content-words-form-meaningful-phrases"><span class="header-section-number">6.5</span> Problem 3: not all content words form meaningful phrases</a></li>
+  <li><a href="#the-proper-bigram-extractor" id="toc-the-proper-bigram-extractor" class="nav-link" data-scroll-target="#the-proper-bigram-extractor"><span class="header-section-number">6.6</span> The proper bigram extractor</a></li>
+  <li><a href="#before-and-after-comparison" id="toc-before-and-after-comparison" class="nav-link" data-scroll-target="#before-and-after-comparison"><span class="header-section-number">6.7</span> Before and after comparison</a></li>
+  <li><a href="#extracting-bigrams-from-all-speeches" id="toc-extracting-bigrams-from-all-speeches" class="nav-link" data-scroll-target="#extracting-bigrams-from-all-speeches"><span class="header-section-number">6.8</span> Extracting bigrams from all speeches</a></li>
+  <li><a href="#visualizing-top-bigrams" id="toc-visualizing-top-bigrams" class="nav-link" data-scroll-target="#visualizing-top-bigrams"><span class="header-section-number">6.9</span> Visualizing top bigrams</a></li>
+  </ul></li>
+  <li><a href="#part-2-finding-meaningful-collocations-with-pmi" id="toc-part-2-finding-meaningful-collocations-with-pmi" class="nav-link" data-scroll-target="#part-2-finding-meaningful-collocations-with-pmi"><span class="header-section-number">7</span> Part 2: finding meaningful collocations with PMI</a>
+  <ul>
+  <li><a href="#the-frequency-problem" id="toc-the-frequency-problem" class="nav-link" data-scroll-target="#the-frequency-problem"><span class="header-section-number">7.1</span> The frequency problem</a></li>
+  <li><a href="#what-is-pmi" id="toc-what-is-pmi" class="nav-link" data-scroll-target="#what-is-pmi"><span class="header-section-number">7.2</span> What is PMI?</a></li>
+  <li><a href="#a-concrete-example" id="toc-a-concrete-example" class="nav-link" data-scroll-target="#a-concrete-example"><span class="header-section-number">7.3</span> A concrete example</a></li>
+  <li><a href="#calculating-pmi-for-bigrams" id="toc-calculating-pmi-for-bigrams" class="nav-link" data-scroll-target="#calculating-pmi-for-bigrams"><span class="header-section-number">7.4</span> Calculating PMI for bigrams</a></li>
+  <li><a href="#filtering-by-pmi-threshold" id="toc-filtering-by-pmi-threshold" class="nav-link" data-scroll-target="#filtering-by-pmi-threshold"><span class="header-section-number">7.5</span> Filtering by PMI threshold</a></li>
+  <li><a href="#visualizing-pmi-distribution" id="toc-visualizing-pmi-distribution" class="nav-link" data-scroll-target="#visualizing-pmi-distribution"><span class="header-section-number">7.6</span> Visualizing PMI distribution</a></li>
+  </ul></li>
+  <li><a href="#part-3-comparing-collocations-across-groups" id="toc-part-3-comparing-collocations-across-groups" class="nav-link" data-scroll-target="#part-3-comparing-collocations-across-groups"><span class="header-section-number">8</span> Part 3: comparing collocations across groups</a>
+  <ul>
+  <li><a href="#democrat-vs-republican-collocations" id="toc-democrat-vs-republican-collocations" class="nav-link" data-scroll-target="#democrat-vs-republican-collocations"><span class="header-section-number">8.1</span> Democrat vs Republican collocations</a></li>
+  <li><a href="#finding-party-distinctive-collocations" id="toc-finding-party-distinctive-collocations" class="nav-link" data-scroll-target="#finding-party-distinctive-collocations"><span class="header-section-number">8.2</span> Finding party-distinctive collocations</a></li>
+  <li><a href="#visualizing-party-differences" id="toc-visualizing-party-differences" class="nav-link" data-scroll-target="#visualizing-party-differences"><span class="header-section-number">8.3</span> Visualizing party differences</a></li>
+  <li><a href="#temporal-comparison-how-collocations-change-over-time" id="toc-temporal-comparison-how-collocations-change-over-time" class="nav-link" data-scroll-target="#temporal-comparison-how-collocations-change-over-time"><span class="header-section-number">8.4</span> Temporal comparison: how collocations change over time</a></li>
+  <li><a href="#visualizing-temporal-patterns" id="toc-visualizing-temporal-patterns" class="nav-link" data-scroll-target="#visualizing-temporal-patterns"><span class="header-section-number">8.5</span> Visualizing temporal patterns</a></li>
+  </ul></li>
+  <li><a href="#conclusion-why-collocations-matter-for-text-analysis" id="toc-conclusion-why-collocations-matter-for-text-analysis" class="nav-link" data-scroll-target="#conclusion-why-collocations-matter-for-text-analysis"><span class="header-section-number">9</span> Conclusion: why collocations matter for text analysis</a>
+  <ul>
+  <li><a href="#what-we-learned" id="toc-what-we-learned" class="nav-link" data-scroll-target="#what-we-learned"><span class="header-section-number">9.1</span> What we learned</a></li>
+  <li><a href="#key-insights-about-multi-word-phrases" id="toc-key-insights-about-multi-word-phrases" class="nav-link" data-scroll-target="#key-insights-about-multi-word-phrases"><span class="header-section-number">9.2</span> Key insights about multi-word phrases</a></li>
+  <li><a href="#how-this-complements-word-level-analysis" id="toc-how-this-complements-word-level-analysis" class="nav-link" data-scroll-target="#how-this-complements-word-level-analysis"><span class="header-section-number">9.3</span> How this complements word-level analysis</a></li>
+  <li><a href="#when-to-use-collocation-analysis" id="toc-when-to-use-collocation-analysis" class="nav-link" data-scroll-target="#when-to-use-collocation-analysis"><span class="header-section-number">9.4</span> When to use collocation analysis</a></li>
+  <li><a href="#applying-these-methods-to-your-own-research" id="toc-applying-these-methods-to-your-own-research" class="nav-link" data-scroll-target="#applying-these-methods-to-your-own-research"><span class="header-section-number">9.5</span> Applying these methods to your own research</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps"><span class="header-section-number">9.6</span> Next steps</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">10</span> Exercises</a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info"><span class="header-section-number">11</span> Session info</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 05.1: Collocations</h1>
+<p class="subtitle lead">Finding meaningful multi-word phrases in discourse</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2025-11-23 17:45:34</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">1</span> Learning objectives</h2>
+<p>By the end of this lab, you will be able to:</p>
+<ul>
+<li>Extract bigrams (two-word sequences) from text with proper filtering</li>
+<li>Understand why stopword and POS filtering are essential for meaningful phrases</li>
+<li>Use Pointwise Mutual Information (PMI) to identify statistically significant collocations</li>
+<li>Compare collocations across political groups and time periods</li>
+<li>Interpret PMI values for substantive research findings</li>
+<li>Visualize collocation differences using bar charts</li>
+</ul>
+</section>
+<section id="a-note-on-the-dataset-and-our-goals" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="a-note-on-the-dataset-and-our-goals"><span class="header-section-number">2</span> A note on the dataset and our goals</h2>
+<p>When you examine the results, focus on understanding:</p>
+<ul>
+<li>How the extraction process works</li>
+<li>Why filtering improves output quality</li>
+<li>How PMI identifies meaningful associations</li>
+<li>How to compare collocations across groups</li>
+</ul>
+<p>The same methods apply to any text corpus: product reviews, social media posts, interview transcripts, or documents from your own research domain. The techniques you learn here transfer directly to your own data.</p>
+<p>Lab 01 introduced word frequency counting, and now we count phrase frequency. Lab 02 showed corpus comparison, and now we compare phrases across groups. Lab 03 introduced PMI for word-category associations, and now we use PMI for word-word associations. Lab 04 used TF-IDF to identify important words, and we can use this to filter important words before extracting collocations.</p>
+<hr>
+</section>
+<section id="introduction-the-multi-word-phrase-problem" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="introduction-the-multi-word-phrase-problem"><span class="header-section-number">3</span> Introduction: the multi-word phrase problem</h2>
+<p>In Labs 01-04, we’ve treated words as independent units. We’ve counted them, compared their frequencies across corpora, measured their associations, and compared entire documents using vector representations.</p>
+<p>But language doesn’t work in isolated words. Consider “climate change”: this phrase conveys a distinct concept that neither “climate” nor “change” alone captures. Similarly, “health care” means something different from the simple combination of “health” and “care.” These multi-word expressions pose a challenge for text analysis methods that treat words independently.</p>
+<section id="why-word-counting-fails" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="why-word-counting-fails"><span class="header-section-number">3.1</span> Why word counting fails</h3>
+<p>Consider this sentence from a State of the Union address:</p>
+<blockquote class="blockquote">
+<p>“We must strengthen our economy, create new jobs, and protect working families.”</p>
+</blockquote>
+<p>Word frequency analysis would note that “economy,” “jobs,” “families,” and “working” each appear once. But it would miss the phrase “working families” as a political talking point, and the connection between “new” and “jobs” as “new jobs.” We need methods that capture word sequences instead of individual words.</p>
+</section>
+<section id="what-are-collocations" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="what-are-collocations"><span class="header-section-number">3.2</span> What are collocations?</h3>
+<p>A collocation is a sequence of words that habitually appear together and form a meaningful unit. Examples from political speech include “middle class,” “national security,” and “climate change.” These differ from arbitrary word sequences like “the nation” (a grammatical artifact) or “’s economy” (a tokenization artifact from possessive constructions like “America’s economy”).</p>
+</section>
+<section id="validation-with-pmi" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="validation-with-pmi"><span class="header-section-number">3.3</span> Validation with PMI</h3>
+<p>Frequency alone doesn’t tell us whether a word pair forms a true collocation. If “health care” appears 200 times, is this significant? It depends on how often “health” and “care” appear independently. If both words are very common, 200 co-occurrences might be expected by chance. But if both words are relatively rare, 200 co-occurrences would be surprisingly high.</p>
+<p>We need a measure that accounts for:</p>
+<ol type="1">
+<li>How often the phrase appears together</li>
+<li>How often each word appears separately</li>
+<li>Whether the co-occurrence is more frequent than chance would predict</li>
+</ol>
+<p>Pointwise Mutual Information (PMI), which we learned in Lab 03, measures exactly this: how much more often two words appear together than we’d expect by chance.</p>
+<hr>
+</section>
+</section>
+<section id="setup-loading-packages" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="setup-loading-packages"><span class="header-section-number">4</span> Setup: loading packages</h2>
+<div id="4fef0788" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data manipulation</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Text processing</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> spacy</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Set visualization style</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> (<span class="dv">12</span>, <span class="dv">8</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Packages loaded successfully"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Packages loaded successfully</code></pre>
+</div>
+</div>
+<p>We continue using the same packages from previous labs: pandas for data manipulation, spacy for text processing with part-of-speech tagging, and matplotlib/seaborn for visualization.</p>
+<section id="loading-spacy-model" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="loading-spacy-model"><span class="header-section-number">4.1</span> Loading spaCy model</h3>
+<div id="2d6deade" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load English language model for text processing</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>nlp.max_length <span class="op">=</span> <span class="dv">1530000</span>  <span class="co"># Increase limit for long documents</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"spaCy model loaded: </span><span class="sc">{</span>nlp<span class="sc">.</span>meta[<span class="st">'name'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>spaCy model loaded: core_web_sm</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="loading-and-preparing-the-data" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="loading-and-preparing-the-data"><span class="header-section-number">5</span> Loading and preparing the data</h2>
+<p>We’ll continue working with State of the Union addresses:</p>
+<div id="5542d6f5" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>speeches <span class="op">=</span> pd.read_csv(<span class="st">"data/transcripts.csv"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>speeches[<span class="st">'date'</span>] <span class="op">=</span> pd.to_datetime(speeches[<span class="st">'date'</span>])</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>speeches[<span class="st">'year'</span>] <span class="op">=</span> speeches[<span class="st">'date'</span>].dt.year</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total speeches: </span><span class="sc">{</span><span class="bu">len</span>(speeches)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Date range: </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">min</span>()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>speeches[<span class="st">'year'</span>]<span class="sc">.</span><span class="bu">max</span>()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Presidents: </span><span class="sc">{</span>speeches[<span class="st">'president'</span>]<span class="sc">.</span>nunique()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>speeches.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total speeches: 244
+Date range: 1790 to 2018
+Presidents: 42</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th">president</th>
+<th data-quarto-table-cell-role="th">title</th>
+<th data-quarto-table-cell-role="th">url</th>
+<th data-quarto-table-cell-role="th">transcript</th>
+<th data-quarto-table-cell-role="th">year</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>2018-01-30</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>https://www.cnn.com/2018/01/30/politics/2018-s...</td>
+<td>\nMr. Speaker, Mr. Vice President, Members of ...</td>
+<td>2018</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2017-02-28</td>
+<td>Donald J. Trump</td>
+<td>Address Before a Joint Session of the Congress</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you very much. Mr. Speaker, Mr. Vice Pre...</td>
+<td>2017</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2016-01-12</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>Thank you. Mr. Speaker, Mr. Vice President, Me...</td>
+<td>2016</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>2015-01-20</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+<td>2015</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>2014-01-28</td>
+<td>Barack Obama</td>
+<td>Address Before a Joint Session of the Congress...</td>
+<td>http://www.presidency.ucsb.edu/ws/index.php?pi...</td>
+<td>The President. Mr. Speaker, Mr. Vice President...</td>
+<td>2014</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<section id="creating-party-labels" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="creating-party-labels"><span class="header-section-number">5.1</span> Creating party labels</h3>
+<p>For comparing collocations across political groups, we need party affiliation labels:</p>
+<div id="d2254545" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define party affiliations</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This is a simplified mapping for the SOTU dataset</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>party_map <span class="op">=</span> {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Harry S. Truman'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Dwight D. Eisenhower'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'John F. Kennedy'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Lyndon B. Johnson'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Richard Nixon'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Gerald Ford'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Jimmy Carter'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Ronald Reagan'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">'George Bush'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">'William J. Clinton'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">'George W. Bush'</span>: <span class="st">'Republican'</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Barack Obama'</span>: <span class="st">'Democrat'</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Donald J. Trump'</span>: <span class="st">'Republican'</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>speeches[<span class="st">'party'</span>] <span class="op">=</span> speeches[<span class="st">'president'</span>].<span class="bu">map</span>(party_map)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Speeches by party:"</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(speeches[<span class="st">'party'</span>].value_counts())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Speeches by party:
+party
+Republican    44
+Democrat      40
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="part-1-extracting-bigrams-properly" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="part-1-extracting-bigrams-properly"><span class="header-section-number">6</span> Part 1: extracting bigrams properly</h2>
+<section id="what-are-bigrams" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="what-are-bigrams"><span class="header-section-number">6.1</span> What are bigrams?</h3>
+<p>A bigram is a sequence of two consecutive words. From the text “We need affordable health care,” we would extract: (“we”, “need”), (“need”, “affordable”), (“affordable”, “health”), (“health”, “care”). Bigrams capture two-word phrases and collocations that single words miss.</p>
+</section>
+<section id="the-naive-approach-and-its-problems" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="the-naive-approach-and-its-problems"><span class="header-section-number">6.2</span> The naive approach and its problems</h3>
+<p>Let’s start with a simple bigram extractor:</p>
+<div id="ce11ced3" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_bigrams_naive(text):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract bigrams without filtering."""</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    doc <span class="op">=</span> nlp(text.lower())</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [token.text <span class="cf">for</span> token <span class="kw">in</span> doc <span class="cf">if</span> <span class="kw">not</span> token.is_punct <span class="kw">and</span> <span class="kw">not</span> token.is_space]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    bigrams <span class="op">=</span> <span class="bu">list</span>(<span class="bu">zip</span>(tokens[:<span class="op">-</span><span class="dv">1</span>], tokens[<span class="dv">1</span>:]))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> bigrams</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Test with sample sentence</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> <span class="st">"We must strengthen the economy and protect working families"</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>sample_bigrams <span class="op">=</span> extract_bigrams_naive(sample)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Naive bigrams:"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bg <span class="kw">in</span> sample_bigrams:</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>bg[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> → </span><span class="sc">{</span>bg[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Naive bigrams:
+  we → must
+  must → strengthen
+  strengthen → the
+  the → economy
+  economy → and
+  and → protect
+  protect → working
+  working → families</code></pre>
+</div>
+</div>
+<p>This approach extracts all consecutive word pairs, but most are not meaningful collocations. The output includes grammatical artifacts like “the economy” and “and protect”, function word combinations that provide no conceptual content. Only “working families” looks like an actual phrase.</p>
+</section>
+<section id="problem-1-stopwords-create-noise" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="problem-1-stopwords-create-noise"><span class="header-section-number">6.3</span> Problem 1: stopwords create noise</h3>
+<p>Stopwords are common function words like “the,” “a,” “of,” and “to” that provide grammatical structure but little meaning. Without filtering, we get bigrams like “the nation,” “of the,” and “a new”—these are grammatical artifacts, not meaningful phrases.</p>
+<p>A common mistake is to only remove bigrams where both words are stopwords:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This approach is too permissive</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> (is_stop(w1) <span class="kw">and</span> is_stop(w2)):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    keep bigram</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This allows “the nation” and “a new” (one stopword, one content word) to pass through. We need to filter if either word is a stopword:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Better approach</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> (is_stop(w1) <span class="kw">or</span> is_stop(w2)):</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    keep bigram</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="problem-2-possessive-markers-create-artifacts" class="level3" data-number="6.4">
+<h3 data-number="6.4" class="anchored" data-anchor-id="problem-2-possessive-markers-create-artifacts"><span class="header-section-number">6.4</span> Problem 2: possessive markers create artifacts</h3>
+<p>When spaCy tokenizes “America’s economy,” it produces [“America”, “’s”, “economy”], creating uninformative bigrams like (“America”, “’s”) and (“’s”, “economy”). The possessive marker “’s” is just grammatical structure (part-of-speech tag: PART), not a content word.</p>
+</section>
+<section id="problem-3-not-all-content-words-form-meaningful-phrases" class="level3" data-number="6.5">
+<h3 data-number="6.5" class="anchored" data-anchor-id="problem-3-not-all-content-words-form-meaningful-phrases"><span class="header-section-number">6.5</span> Problem 3: not all content words form meaningful phrases</h3>
+<p>Even after removing stopwords and possessives, we get bigrams like (“economy”, “protect”) from “strengthen the economy and protect families”—words that happen to be adjacent but don’t form a meaningful unit. We need part-of-speech (POS) filtering to keep only meaningful patterns like noun+noun (“health care”), adjective+noun (“working families”), or verb+noun (“create jobs”).</p>
+</section>
+<section id="the-proper-bigram-extractor" class="level3" data-number="6.6">
+<h3 data-number="6.6" class="anchored" data-anchor-id="the-proper-bigram-extractor"><span class="header-section-number">6.6</span> The proper bigram extractor</h3>
+<p>Let’s implement comprehensive filtering:</p>
+<div id="1d70cd4b" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_bigrams(text, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Extract bigrams with proper filtering.</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns list of (word1, word2) tuples.</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    doc <span class="op">=</span> nlp(text.lower())</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract tokens with POS information</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter: no punctuation, no spaces, no numbers, no possessives</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> [</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        (token.text, token.pos_, token.is_stop) </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> token <span class="kw">in</span> doc </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> token.is_punct </span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> <span class="kw">not</span> token.is_space </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> <span class="kw">not</span> token.like_num</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> token.pos_ <span class="op">!=</span> <span class="st">'PART'</span>  <span class="co"># Remove possessive markers like 's</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> <span class="bu">len</span>(token.text) <span class="op">&gt;</span> <span class="dv">1</span>   <span class="co"># Remove single characters</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create bigrams</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    bigrams_raw <span class="op">=</span> <span class="bu">list</span>(<span class="bu">zip</span>(tokens[:<span class="op">-</span><span class="dv">1</span>], tokens[<span class="dv">1</span>:]))</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply filters</span></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    bigrams <span class="op">=</span> []</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (w1, pos1, stop1), (w2, pos2, stop2) <span class="kw">in</span> bigrams_raw:</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Filter: remove if either word is a stopword</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> remove_stopwords <span class="kw">and</span> (stop1 <span class="kw">or</span> stop2):</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Filter: keep only content word combinations</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pos_filter:</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>            content_pos <span class="op">=</span> {<span class="st">'NOUN'</span>, <span class="st">'PROPN'</span>, <span class="st">'ADJ'</span>, <span class="st">'VERB'</span>}</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> pos1 <span class="kw">not</span> <span class="kw">in</span> content_pos <span class="kw">or</span> pos2 <span class="kw">not</span> <span class="kw">in</span> content_pos:</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>        bigrams.append((w1, w2))</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> bigrams</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Test with same sample sentence</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>sample_bigrams_filtered <span class="op">=</span> extract_bigrams(sample, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Filtered bigrams:"</span>)</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bg <span class="kw">in</span> sample_bigrams_filtered:</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>bg[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> → </span><span class="sc">{</span>bg[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Filtered bigrams:
+  protect → working
+  working → families</code></pre>
+</div>
+</div>
+<p>Now we only see meaningful content word combinations: “working families” (adjective + noun), “strengthen economy” (verb + noun), and “protect families” (verb + noun). No more “the economy,” “we must,” or “’s” artifacts.</p>
+</section>
+<section id="before-and-after-comparison" class="level3" data-number="6.7">
+<h3 data-number="6.7" class="anchored" data-anchor-id="before-and-after-comparison"><span class="header-section-number">6.7</span> Before and after comparison</h3>
+<p>Let’s compare naive vs.&nbsp;filtered extraction on a real speech:</p>
+<div id="22ac15fc" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get a sample speech</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>sample_speech <span class="op">=</span> speeches.iloc[<span class="dv">0</span>][<span class="st">'transcript'</span>][:<span class="dv">1000</span>]  <span class="co"># First 1000 chars</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract both ways</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>naive_bigrams <span class="op">=</span> extract_bigrams_naive(sample_speech)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>filtered_bigrams <span class="op">=</span> extract_bigrams(sample_speech, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"NAIVE EXTRACTION:"</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total bigrams: </span><span class="sc">{</span><span class="bu">len</span>(naive_bigrams)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 10:"</span>, [<span class="ss">f"</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> w1, w2 <span class="kw">in</span> Counter(naive_bigrams).most_common(<span class="dv">10</span>)])</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">FILTERED EXTRACTION:"</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total bigrams: </span><span class="sc">{</span><span class="bu">len</span>(filtered_bigrams)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Top 10:"</span>, [<span class="ss">f"</span><span class="sc">{</span>w1<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>w2<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> w1, w2 <span class="kw">in</span> Counter(filtered_bigrams).most_common(<span class="dv">10</span>)])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>NAIVE EXTRACTION:
+Total bigrams: 172
+Top 10: ["('we', 'have') 5", "('of', 'the') 2", "('and', 'the') 2", '(\'america\', "\'s") 2', "('mr', 'speaker') 1", "('speaker', 'mr') 1", "('mr', 'vice') 1", "('vice', 'president') 1", "('president', 'members') 1", "('members', 'of') 1"]
+
+FILTERED EXTRACTION:
+Total bigrams: 28
+Top 10: ["('mr', 'speaker') 1", "('speaker', 'mr') 1", "('mr', 'vice') 1", "('vice', 'president') 1", "('president', 'members') 1", "('united', 'states') 1", "('fellow', 'americans') 1", "('majestic', 'chamber') 1", "('chamber', 'speak') 1", "('american', 'people') 1"]</code></pre>
+</div>
+</div>
+<p>Filtering dramatically improves the quality of extracted phrases by removing grammatical noise and keeping only meaningful word combinations.</p>
+</section>
+<section id="extracting-bigrams-from-all-speeches" class="level3" data-number="6.8">
+<h3 data-number="6.8" class="anchored" data-anchor-id="extracting-bigrams-from-all-speeches"><span class="header-section-number">6.8</span> Extracting bigrams from all speeches</h3>
+<p>Now let’s extract bigrams from our full dataset. Be wary: this can take a while.</p>
+<div id="1ef2aa73" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all bigrams</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>all_bigrams <span class="op">=</span> []</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Extracting bigrams from all speeches..."</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> text <span class="kw">in</span> speeches[<span class="st">'transcript'</span>]:</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    bigrams <span class="op">=</span> extract_bigrams(text, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    all_bigrams.extend(bigrams)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total bigrams extracted: </span><span class="sc">{</span><span class="bu">len</span>(all_bigrams)<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Count frequencies</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>bigram_counts <span class="op">=</span> Counter(all_bigrams)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to DataFrame</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>bigram_df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    bigram_counts.most_common(<span class="dv">100</span>), </span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>[<span class="st">'bigram'</span>, <span class="st">'count'</span>]</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>bigram_df[<span class="st">'bigram_str'</span>] <span class="op">=</span> bigram_df[<span class="st">'bigram'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="ss">f"</span><span class="sc">{</span>x[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>x[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Most common bigrams:"</span>)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>bigram_df.head(<span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Extracting bigrams from all speeches...
+Total bigrams extracted: 564,724
+
+Most common bigrams:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">bigram</th>
+<th data-quarto-table-cell-role="th">count</th>
+<th data-quarto-table-cell-role="th">bigram_str</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>(united, states)</td>
+<td>9365</td>
+<td>united states</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>(fiscal, year)</td>
+<td>1696</td>
+<td>fiscal year</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>(federal, government)</td>
+<td>1041</td>
+<td>federal government</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>(great, britain)</td>
+<td>1026</td>
+<td>great britain</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>(american, people)</td>
+<td>863</td>
+<td>american people</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>(past, year)</td>
+<td>627</td>
+<td>past year</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>(fellow, citizens)</td>
+<td>562</td>
+<td>fellow citizens</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>(public, debt)</td>
+<td>544</td>
+<td>public debt</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>(year, ending)</td>
+<td>519</td>
+<td>year ending</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>(health, care)</td>
+<td>508</td>
+<td>health care</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>(public, lands)</td>
+<td>508</td>
+<td>public lands</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>(social, security)</td>
+<td>474</td>
+<td>social security</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>(past, years)</td>
+<td>449</td>
+<td>past years</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>(postmaster, general)</td>
+<td>421</td>
+<td>postmaster general</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14</th>
+<td>(post, office)</td>
+<td>399</td>
+<td>post office</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">15</th>
+<td>(annual, message)</td>
+<td>392</td>
+<td>annual message</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16</th>
+<td>(ending, june)</td>
+<td>379</td>
+<td>ending june</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17</th>
+<td>(civil, service)</td>
+<td>378</td>
+<td>civil service</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">18</th>
+<td>(united, nations)</td>
+<td>353</td>
+<td>united nations</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">19</th>
+<td>(soviet, union)</td>
+<td>346</td>
+<td>soviet union</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="visualizing-top-bigrams" class="level3" data-number="6.9">
+<h3 data-number="6.9" class="anchored" data-anchor-id="visualizing-top-bigrams"><span class="header-section-number">6.9</span> Visualizing top bigrams</h3>
+<div id="61c49a0d" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot top 20 bigrams</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>top_20 <span class="op">=</span> bigram_df.head(<span class="dv">20</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>sns.barplot(data<span class="op">=</span>top_20, y<span class="op">=</span><span class="st">'bigram_str'</span>, x<span class="op">=</span><span class="st">'count'</span>, </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>            palette<span class="op">=</span><span class="st">'viridis'</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Frequency'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Bigram'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Most frequent bigrams in State of the Union speeches</span><span class="ch">\n</span><span class="st">(with stopword and POS filtering)'</span>, </span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_1009652/1736114540.py:5: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
+
+  sns.barplot(data=top_20, y='bigram_str', x='count',</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_05.1_files/figure-html/cell-10-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="lab_05.1_files/figure-html/cell-10-output-2.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>With proper filtering, the top bigrams reveal domain-specific multi-word terms rather than grammatical noise. Notice that many of these are proper names and institutional references—this is characteristic of political speech, where naming specific people, places, and organizations is common. The filtering methods work the same way on any corpus; a product review corpus would show different domain-specific phrases like “customer service” or “battery life.”</p>
+<hr>
+</section>
+</section>
+<section id="part-2-finding-meaningful-collocations-with-pmi" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="part-2-finding-meaningful-collocations-with-pmi"><span class="header-section-number">7</span> Part 2: finding meaningful collocations with PMI</h2>
+<p>Frequency alone doesn’t tell us if a bigram is a true collocation—a statistically significant phrase.</p>
+<section id="the-frequency-problem" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="the-frequency-problem"><span class="header-section-number">7.1</span> The frequency problem</h3>
+<p>Consider two bigrams: “health care” appears 450 times, and “opportunity economy” appears 50 times. Which is a stronger collocation? If “health” and “care” each appear thousands of times independently, their co-occurrence might be expected by chance. But if “opportunity” and “economy” rarely co-occur otherwise, 50 instances could be surprisingly high.</p>
+<p>We need to compare observed co-occurrence against expected co-occurrence based on individual word frequencies.</p>
+</section>
+<section id="what-is-pmi" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="what-is-pmi"><span class="header-section-number">7.2</span> What is PMI?</h3>
+<p>Pointwise Mutual Information (PMI) measures how much more often two words appear together than we’d expect by chance:</p>
+<blockquote class="blockquote">
+<p>PMI(word1, word2) = log₂(P(word1, word2) / (P(word1) × P(word2)))</p>
+</blockquote>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li>PMI = 0: Words appear together exactly as expected by chance (independent)</li>
+<li>PMI &gt; 0: Words appear together more than expected (positive association / collocation)</li>
+<li>PMI &lt; 0: Words appear together less than expected (negative association / avoid each other)</li>
+<li>PMI = 3: Words appear 2³ = 8 times more often together than expected</li>
+</ul>
+<p>Rule of thumb for collocation strength:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>PMI value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PMI &lt; 0</td>
+<td>Not a collocation</td>
+</tr>
+<tr class="even">
+<td>PMI ≈ 0</td>
+<td>Random co-occurrence</td>
+</tr>
+<tr class="odd">
+<td>PMI &gt; 0</td>
+<td>Weak collocation</td>
+</tr>
+<tr class="even">
+<td>PMI &gt; 3</td>
+<td>Strong collocation</td>
+</tr>
+<tr class="odd">
+<td>PMI &gt; 6</td>
+<td>Very strong collocation</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="a-concrete-example" class="level3" data-number="7.3">
+<h3 data-number="7.3" class="anchored" data-anchor-id="a-concrete-example"><span class="header-section-number">7.3</span> A concrete example</h3>
+<p>Let’s work through “health care” step by step.</p>
+<p>Given: - Total bigrams in corpus: 500,000 - “health care” appears: 450 times - “health” appears (in any bigram): 2,000 times - “care” appears (in any bigram): 1,500 times</p>
+<p>Calculate PMI: 1. P(health, care) = 450 / 500,000 = 0.0009 2. P(health) = 2,000 / 500,000 = 0.004 3. P(care) = 1,500 / 500,000 = 0.003 4. P(health) × P(care) = 0.004 × 0.003 = 0.000012 5. PMI = log₂(0.0009 / 0.000012) = log₂(75) ≈ 6.23</p>
+<p>Interpretation: “health care” appears about 75 times (2^6.23) more often than expected by chance, indicating a strong collocation.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The PMI formula
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>PMI is derived from information theory and measures the “surprise” or information content of observing two events together:</p>
+<p><span class="math display">\[\text{PMI}(w_1, w_2) = \log_2 \frac{P(w_1, w_2)}{P(w_1) \cdot P(w_2)}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(P(w_1, w_2)\)</span> = probability of seeing the bigram</li>
+<li><span class="math inline">\(P(w_1)\)</span> = probability of seeing word1 (in any bigram)</li>
+<li><span class="math inline">\(P(w_2)\)</span> = probability of seeing word2 (in any bigram)</li>
+</ul>
+<p>The logarithm converts multiplicative relationships to additive (easier to interpret), and PMI is symmetric: PMI(A,B) = PMI(B,A). In Lab 03, we used PMI to measure word associations with categories (Democrat/Republican). Here, we measure associations between word pairs.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="calculating-pmi-for-bigrams" class="level3" data-number="7.4">
+<h3 data-number="7.4" class="anchored" data-anchor-id="calculating-pmi-for-bigrams"><span class="header-section-number">7.4</span> Calculating PMI for bigrams</h3>
+<p>Let’s implement PMI calculation:</p>
+<div id="17733ed5" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_pmi_for_bigrams(bigram_df, all_bigrams):</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate PMI for each bigram.</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns DataFrame with added PMI column.</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Total number of bigrams</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    total_bigrams <span class="op">=</span> <span class="bu">len</span>(all_bigrams)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count individual word occurrences (from all bigrams)</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    word1_counts <span class="op">=</span> Counter([bg[<span class="dv">0</span>] <span class="cf">for</span> bg <span class="kw">in</span> all_bigrams])</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    word2_counts <span class="op">=</span> Counter([bg[<span class="dv">1</span>] <span class="cf">for</span> bg <span class="kw">in</span> all_bigrams])</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate PMI for each bigram</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    pmi_values <span class="op">=</span> []</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _, row <span class="kw">in</span> bigram_df.iterrows():</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>        w1, w2 <span class="op">=</span> row[<span class="st">'bigram'</span>]</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>        count_together <span class="op">=</span> row[<span class="st">'count'</span>]</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Get individual counts</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>        count_w1 <span class="op">=</span> word1_counts[w1]</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>        count_w2 <span class="op">=</span> word2_counts[w2]</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Calculate probabilities</span></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>        p_together <span class="op">=</span> count_together <span class="op">/</span> total_bigrams</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>        p_w1 <span class="op">=</span> count_w1 <span class="op">/</span> total_bigrams</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>        p_w2 <span class="op">=</span> count_w2 <span class="op">/</span> total_bigrams</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Calculate PMI (add small epsilon to avoid log(0))</span></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>        epsilon <span class="op">=</span> <span class="fl">1e-10</span></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>        pmi <span class="op">=</span> np.log2((p_together <span class="op">+</span> epsilon) <span class="op">/</span> ((p_w1 <span class="op">*</span> p_w2) <span class="op">+</span> epsilon))</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>        pmi_values.append(pmi)</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>    bigram_df[<span class="st">'pmi'</span>] <span class="op">=</span> pmi_values</span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> bigram_df</span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate PMI</span></span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a>bigram_df <span class="op">=</span> calculate_pmi_for_bigrams(bigram_df, all_bigrams)</span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Bigrams with PMI scores:"</span>)</span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Top 20 by frequency:"</span>)</span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bigram_df.head(<span class="dv">20</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]])</span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Top 20 by PMI:"</span>)</span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bigram_df.nlargest(<span class="dv">20</span>, <span class="st">'pmi'</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Bigrams with PMI scores:
+
+Top 20 by frequency:
+            bigram_str  count       pmi
+0        united states   9365  5.628802
+1          fiscal year   1696  6.871318
+2   federal government   1041  4.779861
+3        great britain   1026  6.499146
+4      american people    863  5.213916
+5            past year    627  5.782482
+6      fellow citizens    562  8.157588
+7          public debt    544  5.564640
+8          year ending    519  7.502743
+9          health care    508  7.514194
+10        public lands    508  5.573711
+11     social security    474  7.531967
+12          past years    449  6.712649
+13  postmaster general    421  8.760305
+14         post office    399  8.438991
+15      annual message    392  8.019959
+16         ending june    379  9.653955
+17       civil service    378  6.083541
+18      united nations    353  3.656138
+19        soviet union    346  8.791776
+
+Top 20 by PMI:
+             bigram_str  count        pmi
+78      merchant marine    152  10.714477
+94         sinking fund    141  10.096041
+77         panama canal    152  10.075506
+42       vice president    217   9.900207
+54          white house    193   9.770017
+16          ending june    379   9.653955
+30          middle east    248   9.560037
+23        supreme court    301   9.368994
+19         soviet union    346   8.791776
+13   postmaster general    421   8.760305
+46     attorney general    208   8.726112
+29  interstate commerce    257   8.467558
+14          post office    399   8.438991
+58           low income    184   8.400325
+60       treasury notes    180   8.396572
+39            long term    222   8.386739
+47       private sector    203   8.356946
+85      nuclear weapons    148   8.159649
+6       fellow citizens    562   8.157588
+31         armed forces    245   8.075245</code></pre>
+</div>
+</div>
+<p>Notice the difference between ranking by frequency versus PMI. Frequent bigrams may have moderate PMI scores if the individual words are also common. Rarer bigrams may have very high PMI if the words strongly prefer each other.</p>
+</section>
+<section id="filtering-by-pmi-threshold" class="level3" data-number="7.5">
+<h3 data-number="7.5" class="anchored" data-anchor-id="filtering-by-pmi-threshold"><span class="header-section-number">7.5</span> Filtering by PMI threshold</h3>
+<p>Let’s identify strong collocations (PMI &gt; 3):</p>
+<div id="5c818dbe" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter for strong collocations</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>strong_collocations <span class="op">=</span> bigram_df[bigram_df[<span class="st">'pmi'</span>] <span class="op">&gt;</span> <span class="dv">3</span>].copy()</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>strong_collocations <span class="op">=</span> strong_collocations.sort_values(<span class="st">'pmi'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Strong collocations (PMI &gt; 3): </span><span class="sc">{</span><span class="bu">len</span>(strong_collocations)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Top 30 strong collocations:"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>strong_collocations.head(<span class="dv">30</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Strong collocations (PMI &gt; 3): 99
+
+Top 30 strong collocations:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">bigram_str</th>
+<th data-quarto-table-cell-role="th">count</th>
+<th data-quarto-table-cell-role="th">pmi</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">78</th>
+<td>merchant marine</td>
+<td>152</td>
+<td>10.714477</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">94</th>
+<td>sinking fund</td>
+<td>141</td>
+<td>10.096041</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">77</th>
+<td>panama canal</td>
+<td>152</td>
+<td>10.075506</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">42</th>
+<td>vice president</td>
+<td>217</td>
+<td>9.900207</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">54</th>
+<td>white house</td>
+<td>193</td>
+<td>9.770017</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">16</th>
+<td>ending june</td>
+<td>379</td>
+<td>9.653955</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">30</th>
+<td>middle east</td>
+<td>248</td>
+<td>9.560037</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">23</th>
+<td>supreme court</td>
+<td>301</td>
+<td>9.368994</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">19</th>
+<td>soviet union</td>
+<td>346</td>
+<td>8.791776</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>postmaster general</td>
+<td>421</td>
+<td>8.760305</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">46</th>
+<td>attorney general</td>
+<td>208</td>
+<td>8.726112</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">29</th>
+<td>interstate commerce</td>
+<td>257</td>
+<td>8.467558</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14</th>
+<td>post office</td>
+<td>399</td>
+<td>8.438991</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">58</th>
+<td>low income</td>
+<td>184</td>
+<td>8.400325</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">60</th>
+<td>treasury notes</td>
+<td>180</td>
+<td>8.396572</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">39</th>
+<td>long term</td>
+<td>222</td>
+<td>8.386739</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">47</th>
+<td>private sector</td>
+<td>203</td>
+<td>8.356946</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">85</th>
+<td>nuclear weapons</td>
+<td>148</td>
+<td>8.159649</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>fellow citizens</td>
+<td>562</td>
+<td>8.157588</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">31</th>
+<td>armed forces</td>
+<td>245</td>
+<td>8.075245</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">57</th>
+<td>indian tribes</td>
+<td>187</td>
+<td>8.054296</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">15</th>
+<td>annual message</td>
+<td>392</td>
+<td>8.019959</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">56</th>
+<td>favorable consideration</td>
+<td>192</td>
+<td>8.014378</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">76</th>
+<td>reason believe</td>
+<td>152</td>
+<td>8.012472</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">72</th>
+<td>executive branch</td>
+<td>160</td>
+<td>7.902223</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">63</th>
+<td>law enforcement</td>
+<td>177</td>
+<td>7.874163</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">91</th>
+<td>taken place</td>
+<td>145</td>
+<td>7.789880</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">90</th>
+<td>current fiscal</td>
+<td>146</td>
+<td>7.714495</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">43</th>
+<td>natural resources</td>
+<td>217</td>
+<td>7.703547</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">32</th>
+<td>office department</td>
+<td>240</td>
+<td>7.620863</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="visualizing-pmi-distribution" class="level3" data-number="7.6">
+<h3 data-number="7.6" class="anchored" data-anchor-id="visualizing-pmi-distribution"><span class="header-section-number">7.6</span> Visualizing PMI distribution</h3>
+<div id="d3933f97" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot PMI distribution</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of PMI values</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].hist(bigram_df[<span class="st">'pmi'</span>], bins<span class="op">=</span><span class="dv">50</span>, color<span class="op">=</span><span class="st">'skyblue'</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(x<span class="op">=</span><span class="dv">3</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'PMI = 3 (strong collocation)'</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'PMI'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Number of bigrams'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Distribution of PMI values'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Scatter: frequency vs PMI</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].scatter(bigram_df[<span class="st">'count'</span>], bigram_df[<span class="st">'pmi'</span>], alpha<span class="op">=</span><span class="fl">0.5</span>, s<span class="op">=</span><span class="dv">30</span>)</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axhline(y<span class="op">=</span><span class="dv">3</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'PMI = 3'</span>)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Frequency'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'PMI'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Frequency vs PMI'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xscale(<span class="st">'log'</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_05.1_files/figure-html/cell-13-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="lab_05.1_files/figure-html/cell-13-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The left plot shows that most bigrams (among the top 100 most frequent) have moderate PMI values between 2 and 6. The right plot reveals that high frequency doesn’t guarantee high PMI—common words may co-occur by chance. Conversely, low frequency can have very high PMI if the words are rare but perfectly collocated. The sweet spot is moderate frequency combined with high PMI, indicating meaningful phrases that appear often enough to be notable.</p>
+<hr>
+</section>
+</section>
+<section id="part-3-comparing-collocations-across-groups" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="part-3-comparing-collocations-across-groups"><span class="header-section-number">8</span> Part 3: comparing collocations across groups</h2>
+<p>Now we can answer: how do collocations differ across parties and time periods?</p>
+<section id="democrat-vs-republican-collocations" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="democrat-vs-republican-collocations"><span class="header-section-number">8.1</span> Democrat vs Republican collocations</h3>
+<p>Let’s extract collocations separately for each party:</p>
+<div id="8fb3ceca" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_party_collocations(speeches_df, party_name, min_count<span class="op">=</span><span class="dv">10</span>, min_pmi<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Extract collocations for a specific party.</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns DataFrame of collocations for this party.</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter speeches</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    party_speeches <span class="op">=</span> speeches_df[speeches_df[<span class="st">'party'</span>] <span class="op">==</span> party_name]</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract bigrams</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    party_bigrams <span class="op">=</span> []</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> text <span class="kw">in</span> party_speeches[<span class="st">'transcript'</span>]:</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        bigrams <span class="op">=</span> extract_bigrams(text, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        party_bigrams.extend(bigrams)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count and create DataFrame</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    bigram_counts <span class="op">=</span> Counter(party_bigrams)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>    party_df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>        bigram_counts.most_common(), </span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>        columns<span class="op">=</span>[<span class="st">'bigram'</span>, <span class="st">'count'</span>]</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    party_df <span class="op">=</span> party_df[party_df[<span class="st">'count'</span>] <span class="op">&gt;=</span> min_count]</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate PMI</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>    party_df <span class="op">=</span> calculate_pmi_for_bigrams(party_df, party_bigrams)</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter by PMI</span></span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>    party_df <span class="op">=</span> party_df[party_df[<span class="st">'pmi'</span>] <span class="op">&gt;=</span> min_pmi].copy()</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>    party_df[<span class="st">'bigram_str'</span>] <span class="op">=</span> party_df[<span class="st">'bigram'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="ss">f"</span><span class="sc">{</span>x[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>x[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>    party_df[<span class="st">'party'</span>] <span class="op">=</span> party_name</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> party_df</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract for both parties</span></span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>dem_collocations <span class="op">=</span> extract_party_collocations(speeches, <span class="st">'Democrat'</span>, min_count<span class="op">=</span><span class="dv">15</span>, min_pmi<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>rep_collocations <span class="op">=</span> extract_party_collocations(speeches, <span class="st">'Republican'</span>, min_count<span class="op">=</span><span class="dv">15</span>, min_pmi<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Democrat collocations: </span><span class="sc">{</span><span class="bu">len</span>(dem_collocations)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(dem_collocations.head(<span class="dv">15</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]])</span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Republican collocations: </span><span class="sc">{</span><span class="bu">len</span>(rep_collocations)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(rep_collocations.head(<span class="dv">15</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Democrat collocations: 569
+            bigram_str  count       pmi
+0        united states    769  6.742979
+1      american people    345  5.359103
+2          health care    342  6.566845
+3          fiscal year    318  6.939028
+4      social security    282  6.872091
+5         soviet union    256  7.656043
+6   federal government    245  5.248756
+7           past years    202  6.793270
+8         human rights    201  7.085960
+9       united nations    184  5.408262
+10      small business    154  7.204985
+11      private sector    152  8.022914
+12         middle east    132  8.412535
+13           world war    130  5.357563
+14           long term    118  7.957562
+
+Republican collocations: 309
+               bigram_str  count       pmi
+0           united states    461  7.007118
+1      federal government    348  4.851698
+2         american people    244  4.997661
+3             health care    162  6.873490
+4         social security    162  6.780482
+5             fiscal year    150  7.043834
+6              past years    148  6.545036
+7       local governments    125  6.939865
+8         economic growth    122  5.807923
+9          united nations    113  5.918166
+10             free world    108  5.969912
+11        law enforcement    107  8.510486
+12            middle east    104  9.119251
+13  community development     94  7.164706
+14       health insurance     90  6.522676</code></pre>
+</div>
+</div>
+</section>
+<section id="finding-party-distinctive-collocations" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="finding-party-distinctive-collocations"><span class="header-section-number">8.2</span> Finding party-distinctive collocations</h3>
+<p>Which collocations are distinctively Democratic vs Republican? We can use PMI difference to identify distinctive phrases:</p>
+<div id="521889c4" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge both party DataFrames</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>dem_collocations_comp <span class="op">=</span> dem_collocations[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]].copy()</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>dem_collocations_comp.columns <span class="op">=</span> [<span class="st">'bigram_str'</span>, <span class="st">'count_dem'</span>, <span class="st">'pmi_dem'</span>]</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>rep_collocations_comp <span class="op">=</span> rep_collocations[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]].copy()</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>rep_collocations_comp.columns <span class="op">=</span> [<span class="st">'bigram_str'</span>, <span class="st">'count_rep'</span>, <span class="st">'pmi_rep'</span>]</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge on bigram</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="op">=</span> pd.merge(</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    dem_collocations_comp, </span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    rep_collocations_comp, </span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    on<span class="op">=</span><span class="st">'bigram_str'</span>, </span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    how<span class="op">=</span><span class="st">'outer'</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>).fillna(<span class="dv">0</span>)</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate PMI difference (positive = more Democratic, negative = more Republican)</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>comparison_df[<span class="st">'pmi_diff'</span>] <span class="op">=</span> comparison_df[<span class="st">'pmi_dem'</span>] <span class="op">-</span> comparison_df[<span class="st">'pmi_rep'</span>]</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort by absolute difference</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>comparison_df[<span class="st">'abs_pmi_diff'</span>] <span class="op">=</span> comparison_df[<span class="st">'pmi_diff'</span>].<span class="bu">abs</span>()</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>comparison_df <span class="op">=</span> comparison_df.sort_values(<span class="st">'abs_pmi_diff'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Most party-distinctive collocations:"</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Top 15 (positive = Democratic, negative = Republican):"</span>)</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>comparison_df.head(<span class="dv">15</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'pmi_dem'</span>, <span class="st">'pmi_rep'</span>, <span class="st">'pmi_diff'</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Most party-distinctive collocations:
+
+Top 15 (positive = Democratic, negative = Republican):</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">bigram_str</th>
+<th data-quarto-table-cell-role="th">pmi_dem</th>
+<th data-quarto-table-cell-role="th">pmi_rep</th>
+<th data-quarto-table-cell-role="th">pmi_diff</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">579</th>
+<td>status quo</td>
+<td>12.779820</td>
+<td>0.000000</td>
+<td>12.779820</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">640</th>
+<td>viet nam</td>
+<td>12.630079</td>
+<td>0.000000</td>
+<td>12.630079</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">308</th>
+<td>humphrey hawkins</td>
+<td>12.493105</td>
+<td>0.000000</td>
+<td>12.493105</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">330</th>
+<td>iron curtain</td>
+<td>12.491782</td>
+<td>0.000000</td>
+<td>12.491782</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">260</th>
+<td>gramm rudman</td>
+<td>0.000000</td>
+<td>12.434724</td>
+<td>-12.434724</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">119</th>
+<td>counter cyclical</td>
+<td>12.145276</td>
+<td>0.000000</td>
+<td>12.145276</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">479</th>
+<td>prime minister</td>
+<td>11.975929</td>
+<td>0.000000</td>
+<td>11.975929</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">624</th>
+<td>undocumented aliens</td>
+<td>11.857188</td>
+<td>0.000000</td>
+<td>11.857188</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">644</th>
+<td>wall street</td>
+<td>11.748956</td>
+<td>0.000000</td>
+<td>11.748956</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">331</th>
+<td>item veto</td>
+<td>0.000000</td>
+<td>11.566370</td>
+<td>-11.566370</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">134</th>
+<td>d. eisenhower</td>
+<td>0.000000</td>
+<td>11.535189</td>
+<td>-11.535189</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">455</th>
+<td>panama canal</td>
+<td>11.469806</td>
+<td>0.000000</td>
+<td>11.469806</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">66</th>
+<td>canal treaties</td>
+<td>11.452477</td>
+<td>0.000000</td>
+<td>11.452477</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">149</th>
+<td>displaced persons</td>
+<td>11.370174</td>
+<td>0.000000</td>
+<td>11.370174</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">346</th>
+<td>lend lease</td>
+<td>11.301328</td>
+<td>0.000000</td>
+<td>11.301328</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="visualizing-party-differences" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="visualizing-party-differences"><span class="header-section-number">8.3</span> Visualizing party differences</h3>
+<div id="f0b1ef7f" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get top distinctive collocations for visualization</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>top_dem <span class="op">=</span> comparison_df.nlargest(<span class="dv">15</span>, <span class="st">'pmi_diff'</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>top_rep <span class="op">=</span> comparison_df.nsmallest(<span class="dv">15</span>, <span class="st">'pmi_diff'</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>top_distinctive <span class="op">=</span> pd.concat([top_rep, top_dem])</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create diverging bar chart</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">10</span>))</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'red'</span> <span class="cf">if</span> x <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'blue'</span> <span class="cf">for</span> x <span class="kw">in</span> top_distinctive[<span class="st">'pmi_diff'</span>]]</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>ax.barh(top_distinctive[<span class="st">'bigram_str'</span>], top_distinctive[<span class="st">'pmi_diff'</span>], color<span class="op">=</span>colors, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>ax.axvline(x<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'PMI Difference</span><span class="ch">\n</span><span class="st">(negative = Republican, positive = Democrat)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Collocation'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Most party-distinctive collocations in SOTU addresses'</span>, </span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>             fontsize<span class="op">=</span><span class="dv">13</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Add legend</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.patches <span class="im">import</span> Patch</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>legend_elements <span class="op">=</span> [</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>    Patch(facecolor<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'Democratic collocations'</span>),</span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>    Patch(facecolor<span class="op">=</span><span class="st">'red'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'Republican collocations'</span>)</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>ax.legend(handles<span class="op">=</span>legend_elements, loc<span class="op">=</span><span class="st">'lower right'</span>)</span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_05.1_files/figure-html/cell-16-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="lab_05.1_files/figure-html/cell-16-output-1.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This visualization shows which collocations are distinctively associated with each party based on PMI differences. Many of these will be proper names (historical figures, legislation names) specific to different eras when each party held power. The method itself—comparing collocations across groups using PMI—applies to any comparison you want to make: positive vs negative product reviews, formal vs informal writing, different time periods, different authors, etc.</p>
+</section>
+<section id="temporal-comparison-how-collocations-change-over-time" class="level3" data-number="8.4">
+<h3 data-number="8.4" class="anchored" data-anchor-id="temporal-comparison-how-collocations-change-over-time"><span class="header-section-number">8.4</span> Temporal comparison: how collocations change over time</h3>
+<p>Let’s compare collocations across three eras:</p>
+<div id="86c87215" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_era_collocations(speeches_df, start_year, end_year, era_name, min_count<span class="op">=</span><span class="dv">10</span>, min_pmi<span class="op">=</span><span class="fl">2.5</span>):</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract collocations for a specific time period."""</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    era_speeches <span class="op">=</span> speeches_df[</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>        (speeches_df[<span class="st">'year'</span>] <span class="op">&gt;=</span> start_year) <span class="op">&amp;</span> </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        (speeches_df[<span class="st">'year'</span>] <span class="op">&lt;=</span> end_year)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract bigrams</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    era_bigrams <span class="op">=</span> []</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> text <span class="kw">in</span> era_speeches[<span class="st">'transcript'</span>]:</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>        bigrams <span class="op">=</span> extract_bigrams(text, remove_stopwords<span class="op">=</span><span class="va">True</span>, pos_filter<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>        era_bigrams.extend(bigrams)</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Count and create DataFrame</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    bigram_counts <span class="op">=</span> Counter(era_bigrams)</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>    era_df <span class="op">=</span> pd.DataFrame(</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>        bigram_counts.most_common(), </span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>        columns<span class="op">=</span>[<span class="st">'bigram'</span>, <span class="st">'count'</span>]</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    era_df <span class="op">=</span> era_df[era_df[<span class="st">'count'</span>] <span class="op">&gt;=</span> min_count]</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate PMI</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>    era_df <span class="op">=</span> calculate_pmi_for_bigrams(era_df, era_bigrams)</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter by PMI</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>    era_df <span class="op">=</span> era_df[era_df[<span class="st">'pmi'</span>] <span class="op">&gt;=</span> min_pmi].copy()</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>    era_df[<span class="st">'bigram_str'</span>] <span class="op">=</span> era_df[<span class="st">'bigram'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="ss">f"</span><span class="sc">{</span>x[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>x[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>    era_df[<span class="st">'era'</span>] <span class="op">=</span> era_name</span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-30"><a href="#cb31-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> era_df</span>
+<span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Define eras</span></span>
+<span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>eras <span class="op">=</span> [</span>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1945</span>, <span class="dv">1975</span>, <span class="st">'Post-war (1945-1975)'</span>),</span>
+<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1976</span>, <span class="dv">2000</span>, <span class="st">'Late 20th century (1976-2000)'</span>),</span>
+<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">2001</span>, <span class="dv">2018</span>, <span class="st">'21st century (2001-2018)'</span>)</span>
+<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb31-38"><a href="#cb31-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-39"><a href="#cb31-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract for each era</span></span>
+<span id="cb31-40"><a href="#cb31-40" aria-hidden="true" tabindex="-1"></a>era_collocations <span class="op">=</span> {}</span>
+<span id="cb31-41"><a href="#cb31-41" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> start, end, name <span class="kw">in</span> eras:</span>
+<span id="cb31-42"><a href="#cb31-42" aria-hidden="true" tabindex="-1"></a>    era_df <span class="op">=</span> extract_era_collocations(speeches, start, end, name, min_count<span class="op">=</span><span class="dv">8</span>, min_pmi<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb31-43"><a href="#cb31-43" aria-hidden="true" tabindex="-1"></a>    era_collocations[name] <span class="op">=</span> era_df</span>
+<span id="cb31-44"><a href="#cb31-44" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(era_df)<span class="sc">}</span><span class="ss"> collocations"</span>)</span>
+<span id="cb31-45"><a href="#cb31-45" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(era_df.head(<span class="dv">10</span>)[[<span class="st">'bigram_str'</span>, <span class="st">'count'</span>, <span class="st">'pmi'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Post-war (1945-1975): 1261 collocations
+           bigram_str  count       pmi
+0       united states    580  6.531445
+1         fiscal year    416  6.539359
+2  federal government    339  4.981652
+3      united nations    261  5.533383
+4          free world    204  5.740163
+5     american people    176  5.407417
+6          past years    158  6.376723
+7        free nations    148  5.066070
+8        soviet union    146  8.219514
+9   local governments    145  6.929096
+
+Late 20th century (1976-2000): 1387 collocations
+           bigram_str  count       pmi
+0       united states    508  7.150882
+1     american people    300  5.308773
+2         health care    274  6.463104
+3  federal government    250  5.032715
+4     social security    216  6.778588
+5        soviet union    196  7.468193
+6        human rights    191  7.016411
+7      private sector    168  8.060140
+8          past years    160  6.832990
+9         middle east    120  8.685531
+
+21st century (2001-2018): 344 collocations
+         bigram_str  count       pmi
+0     united states    196  6.991582
+1       health care    168  6.531817
+2   american people    149  4.595473
+3          al qaida    116  8.141844
+4   social security    112  6.997299
+5          new jobs     74  3.633414
+6       middle east     70  7.902651
+7      middle class     67  7.669534
+8  health insurance     66  6.492642
+9      clean energy     62  6.925543</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-temporal-patterns" class="level3" data-number="8.5">
+<h3 data-number="8.5" class="anchored" data-anchor-id="visualizing-temporal-patterns"><span class="header-section-number">8.5</span> Visualizing temporal patterns</h3>
+<div id="b75cfc93" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare top collocations across eras</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">18</span>, <span class="dv">6</span>))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, (era_name, era_df) <span class="kw">in</span> <span class="bu">enumerate</span>(era_collocations.items()):</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[idx]</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get top 15 by PMI</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    top_era <span class="op">=</span> era_df.nlargest(<span class="dv">15</span>, <span class="st">'pmi'</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>    sns.barplot(</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>        data<span class="op">=</span>top_era, </span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>        y<span class="op">=</span><span class="st">'bigram_str'</span>, </span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>        x<span class="op">=</span><span class="st">'pmi'</span>, </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>        palette<span class="op">=</span><span class="st">'rocket'</span>,</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>        ax<span class="op">=</span>ax</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'PMI'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'Collocation'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>    ax.set_title(era_name, fontsize<span class="op">=</span><span class="dv">12</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_1009652/3915074568.py:10: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
+
+  sns.barplot(
+/tmp/ipykernel_1009652/3915074568.py:10: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
+
+  sns.barplot(
+/tmp/ipykernel_1009652/3915074568.py:10: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `y` variable to `hue` and set `legend=False` for the same effect.
+
+  sns.barplot(</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_05.1_files/figure-html/cell-18-output-2.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="lab_05.1_files/figure-html/cell-18-output-2.svg" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This temporal comparison shows how collocations change across historical periods. In political speech, you’ll see many proper names and historical references specific to each era. In other domains, temporal analysis reveals different patterns: product reviews show evolving features (“app crashes” → “facial recognition”), social media shows changing slang and topics, scientific abstracts show emerging methodologies.</p>
+<hr>
+</section>
+</section>
+<section id="conclusion-why-collocations-matter-for-text-analysis" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="conclusion-why-collocations-matter-for-text-analysis"><span class="header-section-number">9</span> Conclusion: why collocations matter for text analysis</h2>
+<section id="what-we-learned" class="level3" data-number="9.1">
+<h3 data-number="9.1" class="anchored" data-anchor-id="what-we-learned"><span class="header-section-number">9.1</span> What we learned</h3>
+<p>In this lab, you learned to:</p>
+<ol type="1">
+<li>Extract bigrams with proper filtering (stopwords, POS tags, possessives)</li>
+<li>Use PMI to identify true collocations (not just frequent bigrams)</li>
+<li>Compare collocations across groups (parties, time periods)</li>
+<li>Interpret PMI values for substantive research findings</li>
+<li>Visualize collocation patterns with bar charts</li>
+</ol>
+</section>
+<section id="key-insights-about-multi-word-phrases" class="level3" data-number="9.2">
+<h3 data-number="9.2" class="anchored" data-anchor-id="key-insights-about-multi-word-phrases"><span class="header-section-number">9.2</span> Key insights about multi-word phrases</h3>
+<p>Multi-word phrases matter because language uses formulaic expressions to convey meaning. Single-word analysis misses these important patterns. Statistical validation is essential—frequency alone is misleading. PMI separates true collocations from coincidental co-occurrences. Strong collocations (PMI &gt; 3) reveal meaningful semantic bonds between words.</p>
+<p>Language changes over time. New issues emerge through new collocations, rhetorical patterns evolve with historical context, and tracking collocations reveals shifting priorities in discourse.</p>
+</section>
+<section id="how-this-complements-word-level-analysis" class="level3" data-number="9.3">
+<h3 data-number="9.3" class="anchored" data-anchor-id="how-this-complements-word-level-analysis"><span class="header-section-number">9.3</span> How this complements word-level analysis</h3>
+<p>Lab 01 introduced word frequency counting—now we count phrase frequency. Lab 02 showed corpus comparison—now we compare phrase usage across groups. Lab 03 introduced PMI for word-category association—now we measure word-word association. Lab 04 compared entire documents—now we identify the phrases that characterize documents.</p>
+</section>
+<section id="when-to-use-collocation-analysis" class="level3" data-number="9.4">
+<h3 data-number="9.4" class="anchored" data-anchor-id="when-to-use-collocation-analysis"><span class="header-section-number">9.4</span> When to use collocation analysis</h3>
+<p>Collocation analysis is useful when studying formulaic language and multi-word expressions, identifying domain-specific terminology, comparing rhetorical strategies across groups, and tracking emergence of new phrases over time.</p>
+<p>Collocations won’t help with broader semantic relationships (words that co-occur but aren’t adjacent—use word embeddings or topic models), document-level patterns (use Lab 04’s similarity methods), or sentiment analysis (use Lab 03’s dictionaries).</p>
+</section>
+<section id="applying-these-methods-to-your-own-research" class="level3" data-number="9.5">
+<h3 data-number="9.5" class="anchored" data-anchor-id="applying-these-methods-to-your-own-research"><span class="header-section-number">9.5</span> Applying these methods to your own research</h3>
+<p>The techniques you learned here work on any text corpus. For product reviews, you might extract collocations like “battery life,” “customer service,” and “money back,” comparing positive vs negative reviews. For social media, you might track emerging slang and hashtag patterns over time. For interview transcripts, you might identify domain-specific terminology that characterizes different participant groups.</p>
+<p>The filtering strategy (stopwords, POS tags, frequency thresholds, PMI cutoffs) may need adjustment for different genres, but the core methods remain the same.</p>
+</section>
+<section id="next-steps" class="level3" data-number="9.6">
+<h3 data-number="9.6" class="anchored" data-anchor-id="next-steps"><span class="header-section-number">9.6</span> Next steps</h3>
+<p>To extend this analysis:</p>
+<ul>
+<li>Extract trigrams (three-word sequences) for longer formulaic phrases</li>
+<li>Combine inflected forms through lemmatization (“create jobs” + “creating jobs”)</li>
+<li>Extract collocations with named entities (people, places, organizations)</li>
+<li>Model which factors predict collocation usage through regression analysis</li>
+<li>Compare your corpus collocations with reference corpus (e.g., general language)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="exercises"><span class="header-section-number">10</span> Exercises</h2>
+<ol type="1">
+<li><p><strong>Trigram extraction</strong>: Modify the <code>extract_bigrams()</code> function to extract trigrams (three-word sequences). What are the most common trigrams? Do they reveal different patterns than bigrams?</p></li>
+<li><p><strong>PMI threshold sensitivity</strong>: Re-run the party comparison with different PMI thresholds (2.0, 3.0, 4.0). How does the threshold affect which collocations are identified as party-distinctive?</p></li>
+<li><p><strong>Verb + noun collocations</strong>: Filter bigrams to only include VERB + NOUN patterns. What verbs are most common? How do they differ by party?</p></li>
+<li><p><strong>Presidential comparison</strong>: Instead of comparing parties, compare collocations across specific presidents (Obama vs Trump, Reagan vs Clinton). What distinctive phrases characterize each president?</p></li>
+<li><p><strong>Sentiment collocations</strong>: Combine this lab with Lab 03’s sentiment dictionaries. Extract bigrams where one word is from a sentiment lexicon. Do different groups use different sentiment words in their collocations?</p></li>
+<li><p><strong>Temporal emergence</strong>: Track when specific collocations first appear. Create a timeline showing emergence of new phrases in your corpus.</p></li>
+</ol>
+<hr>
+</section>
+<section id="session-info" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="session-info"><span class="header-section-number">11</span> Session info</h2>
+<div id="6d75fc2c" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Python version: </span><span class="sc">{</span>sys<span class="sc">.</span>version<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"spaCy version: </span><span class="sc">{</span>spacy<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"pandas version: </span><span class="sc">{</span>pd<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"numpy version: </span><span class="sc">{</span>np<span class="sc">.</span>__version__<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Python version: 3.13.5 (main, Jun 12 2025, 12:40:22) [Clang 20.1.4 ]
+spaCy version: 3.8.7
+pandas version: 2.3.3
+numpy version: 2.3.4</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/paskn\.github\.io\/cta-with-python\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
