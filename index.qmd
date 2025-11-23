@@ -7,3 +7,4 @@ title: "Computational Text Analysis with Python"
 4. [Lab 02: Words as data points II](lab_02.qmd)
 5. [Lab 03: Dictionary methods](lab_03.qmd)
 6. [Lab 04: Comparing documents](lab_04.qmd)
+7. [Lab 05: Collocations](lab_05.1.qmd)

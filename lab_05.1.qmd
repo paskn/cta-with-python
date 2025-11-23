@@ -1,0 +1,805 @@
+---
+title: "Lab 05.1: Collocations"
+subtitle: "Finding meaningful multi-word phrases in discourse"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+## Learning objectives
+
+By the end of this lab, you will be able to:
+
+- Extract bigrams (two-word sequences) from text with proper filtering
+- Understand why stopword and POS filtering are essential for meaningful phrases
+- Use Pointwise Mutual Information (PMI) to identify statistically significant collocations
+- Compare collocations across political groups and time periods
+- Interpret PMI values for substantive research findings
+- Visualize collocation differences using bar charts
+
+## A note on the dataset and our goals
+
+When you examine the results, focus on understanding:
+
+- How the extraction process works
+- Why filtering improves output quality
+- How PMI identifies meaningful associations
+- How to compare collocations across groups
+
+The same methods apply to any text corpus: product reviews, social media posts, interview transcripts, or documents from your own research domain. The techniques you learn here transfer directly to your own data.
+
+Lab 01 introduced word frequency counting, and now we count phrase
+frequency. Lab 02 showed corpus comparison, and now we compare phrases
+across groups. Lab 03 introduced PMI for word-category associations,
+and now we use PMI for word-word associations. Lab 04 used TF-IDF to
+identify important words, and we can use this to filter important
+words before extracting collocations.
+
+
+---
+
+## Introduction: the multi-word phrase problem
+
+In Labs 01-04, we've treated words as independent units. We've counted them, compared their frequencies across corpora, measured their associations, and compared entire documents using vector representations.
+
+But language doesn't work in isolated words. Consider "climate
+change": this phrase conveys a distinct concept that neither "climate"
+nor "change" alone captures. Similarly, "health care" means something
+different from the simple combination of "health" and "care." These
+multi-word expressions pose a challenge for text analysis methods that
+treat words independently.
+
+### Why word counting fails
+
+Consider this sentence from a State of the Union address:
+
+> "We must strengthen our economy, create new jobs, and protect working families."
+
+Word frequency analysis would note that "economy," "jobs," "families,"
+and "working" each appear once. But it would miss the phrase "working
+families" as a political talking point, and the connection between
+"new" and "jobs" as "new jobs." We need methods that capture word
+sequences instead of individual words.
+
+### What are collocations?
+
+A collocation is a sequence of words that habitually appear together and form a meaningful unit. Examples from political speech include "middle class," "national security," and "climate change." These differ from arbitrary word sequences like "the nation" (a grammatical artifact) or "'s economy" (a tokenization artifact from possessive constructions like "America's economy").
+
+### Validation with PMI
+
+Frequency alone doesn't tell us whether a word pair forms a true collocation. If "health care" appears 200 times, is this significant? It depends on how often "health" and "care" appear independently. If both words are very common, 200 co-occurrences might be expected by chance. But if both words are relatively rare, 200 co-occurrences would be surprisingly high.
+
+We need a measure that accounts for:
+
+1. How often the phrase appears together
+2. How often each word appears separately
+3. Whether the co-occurrence is more frequent than chance would predict
+
+Pointwise Mutual Information (PMI), which we learned in Lab 03, measures exactly this: how much more often two words appear together than we'd expect by chance.
+
+---
+
+## Setup: loading packages
+
+```{python}
+# Data manipulation
+import pandas as pd
+import numpy as np
+
+# Text processing
+import spacy
+from collections import Counter
+
+# Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 8)
+
+print("Packages loaded successfully")
+```
+
+We continue using the same packages from previous labs: pandas for data manipulation, spacy for text processing with part-of-speech tagging, and matplotlib/seaborn for visualization.
+
+### Loading spaCy model
+
+```{python}
+# Load English language model for text processing
+nlp = spacy.load("en_core_web_sm")
+nlp.max_length = 1530000  # Increase limit for long documents
+
+print(f"spaCy model loaded: {nlp.meta['name']}")
+```
+
+---
+
+## Loading and preparing the data
+
+We'll continue working with State of the Union addresses:
+
+```{python}
+# Load the data
+speeches = pd.read_csv("data/transcripts.csv")
+speeches['date'] = pd.to_datetime(speeches['date'])
+speeches['year'] = speeches['date'].dt.year
+
+print(f"Total speeches: {len(speeches)}")
+print(f"Date range: {speeches['year'].min()} to {speeches['year'].max()}")
+print(f"Presidents: {speeches['president'].nunique()}")
+speeches.head()
+```
+
+### Creating party labels
+
+For comparing collocations across political groups, we need party affiliation labels:
+
+```{python}
+# Define party affiliations
+# This is a simplified mapping for the SOTU dataset
+party_map = {
+    'Harry S. Truman': 'Democrat',
+    'Dwight D. Eisenhower': 'Republican',
+    'John F. Kennedy': 'Democrat',
+    'Lyndon B. Johnson': 'Democrat',
+    'Richard Nixon': 'Republican',
+    'Gerald Ford': 'Republican',
+    'Jimmy Carter': 'Democrat',
+    'Ronald Reagan': 'Republican',
+    'George Bush': 'Republican',
+    'William J. Clinton': 'Democrat',
+    'George W. Bush': 'Republican',
+    'Barack Obama': 'Democrat',
+    'Donald J. Trump': 'Republican'
+}
+
+speeches['party'] = speeches['president'].map(party_map)
+
+print("Speeches by party:")
+print(speeches['party'].value_counts())
+```
+
+---
+
+## Part 1: extracting bigrams properly
+
+### What are bigrams?
+
+A bigram is a sequence of two consecutive words. From the text "We need affordable health care," we would extract: ("we", "need"), ("need", "affordable"), ("affordable", "health"), ("health", "care"). Bigrams capture two-word phrases and collocations that single words miss.
+
+### The naive approach and its problems
+
+Let's start with a simple bigram extractor:
+
+```{python}
+def extract_bigrams_naive(text):
+    """Extract bigrams without filtering."""
+    doc = nlp(text.lower())
+    tokens = [token.text for token in doc if not token.is_punct and not token.is_space]
+    bigrams = list(zip(tokens[:-1], tokens[1:]))
+    return bigrams
+
+# Test with sample sentence
+sample = "We must strengthen the economy and protect working families"
+sample_bigrams = extract_bigrams_naive(sample)
+
+print("Naive bigrams:")
+for bg in sample_bigrams:
+    print(f"  {bg[0]} → {bg[1]}")
+```
+
+This approach extracts all consecutive word pairs, but most are not
+meaningful collocations. The output includes grammatical artifacts
+like "the economy" and "and protect", function word combinations that
+provide no conceptual content. Only "working families" looks like an
+actual phrase.
+
+### Problem 1: stopwords create noise
+
+Stopwords are common function words like "the," "a," "of," and "to" that provide grammatical structure but little meaning. Without filtering, we get bigrams like "the nation," "of the," and "a new"—these are grammatical artifacts, not meaningful phrases.
+
+A common mistake is to only remove bigrams where both words are stopwords:
+
+```python
+# This approach is too permissive
+if not (is_stop(w1) and is_stop(w2)):
+    keep bigram
+```
+
+This allows "the nation" and "a new" (one stopword, one content word) to pass through. We need to filter if either word is a stopword:
+
+```python
+# Better approach
+if not (is_stop(w1) or is_stop(w2)):
+    keep bigram
+```
+
+### Problem 2: possessive markers create artifacts
+
+When spaCy tokenizes "America's economy," it produces ["America", "'s", "economy"], creating uninformative bigrams like ("America", "'s") and ("'s", "economy"). The possessive marker "'s" is just grammatical structure (part-of-speech tag: PART), not a content word.
+
+### Problem 3: not all content words form meaningful phrases
+
+Even after removing stopwords and possessives, we get bigrams like ("economy", "protect") from "strengthen the economy and protect families"—words that happen to be adjacent but don't form a meaningful unit. We need part-of-speech (POS) filtering to keep only meaningful patterns like noun+noun ("health care"), adjective+noun ("working families"), or verb+noun ("create jobs").
+
+### The proper bigram extractor
+
+Let's implement comprehensive filtering:
+
+```{python}
+def extract_bigrams(text, remove_stopwords=True, pos_filter=True):
+    """
+    Extract bigrams with proper filtering.
+    Returns list of (word1, word2) tuples.
+    """
+    doc = nlp(text.lower())
+    
+    # Extract tokens with POS information
+    # Filter: no punctuation, no spaces, no numbers, no possessives
+    tokens = [
+        (token.text, token.pos_, token.is_stop) 
+        for token in doc 
+        if not token.is_punct 
+        and not token.is_space 
+        and not token.like_num
+        and token.pos_ != 'PART'  # Remove possessive markers like 's
+        and len(token.text) > 1   # Remove single characters
+    ]
+    
+    # Create bigrams
+    bigrams_raw = list(zip(tokens[:-1], tokens[1:]))
+    
+    # Apply filters
+    bigrams = []
+    for (w1, pos1, stop1), (w2, pos2, stop2) in bigrams_raw:
+        
+        # Filter: remove if either word is a stopword
+        if remove_stopwords and (stop1 or stop2):
+            continue
+        
+        # Filter: keep only content word combinations
+        if pos_filter:
+            content_pos = {'NOUN', 'PROPN', 'ADJ', 'VERB'}
+            if pos1 not in content_pos or pos2 not in content_pos:
+                continue
+        
+        bigrams.append((w1, w2))
+    
+    return bigrams
+
+# Test with same sample sentence
+sample_bigrams_filtered = extract_bigrams(sample, remove_stopwords=True, pos_filter=True)
+
+print("Filtered bigrams:")
+for bg in sample_bigrams_filtered:
+    print(f"  {bg[0]} → {bg[1]}")
+```
+
+Now we only see meaningful content word combinations: "working families" (adjective + noun), "strengthen economy" (verb + noun), and "protect families" (verb + noun). No more "the economy," "we must," or "'s" artifacts.
+
+### Before and after comparison
+
+Let's compare naive vs. filtered extraction on a real speech:
+
+```{python}
+# Get a sample speech
+sample_speech = speeches.iloc[0]['transcript'][:1000]  # First 1000 chars
+
+# Extract both ways
+naive_bigrams = extract_bigrams_naive(sample_speech)
+filtered_bigrams = extract_bigrams(sample_speech, remove_stopwords=True, pos_filter=True)
+
+print("NAIVE EXTRACTION:")
+print(f"Total bigrams: {len(naive_bigrams)}")
+print("Top 10:", [f"{w1} {w2}" for w1, w2 in Counter(naive_bigrams).most_common(10)])
+
+print("\nFILTERED EXTRACTION:")
+print(f"Total bigrams: {len(filtered_bigrams)}")
+print("Top 10:", [f"{w1} {w2}" for w1, w2 in Counter(filtered_bigrams).most_common(10)])
+```
+
+Filtering dramatically improves the quality of extracted phrases by removing grammatical noise and keeping only meaningful word combinations.
+
+### Extracting bigrams from all speeches
+
+Now let's extract bigrams from our full dataset. Be wary: this can
+take a while.
+
+```{python}
+# Extract all bigrams
+all_bigrams = []
+
+print("Extracting bigrams from all speeches...")
+for text in speeches['transcript']:
+    bigrams = extract_bigrams(text, remove_stopwords=True, pos_filter=True)
+    all_bigrams.extend(bigrams)
+
+print(f"Total bigrams extracted: {len(all_bigrams):,}")
+
+# Count frequencies
+bigram_counts = Counter(all_bigrams)
+
+# Convert to DataFrame
+bigram_df = pd.DataFrame(
+    bigram_counts.most_common(100), 
+    columns=['bigram', 'count']
+)
+bigram_df['bigram_str'] = bigram_df['bigram'].apply(lambda x: f"{x[0]} {x[1]}")
+
+print("\nMost common bigrams:")
+bigram_df.head(20)
+```
+
+### Visualizing top bigrams
+
+```{python}
+# Plot top 20 bigrams
+fig, ax = plt.subplots(figsize=(10, 8))
+
+top_20 = bigram_df.head(20)
+sns.barplot(data=top_20, y='bigram_str', x='count', 
+            palette='viridis', ax=ax)
+
+ax.set_xlabel('Frequency', fontsize=12)
+ax.set_ylabel('Bigram', fontsize=12)
+ax.set_title('Most frequent bigrams in State of the Union speeches\n(with stopword and POS filtering)', 
+             fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.show()
+```
+
+With proper filtering, the top bigrams reveal domain-specific multi-word terms rather than grammatical noise. Notice that many of these are proper names and institutional references—this is characteristic of political speech, where naming specific people, places, and organizations is common. The filtering methods work the same way on any corpus; a product review corpus would show different domain-specific phrases like "customer service" or "battery life."
+
+---
+
+## Part 2: finding meaningful collocations with PMI
+
+Frequency alone doesn't tell us if a bigram is a true collocation—a statistically significant phrase.
+
+### The frequency problem
+
+Consider two bigrams: "health care" appears 450 times, and "opportunity economy" appears 50 times. Which is a stronger collocation? If "health" and "care" each appear thousands of times independently, their co-occurrence might be expected by chance. But if "opportunity" and "economy" rarely co-occur otherwise, 50 instances could be surprisingly high.
+
+We need to compare observed co-occurrence against expected co-occurrence based on individual word frequencies.
+
+### What is PMI?
+
+Pointwise Mutual Information (PMI) measures how much more often two words appear together than we'd expect by chance:
+
+> PMI(word1, word2) = log₂(P(word1, word2) / (P(word1) × P(word2)))
+
+**Interpretation:**
+
+- PMI = 0: Words appear together exactly as expected by chance (independent)
+- PMI > 0: Words appear together more than expected (positive association / collocation)
+- PMI < 0: Words appear together less than expected (negative association / avoid each other)
+- PMI = 3: Words appear 2³ = 8 times more often together than expected
+
+Rule of thumb for collocation strength:
+
+| PMI value | Interpretation |
+|-----------|----------------|
+| PMI < 0 | Not a collocation |
+| PMI ≈ 0 | Random co-occurrence |
+| PMI > 0 | Weak collocation |
+| PMI > 3 | Strong collocation |
+| PMI > 6 | Very strong collocation |
+
+### A concrete example
+
+Let's work through "health care" step by step.
+
+Given:
+- Total bigrams in corpus: 500,000
+- "health care" appears: 450 times
+- "health" appears (in any bigram): 2,000 times
+- "care" appears (in any bigram): 1,500 times
+
+Calculate PMI:
+1. P(health, care) = 450 / 500,000 = 0.0009
+2. P(health) = 2,000 / 500,000 = 0.004
+3. P(care) = 1,500 / 500,000 = 0.003
+4. P(health) × P(care) = 0.004 × 0.003 = 0.000012
+5. PMI = log₂(0.0009 / 0.000012) = log₂(75) ≈ 6.23
+
+Interpretation: "health care" appears about 75 times (2^6.23) more often than expected by chance, indicating a strong collocation.
+
+::: {.callout-note collapse="true"}
+## The PMI formula
+
+PMI is derived from information theory and measures the "surprise" or information content of observing two events together:
+
+$$\text{PMI}(w_1, w_2) = \log_2 \frac{P(w_1, w_2)}{P(w_1) \cdot P(w_2)}$$
+
+Where:
+
+- $P(w_1, w_2)$ = probability of seeing the bigram
+- $P(w_1)$ = probability of seeing word1 (in any bigram)
+- $P(w_2)$ = probability of seeing word2 (in any bigram)
+
+The logarithm converts multiplicative relationships to additive (easier to interpret), and PMI is symmetric: PMI(A,B) = PMI(B,A). In Lab 03, we used PMI to measure word associations with categories (Democrat/Republican). Here, we measure associations between word pairs.
+:::
+
+### Calculating PMI for bigrams
+
+Let's implement PMI calculation:
+
+```{python}
+def calculate_pmi_for_bigrams(bigram_df, all_bigrams):
+    """
+    Calculate PMI for each bigram.
+    Returns DataFrame with added PMI column.
+    """
+    # Total number of bigrams
+    total_bigrams = len(all_bigrams)
+    
+    # Count individual word occurrences (from all bigrams)
+    word1_counts = Counter([bg[0] for bg in all_bigrams])
+    word2_counts = Counter([bg[1] for bg in all_bigrams])
+    
+    # Calculate PMI for each bigram
+    pmi_values = []
+    
+    for _, row in bigram_df.iterrows():
+        w1, w2 = row['bigram']
+        count_together = row['count']
+        
+        # Get individual counts
+        count_w1 = word1_counts[w1]
+        count_w2 = word2_counts[w2]
+        
+        # Calculate probabilities
+        p_together = count_together / total_bigrams
+        p_w1 = count_w1 / total_bigrams
+        p_w2 = count_w2 / total_bigrams
+        
+        # Calculate PMI (add small epsilon to avoid log(0))
+        epsilon = 1e-10
+        pmi = np.log2((p_together + epsilon) / ((p_w1 * p_w2) + epsilon))
+        
+        pmi_values.append(pmi)
+    
+    bigram_df['pmi'] = pmi_values
+    return bigram_df
+
+# Calculate PMI
+bigram_df = calculate_pmi_for_bigrams(bigram_df, all_bigrams)
+
+print("Bigrams with PMI scores:")
+print("\nTop 20 by frequency:")
+print(bigram_df.head(20)[['bigram_str', 'count', 'pmi']])
+
+print("\nTop 20 by PMI:")
+print(bigram_df.nlargest(20, 'pmi')[['bigram_str', 'count', 'pmi']])
+```
+
+Notice the difference between ranking by frequency versus PMI. Frequent bigrams may have moderate PMI scores if the individual words are also common. Rarer bigrams may have very high PMI if the words strongly prefer each other.
+
+### Filtering by PMI threshold
+
+Let's identify strong collocations (PMI > 3):
+
+```{python}
+# Filter for strong collocations
+strong_collocations = bigram_df[bigram_df['pmi'] > 3].copy()
+strong_collocations = strong_collocations.sort_values('pmi', ascending=False)
+
+print(f"Strong collocations (PMI > 3): {len(strong_collocations)}")
+print("\nTop 30 strong collocations:")
+strong_collocations.head(30)[['bigram_str', 'count', 'pmi']]
+```
+
+### Visualizing PMI distribution
+
+```{python}
+# Plot PMI distribution
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Histogram of PMI values
+axes[0].hist(bigram_df['pmi'], bins=50, color='skyblue', edgecolor='black')
+axes[0].axvline(x=3, color='red', linestyle='--', linewidth=2, label='PMI = 3 (strong collocation)')
+axes[0].set_xlabel('PMI', fontsize=12)
+axes[0].set_ylabel('Number of bigrams', fontsize=12)
+axes[0].set_title('Distribution of PMI values', fontsize=13, fontweight='bold')
+axes[0].legend()
+
+# Scatter: frequency vs PMI
+axes[1].scatter(bigram_df['count'], bigram_df['pmi'], alpha=0.5, s=30)
+axes[1].axhline(y=3, color='red', linestyle='--', linewidth=2, label='PMI = 3')
+axes[1].set_xlabel('Frequency', fontsize=12)
+axes[1].set_ylabel('PMI', fontsize=12)
+axes[1].set_title('Frequency vs PMI', fontsize=13, fontweight='bold')
+axes[1].set_xscale('log')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+The left plot shows that most bigrams (among the top 100 most frequent) have moderate PMI values between 2 and 6. The right plot reveals that high frequency doesn't guarantee high PMI—common words may co-occur by chance. Conversely, low frequency can have very high PMI if the words are rare but perfectly collocated. The sweet spot is moderate frequency combined with high PMI, indicating meaningful phrases that appear often enough to be notable.
+
+---
+
+## Part 3: comparing collocations across groups
+
+Now we can answer: how do collocations differ across parties and time
+periods?
+
+### Democrat vs Republican collocations
+
+Let's extract collocations separately for each party:
+
+```{python}
+def extract_party_collocations(speeches_df, party_name, min_count=10, min_pmi=3):
+    """
+    Extract collocations for a specific party.
+    Returns DataFrame of collocations for this party.
+    """
+    # Filter speeches
+    party_speeches = speeches_df[speeches_df['party'] == party_name]
+    
+    # Extract bigrams
+    party_bigrams = []
+    for text in party_speeches['transcript']:
+        bigrams = extract_bigrams(text, remove_stopwords=True, pos_filter=True)
+        party_bigrams.extend(bigrams)
+    
+    # Count and create DataFrame
+    bigram_counts = Counter(party_bigrams)
+    party_df = pd.DataFrame(
+        bigram_counts.most_common(), 
+        columns=['bigram', 'count']
+    )
+    party_df = party_df[party_df['count'] >= min_count]
+    
+    # Calculate PMI
+    party_df = calculate_pmi_for_bigrams(party_df, party_bigrams)
+    
+    # Filter by PMI
+    party_df = party_df[party_df['pmi'] >= min_pmi].copy()
+    party_df['bigram_str'] = party_df['bigram'].apply(lambda x: f"{x[0]} {x[1]}")
+    party_df['party'] = party_name
+    
+    return party_df
+
+# Extract for both parties
+dem_collocations = extract_party_collocations(speeches, 'Democrat', min_count=15, min_pmi=2.5)
+rep_collocations = extract_party_collocations(speeches, 'Republican', min_count=15, min_pmi=2.5)
+
+print(f"Democrat collocations: {len(dem_collocations)}")
+print(dem_collocations.head(15)[['bigram_str', 'count', 'pmi']])
+
+print(f"\nRepublican collocations: {len(rep_collocations)}")
+print(rep_collocations.head(15)[['bigram_str', 'count', 'pmi']])
+```
+
+### Finding party-distinctive collocations
+
+Which collocations are distinctively Democratic vs Republican? We can use PMI difference to identify distinctive phrases:
+
+```{python}
+# Merge both party DataFrames
+dem_collocations_comp = dem_collocations[['bigram_str', 'count', 'pmi']].copy()
+dem_collocations_comp.columns = ['bigram_str', 'count_dem', 'pmi_dem']
+
+rep_collocations_comp = rep_collocations[['bigram_str', 'count', 'pmi']].copy()
+rep_collocations_comp.columns = ['bigram_str', 'count_rep', 'pmi_rep']
+
+# Merge on bigram
+comparison_df = pd.merge(
+    dem_collocations_comp, 
+    rep_collocations_comp, 
+    on='bigram_str', 
+    how='outer'
+).fillna(0)
+
+# Calculate PMI difference (positive = more Democratic, negative = more Republican)
+comparison_df['pmi_diff'] = comparison_df['pmi_dem'] - comparison_df['pmi_rep']
+
+# Sort by absolute difference
+comparison_df['abs_pmi_diff'] = comparison_df['pmi_diff'].abs()
+comparison_df = comparison_df.sort_values('abs_pmi_diff', ascending=False)
+
+print("Most party-distinctive collocations:")
+print("\nTop 15 (positive = Democratic, negative = Republican):")
+comparison_df.head(15)[['bigram_str', 'pmi_dem', 'pmi_rep', 'pmi_diff']]
+```
+
+### Visualizing party differences
+
+```{python}
+# Get top distinctive collocations for visualization
+top_dem = comparison_df.nlargest(15, 'pmi_diff')
+top_rep = comparison_df.nsmallest(15, 'pmi_diff')
+top_distinctive = pd.concat([top_rep, top_dem])
+
+# Create diverging bar chart
+fig, ax = plt.subplots(figsize=(10, 10))
+
+colors = ['red' if x < 0 else 'blue' for x in top_distinctive['pmi_diff']]
+
+ax.barh(top_distinctive['bigram_str'], top_distinctive['pmi_diff'], color=colors, alpha=0.7)
+ax.axvline(x=0, color='black', linewidth=1)
+ax.set_xlabel('PMI Difference\n(negative = Republican, positive = Democrat)', fontsize=12)
+ax.set_ylabel('Collocation', fontsize=12)
+ax.set_title('Most party-distinctive collocations in SOTU addresses', 
+             fontsize=13, fontweight='bold')
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='blue', alpha=0.7, label='Democratic collocations'),
+    Patch(facecolor='red', alpha=0.7, label='Republican collocations')
+]
+ax.legend(handles=legend_elements, loc='lower right')
+
+plt.tight_layout()
+plt.show()
+```
+
+This visualization shows which collocations are distinctively associated with each party based on PMI differences. Many of these will be proper names (historical figures, legislation names) specific to different eras when each party held power. The method itself—comparing collocations across groups using PMI—applies to any comparison you want to make: positive vs negative product reviews, formal vs informal writing, different time periods, different authors, etc.
+
+### Temporal comparison: how collocations change over time
+
+Let's compare collocations across three eras:
+
+```{python}
+def extract_era_collocations(speeches_df, start_year, end_year, era_name, min_count=10, min_pmi=2.5):
+    """Extract collocations for a specific time period."""
+    era_speeches = speeches_df[
+        (speeches_df['year'] >= start_year) & 
+        (speeches_df['year'] <= end_year)
+    ]
+    
+    # Extract bigrams
+    era_bigrams = []
+    for text in era_speeches['transcript']:
+        bigrams = extract_bigrams(text, remove_stopwords=True, pos_filter=True)
+        era_bigrams.extend(bigrams)
+    
+    # Count and create DataFrame
+    bigram_counts = Counter(era_bigrams)
+    era_df = pd.DataFrame(
+        bigram_counts.most_common(), 
+        columns=['bigram', 'count']
+    )
+    era_df = era_df[era_df['count'] >= min_count]
+    
+    # Calculate PMI
+    era_df = calculate_pmi_for_bigrams(era_df, era_bigrams)
+    
+    # Filter by PMI
+    era_df = era_df[era_df['pmi'] >= min_pmi].copy()
+    era_df['bigram_str'] = era_df['bigram'].apply(lambda x: f"{x[0]} {x[1]}")
+    era_df['era'] = era_name
+    
+    return era_df
+
+# Define eras
+eras = [
+    (1945, 1975, 'Post-war (1945-1975)'),
+    (1976, 2000, 'Late 20th century (1976-2000)'),
+    (2001, 2018, '21st century (2001-2018)')
+]
+
+# Extract for each era
+era_collocations = {}
+for start, end, name in eras:
+    era_df = extract_era_collocations(speeches, start, end, name, min_count=8, min_pmi=2.5)
+    era_collocations[name] = era_df
+    print(f"\n{name}: {len(era_df)} collocations")
+    print(era_df.head(10)[['bigram_str', 'count', 'pmi']])
+```
+
+### Visualizing temporal patterns
+
+```{python}
+# Compare top collocations across eras
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+for idx, (era_name, era_df) in enumerate(era_collocations.items()):
+    ax = axes[idx]
+    
+    # Get top 15 by PMI
+    top_era = era_df.nlargest(15, 'pmi')
+    
+    sns.barplot(
+        data=top_era, 
+        y='bigram_str', 
+        x='pmi', 
+        palette='rocket',
+        ax=ax
+    )
+    
+    ax.set_xlabel('PMI', fontsize=11)
+    ax.set_ylabel('Collocation', fontsize=11)
+    ax.set_title(era_name, fontsize=12, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+```
+
+This temporal comparison shows how collocations change across historical periods. In political speech, you'll see many proper names and historical references specific to each era. In other domains, temporal analysis reveals different patterns: product reviews show evolving features ("app crashes" → "facial recognition"), social media shows changing slang and topics, scientific abstracts show emerging methodologies.
+
+---
+
+## Conclusion: why collocations matter for text analysis
+
+### What we learned
+
+In this lab, you learned to:
+
+1. Extract bigrams with proper filtering (stopwords, POS tags, possessives)
+2. Use PMI to identify true collocations (not just frequent bigrams)
+3. Compare collocations across groups (parties, time periods)
+4. Interpret PMI values for substantive research findings
+5. Visualize collocation patterns with bar charts
+
+### Key insights about multi-word phrases
+
+Multi-word phrases matter because language uses formulaic expressions to convey meaning. Single-word analysis misses these important patterns. Statistical validation is essential—frequency alone is misleading. PMI separates true collocations from coincidental co-occurrences. Strong collocations (PMI > 3) reveal meaningful semantic bonds between words.
+
+Language changes over time. New issues emerge through new collocations, rhetorical patterns evolve with historical context, and tracking collocations reveals shifting priorities in discourse.
+
+### How this complements word-level analysis
+
+Lab 01 introduced word frequency counting—now we count phrase frequency. Lab 02 showed corpus comparison—now we compare phrase usage across groups. Lab 03 introduced PMI for word-category association—now we measure word-word association. Lab 04 compared entire documents—now we identify the phrases that characterize documents.
+
+### When to use collocation analysis
+
+Collocation analysis is useful when studying formulaic language and multi-word expressions, identifying domain-specific terminology, comparing rhetorical strategies across groups, and tracking emergence of new phrases over time.
+
+Collocations won't help with broader semantic relationships (words that co-occur but aren't adjacent—use word embeddings or topic models), document-level patterns (use Lab 04's similarity methods), or sentiment analysis (use Lab 03's dictionaries).
+
+### Applying these methods to your own research
+
+The techniques you learned here work on any text corpus. For product reviews, you might extract collocations like "battery life," "customer service," and "money back," comparing positive vs negative reviews. For social media, you might track emerging slang and hashtag patterns over time. For interview transcripts, you might identify domain-specific terminology that characterizes different participant groups.
+
+The filtering strategy (stopwords, POS tags, frequency thresholds, PMI cutoffs) may need adjustment for different genres, but the core methods remain the same.
+
+### Next steps
+
+To extend this analysis:
+
+- Extract trigrams (three-word sequences) for longer formulaic phrases
+- Combine inflected forms through lemmatization ("create jobs" + "creating jobs")
+- Extract collocations with named entities (people, places, organizations)
+- Model which factors predict collocation usage through regression analysis
+- Compare your corpus collocations with reference corpus (e.g., general language)
+
+
+---
+
+## Exercises
+
+1. **Trigram extraction**: Modify the `extract_bigrams()` function to extract trigrams (three-word sequences). What are the most common trigrams? Do they reveal different patterns than bigrams?
+
+2. **PMI threshold sensitivity**: Re-run the party comparison with different PMI thresholds (2.0, 3.0, 4.0). How does the threshold affect which collocations are identified as party-distinctive?
+
+3. **Verb + noun collocations**: Filter bigrams to only include VERB + NOUN patterns. What verbs are most common? How do they differ by party?
+
+4. **Presidential comparison**: Instead of comparing parties, compare collocations across specific presidents (Obama vs Trump, Reagan vs Clinton). What distinctive phrases characterize each president?
+
+5. **Sentiment collocations**: Combine this lab with Lab 03's sentiment dictionaries. Extract bigrams where one word is from a sentiment lexicon. Do different groups use different sentiment words in their collocations?
+
+6. **Temporal emergence**: Track when specific collocations first appear. Create a timeline showing emergence of new phrases in your corpus.
+
+---
+
+## Session info
+
+```{python}
+import sys
+print(f"Python version: {sys.version}")
+print(f"spaCy version: {spacy.__version__}")
+print(f"pandas version: {pd.__version__}")
+print(f"numpy version: {np.__version__}")
+```
