@@ -3,14 +3,17 @@ name = "0-python-intro"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
+    "gensim>=4.4.0",
     "jupyter>=1.1.1",
     "nltk>=3.9.2",
     "numpy>=2.3.4",
     "pandas>=2.3.3",
     "pip>=25.3",
+    "pyldavis>=3.4.1",
     "scikit-learn>=1.7.2",
     "scipy>=1.16.2",
     "seaborn>=0.13.2",
+    "simpledorff>=0.0.2",
     "spacy>=3.8.7",
     "torch>=2.9.0",
     "transformers>=4.57.1",
