@@ -1,0 +1,846 @@
+---
+title: "Topic modeling I: Discovering themes in text"
+subtitle: "Latent Dirichlet Allocation (LDA)"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+## The challenge of large text collections
+
+Imagine you are a researcher studying consumer feedback for a popular product. You have collected 5,000 user reviews from an online platform. Your research question is: what themes appear in these reviews? What do users like? What frustrates them?
+
+Reading all 5,000 reviews would take weeks. Even if you sampled 100 reviews, you might miss important patterns that appear elsewhere in the collection. You could use dictionary methods (from Lab 03) to measure sentiment, but that requires knowing in advance which words indicate positive or negative opinions.
+
+This is where topic modeling becomes useful. It is a computational method that discovers themes (topics) in a collection of documents automatically, without requiring predefined word lists or categories.
+
+### What topic modeling discovers
+
+Topic modeling identifies two key patterns:
+
+**Topics**: Groups of words that tend to appear together across documents. Each topic represents a theme or discourse pattern.
+
+**Topic proportions**: How much each document discusses each topic. Documents are not assigned to a single topic; instead, they are mixtures of multiple topics.
+
+For example, in a collection of product reviews, topic modeling might discover:
+
+- Topic 0 (Technical Issues): "bug", "crash", "freeze", "error", "broken"
+- Topic 1 (Usability): "easy", "intuitive", "confusing", "learn", "interface"
+- Topic 2 (Features): "love", "feature", "missing", "wish", "add"
+- Topic 3 (Value): "price", "expensive", "worth", "cheap", "money"
+
+For each review, the model estimates topic proportions. For instance: "This review is 10% Topic 0 (technical issues), 60% Topic 1 (usability), 20% Topic 2 (features), and 10% Topic 3 (value)."
+
+This representation helps us understand not just what individual reviews say, but what themes structure the entire corpus.
+
+## What is Latent Dirichlet Allocation?
+
+Latent Dirichlet Allocation (LDA) is the most widely used topic modeling algorithm. The name sounds intimidating, but the concept is intuitive.
+
+### The intuition
+
+Imagine you are reading a document and trying to guess what topics it discusses. You notice certain words appear frequently: "island", "villagers", "crafting", "design". From these words, you infer the document discusses gameplay mechanics and creative aspects of a video game.
+
+LDA reverses this process. It observes which words appear in documents and infers:
+
+1. What topics exist in the corpus
+2. Which words characterize each topic  
+3. Which topics appear in each document
+
+LDA makes two key assumptions:
+
+- Every document is a mixture of topics (e.g., 60% gameplay, 40% aesthetics)
+- Every topic is a mixture of words (e.g., gameplay topic has high probability for "play", "fun", "mechanics")
+
+By analyzing word co-occurrence patterns across all documents, LDA discovers topics that explain the data well.
+
+### A visual analogy
+
+Think of documents as recipes and topics as cuisine types (Italian, Mexican, Thai). Each recipe contains ingredients (words) from multiple cuisines. A "fusion" recipe might be 70% Italian (pasta, tomato, basil) and 30% Thai (lemongrass, lime, chili).
+
+Topic modeling is like reverse-engineering cuisine types from a cookbook where cuisine labels were removed. By observing which ingredients co-occur, you can infer that dishes with pasta, tomato, and basil represent "Italian cuisine," while dishes with rice, soy sauce, and ginger represent "Asian cuisine."
+
+::: {.callout-note}
+## Unsupervised learning
+
+LDA is an *unsupervised learning* method. Unlike supervised learning (where we provide labeled examples), unsupervised learning discovers patterns in data without being told what to look for. We don't tell LDA what topics exist; it infers them from word patterns.
+:::
+
+::: {.callout-note collapse="true"}
+## For the mathematically curious: How LDA works
+
+LDA uses a probabilistic generative model. It assumes each document was created by:
+
+1. Choosing a distribution over topics (e.g., 60% Topic A, 40% Topic B)
+2. For each word in the document:
+   - Choose a topic according to the distribution
+   - Choose a word from that topic's word distribution
+
+LDA inverts this process: given observed words, it infers the topic distributions that most likely generated the data. This inference uses Bayesian statistics and sampling algorithms (Gibbs sampling or variational inference).
+
+The mathematics involves Dirichlet distributions (hence the name), but understanding the intuition is sufficient for using topic modeling in research.
+:::
+
+## Setup and data
+
+We will use the Animal Crossing: New Horizons user reviews dataset. This dataset contains reviews from Metacritic posted in March-May 2020 following the game's release.
+
+::: {.callout-note}
+## About this dataset
+
+This dataset contains user reviews of Animal Crossing: New Horizons from its release in March 2020. You will notice that many early reviews focus on a specific complaint: Nintendo's decision to limit players to one island per console.
+
+This reflects "review bombing" - coordinated negative reviews about a specific issue. While this might seem problematic, it makes the dataset excellent for learning topic modeling:
+
+1. We can verify topics work (we KNOW this theme exists in the data)
+2. We see how corpus composition affects topic modeling results
+3. We can explore whether review patterns change over time
+4. We learn about limitations and appropriate use of computational methods
+
+**Important caveat:** Because many reviews discuss the same complaint, this corpus is not ideal for topic modeling. You will see lower coherence scores (Part 2) than you would with a more diverse corpus. This is a feature, not a bug - it teaches you to recognize when topic modeling struggles due to data characteristics.
+
+Remember: our goal is learning the METHOD (topic modeling), not researching Animal Crossing. The accessibility of this contemporary dataset helps us focus on computational techniques rather than requiring specialized domain knowledge.
+:::
+
+Let's load the necessary libraries and data:
+
+```{python}
+#| label: setup
+
+import pandas as pd
+import numpy as np
+import spacy
+import gensim
+import gensim.corpora as corpora
+from gensim.models import CoherenceModel
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.dpi'] = 100
+
+print("Libraries loaded successfully")
+```
+
+Now load and explore the data:
+
+```{python}
+#| label: load-data
+
+# Load reviews
+df = pd.read_csv('data/animal-crossing/user_reviews.tsv', sep='\t')
+
+print(f"Total reviews: {len(df):,}")
+print(f"\nColumns: {list(df.columns)}")
+print(f"\nFirst few reviews:")
+df.head()
+```
+
+Let's examine the rating distribution:
+
+```{python}
+#| label: explore-ratings
+
+# Rating distribution
+print("Rating distribution (0-10 scale):")
+print(df['grade'].value_counts().sort_index())
+
+# Create sentiment categories
+df['sentiment'] = pd.cut(
+    df['grade'],
+    bins=[-1, 3, 7, 10],
+    labels=['negative', 'neutral', 'positive']
+)
+
+print(f"\nSentiment categories:")
+print(df['sentiment'].value_counts())
+```
+
+Show a few example reviews to understand the data:
+
+```{python}
+#| label: sample-reviews
+
+# Sample reviews from different sentiment categories
+print("="*70)
+print("NEGATIVE REVIEW (Grade 0/10):")
+print("="*70)
+negative_sample = df[df['grade'] == 0].iloc[0]
+print(f"{negative_sample['text'][:500]}...\n")
+
+print("="*70)
+print("POSITIVE REVIEW (Grade 10/10):")
+print("="*70)
+positive_sample = df[df['grade'] == 10].iloc[0]
+print(f"{positive_sample['text'][:500]}...")
+```
+
+## Preprocessing for topic modeling
+
+Topic modeling requires clean, meaningful tokens. We need to transform raw text into a format LDA can analyze. This involves several steps, each serving a specific purpose.
+
+### Why preprocessing matters
+
+Raw text contains noise that obscures meaningful patterns. Consider these issues:
+
+- **Stopwords**: Common function words ("the", "is", "and") appear in every document but don't distinguish topics
+- **Inflection**: "running", "runs", "ran" are different forms of the same concept
+- **Capitalization**: "Game" and "game" should be treated identically
+- **Length**: Very short words (< 4 characters) are often abbreviations or noise
+
+Preprocessing addresses these issues systematically.
+
+::: {.callout-note}
+## Preprocessing for online reviews
+
+User-generated content on the internet often contains elements that need special handling:
+
+- Emojis (😭, ⭐, 💔)
+- Internet slang ("lol", "tbh", "ngl", "gg")
+- Game-specific abbreviations ("acnh", "ac", "nh")
+
+Our preprocessing handles these automatically:
+
+- `token.is_alpha` removes emojis and numbers (only alphabetic characters)
+- `len(token) > 3` removes most abbreviations and slang
+- Lemmatization normalizes informal spellings
+
+::: {.callout-tip}
+## A note on "Gamerspeak"
+We use `token.is_alpha` to remove numbers and emojis for simplicity. However, in a specialized study of gaming culture, you might want to keep alphanumeric terms like "PS4", "3DS", or "10/10". In that case, you would adjust the filtering logic to allow mixed alphanumeric tokens.
+:::
+
+This pattern works for analyzing social media posts, product reviews, forum discussions, and other online text.
+:::
+
+### Calculating text length
+
+Before preprocessing, let's filter reviews by length. Very short reviews (< 50 words) often lack substance for topic modeling:
+
+```{python}
+#| label: text-length
+
+# Calculate word count
+df['word_count'] = df['text'].str.split().str.len()
+
+print("Word count distribution:")
+print(df['word_count'].describe())
+
+# How many reviews are substantial?
+print(f"\nReviews with >= 50 words: {(df['word_count'] >= 50).sum():,} ({(df['word_count'] >= 50).sum()/len(df)*100:.1f}%)")
+print(f"Reviews with < 50 words: {(df['word_count'] < 50).sum():,} ({(df['word_count'] < 50).sum()/len(df)*100:.1f}%)")
+
+# Filter for quality
+df_filtered = df[df['word_count'] >= 50].copy()
+print(f"\nFiltered corpus: {len(df_filtered):,} reviews")
+```
+
+### Deduplication
+
+Check for and remove duplicate reviews:
+
+```{python}
+#| label: deduplicate
+
+# Check for exact duplicates
+duplicates = df_filtered.duplicated(subset=['text']).sum()
+print(f"Exact duplicate reviews: {duplicates}")
+
+# Remove duplicates
+df_filtered = df_filtered.drop_duplicates(subset=['text'])
+print(f"After deduplication: {len(df_filtered):,} reviews")
+```
+
+### Tokenization and lemmatization
+
+Now we process the text using spaCy. We will tokenize (split into words), lemmatize (reduce to base form), and filter:
+
+```{python}
+#| label: preprocessing
+
+# Load spaCy English model
+nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
+
+def process_text(texts):
+    """
+    Clean and tokenize texts for topic modeling.
+    
+    Parameters:
+        texts: List of text strings to process
+    
+    Returns:
+        List of token lists (one list per document)
+    """
+    processed_docs = []
+    
+    # Custom stopwords for this domain
+    # These words appear in almost every review and don't help distinguish topics
+    custom_stops = {'game', 'play', 'nintendo', 'switch', 'island'}
+    
+    for doc in nlp.pipe(texts, batch_size=50):
+        # Extract tokens with filtering:
+        # - token.lemma_: Base form of word (running → run)
+        # - token.is_stop: Remove common words (the, is, and)
+        # - token.is_punct: Remove punctuation
+        # - token.is_alpha: Remove numbers and emojis (only letters)
+        # - len() > 3: Remove short words (abbreviations, slang)
+        tokens = [token.lemma_.lower() for token in doc 
+                  if not token.is_stop 
+                  and not token.is_punct 
+                  and token.is_alpha 
+                  and len(token) > 3
+                  and token.lemma_.lower() not in custom_stops]
+        
+        processed_docs.append(tokens)
+    
+    return processed_docs
+
+# Process all reviews (this takes a minute or two)
+print("Processing reviews (this may take 1-2 minutes)...")
+texts_processed = process_text(df_filtered['text'].tolist())
+
+# Show example transformation
+print("\n" + "="*70)
+print("EXAMPLE: Original vs Processed")
+print("="*70)
+print(f"Original (first 100 chars):\n{df_filtered.iloc[0]['text'][:100]}...\n")
+print(f"Processed tokens (first 15):\n{texts_processed[0][:15]}")
+print(f"\nTotal tokens in this review: {len(texts_processed[0])}")
+```
+
+### Building dictionary and corpus
+
+LDA requires two data structures:
+
+**Dictionary**: Maps each unique word to a numeric ID. For example, "island" might be ID 42, "game" might be ID 108.
+
+**Corpus**: Represents each document as a bag-of-words - a list of (word_id, count) tuples. Word order is ignored; only counts matter.
+
+This representation is called "bag-of-words" because we treat documents like bags of tokens, ignoring grammar and word order.
+
+```{python}
+#| label: build-corpus
+
+# Create dictionary
+id2word = corpora.Dictionary(texts_processed)
+
+print(f"Initial vocabulary size: {len(id2word):,} unique words")
+
+# Filter extremes:
+# - no_below: Remove words appearing in < 5 documents (too rare)
+# - no_above: Remove words appearing in > 80% of documents (too common)
+id2word.filter_extremes(no_below=5, no_above=0.8)
+
+print(f"After filtering extremes: {len(id2word):,} unique words")
+
+# Create corpus (bag-of-words representation)
+corpus = [id2word.doc2bow(text) for text in texts_processed]
+
+print(f"\nCorpus size: {len(corpus):,} documents")
+```
+
+Let's examine the bag-of-words representation:
+
+```{python}
+#| label: bow-example
+
+# Show bag-of-words for first document
+print("First document (bag-of-words):")
+print("Format: (word_id, count)")
+print(corpus[0][:10])  # First 10 word-count pairs
+
+print("\nDecoded (showing actual words):")
+for word_id, count in corpus[0][:10]:
+    print(f"  {id2word[word_id]}: {count}")
+```
+
+## Building the topic model
+
+Now we train the LDA model. We will use **k=4 topics** for this tutorial. In Part 2, you will learn how to choose the optimal number of topics using coherence scores.
+
+::: {.callout-note}
+## Why k=4?
+
+The number of topics (k) is a modeling choice, not a property of the data. For this tutorial, we use k=4 to keep interpretation manageable. With too few topics, themes get mixed together; with too many, topics become redundant or incoherent.
+
+In Part 2 (Evaluation and Validation), you will learn systematic methods for choosing k, including coherence scores and stability analysis.
+:::
+
+```{python}
+#| label: train-model
+
+# Train LDA model
+print("Training LDA model (this may take a minute)...")
+
+lda_model = gensim.models.LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    num_topics=4,
+    random_state=42,  # For reproducibility
+    passes=10,        # Number of training passes through corpus
+    workers=1         # Single worker for consistency
+)
+
+print("Model training complete!")
+```
+
+## Interpreting topics
+
+The most important step in topic modeling is interpretation. We need to examine what the model discovered and assign meaningful labels to topics.
+
+### Topic-word distributions
+
+Each topic is characterized by its top words - the words with highest probability in that topic:
+
+```{python}
+#| label: show-topics
+
+print("="*70)
+print("DISCOVERED TOPICS")
+print("="*70)
+
+for idx in range(4):
+    print(f"\nTopic {idx}:")
+    # Get top 15 words for this topic
+    top_words = lda_model.show_topic(idx, topn=15)
+    
+    # Format as: word (probability)
+    words_formatted = [f"{word} ({prob:.3f})" for word, prob in top_words]
+    print("  " + ", ".join(words_formatted))
+```
+
+### Labeling topics
+
+Based on the top words, we can assign interpretive labels to each topic. This requires domain judgment - what themes do these words represent?
+
+Let's analyze each topic:
+
+```{python}
+#| label: label-topics
+
+# Topic labels (you would refine these based on actual output)
+topic_labels = {
+    0: "Multiplayer/Island Limitations",
+    1: "Gameplay and Enjoyment", 
+    2: "Game Mechanics and Features",
+    3: "Aesthetics and Design"
+}
+
+print("TOPIC LABELS:")
+print("="*70)
+for idx, label in topic_labels.items():
+    print(f"Topic {idx}: {label}")
+    top_words = [word for word, prob in lda_model.show_topic(idx, topn=10)]
+    print(f"  Top words: {', '.join(top_words)}\n")
+```
+
+::: {.callout-tip}
+## What makes a "good" topic?
+
+A coherent topic has words that:
+
+- Relate to a common theme or concept
+- Make semantic sense together
+- Are distinguishable from other topics
+
+A "junk" topic has words that:
+
+- Are high-frequency but unrelated
+- Don't form a clear theme
+- Overlap heavily with other topics
+
+If you see junk topics, you may need to:
+
+- Adjust preprocessing (add custom stopwords)
+- Change the number of topics (k)
+- Filter your corpus differently
+:::
+
+### Interactive exploration with pyLDAvis
+
+pyLDAvis creates an interactive visualization for exploring topics. This is one of the most powerful tools for understanding topic models:
+
+```{python}
+#| label: pyldavis
+
+import pyLDAvis
+import pyLDAvis.gensim_models as gensimvis
+
+# Prepare visualization
+vis_data = gensimvis.prepare(lda_model, corpus, id2word, sort_topics=False)
+
+# Display (in Jupyter/Quarto this will be interactive)
+pyLDAvis.display(vis_data)
+```
+
+::: {.callout-note}
+## Reading pyLDAvis
+
+**Left panel (topic circles):**
+
+- Each circle represents a topic
+- Circle size = topic prevalence (how common)
+- Distance between circles = topic similarity
+- Topics far apart are more distinct
+
+**Right panel (word bars):**
+
+- Shows top words for selected topic
+- Red bar = frequency of word in selected topic
+- Blue bar = frequency across all topics
+
+**Lambda (λ) slider:**
+
+- λ = 1: Shows most frequent words in topic
+- λ = 0: Shows most exclusive words (unique to topic)
+- λ ≈ 0.6: Balanced view (recommended)
+
+Slide lambda to ~0.6 to see words that are both frequent AND distinctive for each topic.
+:::
+
+## Interpreting document-topic distributions
+
+Topics describe word patterns, but we also need to understand how topics appear in documents. Each document has a distribution over topics.
+
+### Extracting topic proportions
+
+```{python}
+#| label: doc-topics
+
+def get_document_topics(corpus, lda_model, num_topics):
+    """
+    Extract topic proportions for all documents.
+    
+    Returns:
+        DataFrame with one column per topic
+    """
+    doc_topics_list = []
+    
+    for doc_bow in corpus:
+        # Get topic distribution for this document
+        topic_dist = lda_model.get_document_topics(doc_bow, minimum_probability=0.0)
+        
+        # Extract probabilities (in topic order)
+        probs = [prob for topic_id, prob in topic_dist]
+        doc_topics_list.append(probs)
+    
+    # Create DataFrame
+    topic_cols = [f'Topic_{i}' for i in range(num_topics)]
+    df_topics = pd.DataFrame(doc_topics_list, columns=topic_cols)
+    
+    return df_topics
+
+# Extract topic proportions
+df_topics = get_document_topics(corpus, lda_model, num_topics=4)
+
+# Merge with original metadata
+df_analysis = pd.concat([df_filtered.reset_index(drop=True), df_topics], axis=1)
+
+print("Document-topic matrix (first 5 documents):")
+df_analysis[['grade', 'Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].head()
+```
+
+### Worked example: Understanding topic mixtures
+
+Let's examine a specific review to understand what topic proportions mean:
+
+```{python}
+#| label: worked-example
+
+# Select a review with varied topic proportions
+example_idx = 10
+example_row = df_analysis.iloc[example_idx]
+
+print("="*70)
+print("WORKED EXAMPLE: Review Topic Mixture")
+print("="*70)
+print(f"\nGrade: {example_row['grade']}/10")
+print(f"\nTopic proportions:")
+for i in range(4):
+    topic_prop = example_row[f'Topic_{i}']
+    print(f"  Topic {i} ({topic_labels[i]}): {topic_prop:.3f} ({topic_prop*100:.1f}%)")
+
+print(f"\nReview text (first 400 characters):")
+print(f"{example_row['text'][:400]}...")
+
+print("\n" + "="*70)
+print("INTERPRETATION")
+print("="*70)
+print(f"This review is a MIXTURE of topics. The model estimates it is:")
+dominant_topic = df_analysis.iloc[example_idx][['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].idxmax()
+dominant_prop = df_analysis.iloc[example_idx][['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].max()
+print(f"  - Primarily about {dominant_topic.replace('_', ' ')} ({dominant_prop*100:.1f}%)")
+print(f"  - With contributions from other topics")
+print(f"\nThis mixture reflects that real documents discuss multiple themes.")
+```
+
+### Visualizing dominant topics
+
+Which topic is most prevalent in each review?
+
+```{python}
+#| label: dominant-topics
+
+# Find dominant topic for each document
+df_analysis['dominant_topic'] = df_analysis[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].idxmax(axis=1)
+df_analysis['dominant_topic_prop'] = df_analysis[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].max(axis=1)
+
+# Distribution of dominant topics
+print("Distribution of dominant topics:")
+dominant_counts = df_analysis['dominant_topic'].value_counts()
+for topic, count in dominant_counts.items():
+    topic_num = int(topic.split('_')[1])
+    print(f"  {topic} ({topic_labels[topic_num]}): {count} reviews ({count/len(df_analysis)*100:.1f}%)")
+
+# Visualize as horizontal bar chart, sorted by count
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Sort by count (ascending so largest is at top)
+dominant_counts_sorted = dominant_counts.sort_values(ascending=True)
+
+# Get topic labels
+topic_names = [topic_labels[int(t.split('_')[1])] for t in dominant_counts_sorted.index]
+
+# Create horizontal bars
+y_pos = range(len(topic_names))
+ax.barh(y_pos, dominant_counts_sorted.values, color='steelblue', alpha=0.7)
+
+# Set labels
+ax.set_yticks(y_pos)
+ax.set_yticklabels(topic_names)
+ax.set_xlabel('Number of Reviews')
+ax.set_title('Distribution of Dominant Topics Across Reviews')
+
+# Add count labels at end of each bar
+for i, (count, topic) in enumerate(zip(dominant_counts_sorted.values, topic_names)):
+    ax.text(count + 5, i, f'{count}', va='center', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Close reading validation
+
+Computational metrics tell us topics are statistically coherent, but they cannot tell us if topics are *meaningful*. We must validate through close reading - examining actual documents.
+
+::: {.callout-important}
+## Why close reading matters
+
+Topic modeling is exploratory. The computer finds word patterns, but only human judgment can determine if those patterns represent meaningful themes.
+
+Always validate computational findings by reading documents. Ask:
+
+- Do high-loading documents actually discuss this theme?
+- Are the topics coherent when you read actual text?
+- Do topic labels accurately describe document content?
+:::
+
+Let's examine reviews where Topic 0 is dominant:
+
+```{python}
+#| label: close-reading-topic0
+
+# Get reviews where Topic 0 is dominant (>50% of document)
+topic_0_docs = df_analysis[df_analysis['Topic_0'] > 0.5].copy()
+topic_0_docs = topic_0_docs.sort_values('Topic_0', ascending=False)
+
+print("="*70)
+print(f"CLOSE READING: Topic 0 ({topic_labels[0]})")
+print("="*70)
+print(f"\nTop words: {', '.join([w for w, p in lda_model.show_topic(0, topn=10)])}")
+print(f"\nTop 3 reviews for this topic:\n")
+
+for i in range(min(3, len(topic_0_docs))):
+    row = topic_0_docs.iloc[i]
+    print(f"--- Review {i+1} ---")
+    print(f"Grade: {row['grade']}/10")
+    print(f"Topic 0 proportion: {row['Topic_0']:.3f}")
+    print(f"Text: {row['text'][:350]}...")
+    print()
+```
+
+Now examine a positive topic:
+
+```{python}
+#| label: close-reading-positive
+
+# Find topic most associated with positive reviews
+positive_reviews = df_analysis[df_analysis['grade'] >= 8]
+topic_means = positive_reviews[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].mean()
+positive_topic = topic_means.idxmax()
+positive_topic_num = int(positive_topic.split('_')[1])
+
+print("="*70)
+print(f"CLOSE READING: {positive_topic} ({topic_labels[positive_topic_num]})")
+print("="*70)
+print(f"\nTop words: {', '.join([w for w, p in lda_model.show_topic(positive_topic_num, topn=10)])}")
+print(f"\nThis topic is most prevalent in POSITIVE reviews (grade >= 8)")
+print(f"Mean proportion in positive reviews: {topic_means.max():.3f}\n")
+
+# Get top positive reviews for this topic
+positive_topic_docs = df_analysis[
+    (df_analysis['grade'] >= 8) & 
+    (df_analysis[positive_topic] > 0.3)
+].sort_values(positive_topic, ascending=False)
+
+print(f"Top 3 positive reviews for this topic:\n")
+
+for i in range(min(3, len(positive_topic_docs))):
+    row = positive_topic_docs.iloc[i]
+    print(f"--- Review {i+1} ---")
+    print(f"Grade: {row['grade']}/10")
+    print(f"{positive_topic} proportion: {row[positive_topic]:.3f}")
+    print(f"Text: {row['text'][:350]}...")
+    print()
+```
+
+::: {.callout-tip}
+## Validation checklist
+
+When doing close reading, verify:
+
+1. **Coherence**: Do reviews discuss related themes?
+2. **Accuracy**: Do topic labels match actual content?
+3. **Distinctiveness**: Are topics distinguishable from each other?
+4. **Quality**: Are reviews real content (not spam)?
+
+If validation fails, consider:
+
+- Refining preprocessing (add custom stopwords)
+- Changing number of topics (k)
+- Filtering corpus differently
+- Accepting that some topics may be "junk"
+:::
+
+## Limitations and appropriate use
+
+Topic modeling is a powerful exploratory tool, but has important limitations. Understanding when and how to use topic modeling appropriately is crucial for research.
+
+### Topics are computational constructs
+
+Topics discovered by LDA are word co-occurrence patterns, not inherent properties of text. Different preprocessing choices, different k values, or different random seeds produce different topics.
+
+There is no "true" set of topics waiting to be discovered. Topics are analytical constructs that help us understand patterns, but they are not facts about the world.
+
+### LDA is stochastic
+
+LDA uses randomization during training. Running the same code twice with different `random_state` values produces slightly different results. This is why we fix `random_state=42` for reproducibility.
+
+In Part 2 (Evaluation and Validation), you will learn how to assess topic stability - testing whether topics remain consistent across multiple runs.
+
+### Topic modeling is exploratory
+
+Use topic modeling to:
+
+- Discover patterns and generate hypotheses
+- Explore themes in large corpora
+- Identify prevalent discourses
+- Guide close reading (which documents to examine)
+
+Do NOT use topic modeling to:
+
+- Test hypotheses (it's exploratory, not confirmatory)
+- Prove theories (findings need validation)
+- Replace close reading (computers cannot replace human interpretation)
+
+### When NOT to use topic modeling
+
+Topic modeling is inappropriate when:
+
+- **Corpus is very small** (< 100 documents typically)
+- **Documents are very short** (tweets, reviews < 50 words)
+- **Topics are pre-defined** (use dictionary methods from Lab 03 instead)
+- **You need precise classifications** (use supervised learning instead)
+
+::: {.callout-note}
+## Building on previous labs
+
+**From Lab 03 (Dictionary Methods):**
+
+We used pre-defined word lists to measure sentiment (positive/negative lexicons). Topic modeling extends this by discovering word groups from data, without requiring predefined categories.
+
+**From Lab 04 (Document Similarity):**
+
+We represented documents as TF-IDF vectors to measure similarity. Topic modeling provides an alternative: represent documents as topic distributions (4 dimensions instead of 10,000+), which are easier to interpret.
+
+In Part 2, we will explore topics by sentiment (negative vs positive reviews) and see how topic modeling reveals patterns in consumer feedback.
+:::
+
+### Preview: Part 2
+
+In the next lab (Topic Modeling II: Evaluation and Validation), you will learn:
+
+- **Topic stability**: How to test whether topics are consistent across runs
+- **Choosing k**: Using coherence scores to select number of topics
+- **Metadata analysis**: Comparing topics across sentiments (negative vs positive reviews)
+- **Human validation**: Inter-coder reliability and qualitative assessment
+- **Reporting**: How to document topic models in research papers
+
+## Exercises
+
+### Exercise 1: Custom stopword refinement
+
+After exploring your topics in pyLDAvis, you may notice words that appear in EVERY topic but aren't meaningful (e.g., "game", "play", "switch").
+
+Tasks:
+
+1. Identify 5-10 domain-specific stopwords from the pyLDAvis visualization
+2. Modify the `process_text()` function to exclude these words
+3. Re-run the model with your custom stopwords
+4. Compare the topics: are they more interpretable?
+5. Reflect: when should you add custom stopwords vs. keep them?
+
+Hint: Look for words with high frequency but low topic specificity in pyLDAvis (words that appear in the top-right of every topic's word panel).
+
+### Exercise 2: Close reading validation
+
+Choose one topic from your model (Topic 0, 1, 2, or 3):
+
+1. Write a 1-sentence label for the topic based on its top 10 words
+2. Find the 5 reviews with highest probability for this topic
+3. Read all 5 reviews carefully
+4. Answer:
+   - Do they match your label?
+   - What proportion genuinely fit the topic?
+   - What does this tell you about topic model reliability?
+   - Would you trust this topic for research conclusions?
+
+### Exercise 3: Topic labeling practice
+
+For each of the 4 topics in your model:
+
+1. Examine the top 15 words (use `lda_model.show_topic(topic_id, topn=15)`)
+2. Create a descriptive label (not just "Topic 0" - describe the theme)
+3. Find 2 example reviews with high probability for this topic
+4. From pyLDAvis, estimate what proportion of the corpus this topic represents
+5. Assess: is this topic coherent? Why or why not?
+
+### Exercise 4: Comparing to dictionary methods
+
+Thinking back to Lab 03 (dictionary methods for sentiment):
+
+1. How would you measure review sentiment using dictionary methods?
+2. How does topic modeling differ from dictionary-based sentiment analysis?
+3. What are advantages of topic modeling? What are advantages of dictionaries?
+4. When would you use each method?
+
+### Exercise 5: Reflection
+
+Write a brief reflection (250-500 words) addressing:
+
+1. What surprised you about the topics discovered in this dataset?
+2. Did the topics match your expectations based on reading sample reviews?
+3. What are the biggest limitations of topic modeling you encountered?
+4. How might you apply topic modeling to your own research interests?
+
+---
+
+**Next:** In Part 2, you will learn how to evaluate topic models systematically, choose the optimal number of topics, analyze topics by metadata (sentiment), and validate findings through human coding.
