@@ -8,4 +8,5 @@ title: "Computational Text Analysis with Python"
 5. [Lab 03: Dictionary methods](lab_03.qmd)
 6. [Lab 04: Comparing documents](lab_04.qmd)
 7. [Lab 05: Collocations](lab_05.1.qmd)
-7. [Lab 06: Topic modeling I](lab_06.1.qmd)
+8. [Lab 06: Topic modeling I](lab_06.1.qmd)
+9. [Lab 06: Topic modeling II](lab_06.2.qmd)

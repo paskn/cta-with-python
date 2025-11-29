@@ -1,0 +1,1034 @@
+---
+title: "Topic modeling II: Evaluation and validation"
+subtitle: "Stability, coherence, and human validation"
+format:
+  html:
+    number-sections: true
+    fig-format: svg
+    toc: true
+    toc-depth: 4
+date: now
+date-format: "YYYY-MM-DD HH:mm:ss"
+execute:
+  error: true
+---
+
+::: {.callout-important}
+## Prerequisites
+
+This notebook assumes you have completed Part 1 (Introduction to Topic Modeling). You should be familiar with:
+
+- LDA conceptual model (documents as mixtures of topics)
+- Preprocessing for topic modeling
+- Interpreting topic-word distributions
+- Using pyLDAvis visualization
+
+If you have not completed Part 1, start there first.
+:::
+
+## Why evaluation matters
+
+In Part 1, you built a topic model and interpreted its results. But how do you know if your topics are reliable? How do you choose the number of topics (k)? How do you validate that topics represent meaningful patterns rather than statistical artifacts?
+
+Topic models are analytical constructs. Different choices produce different results:
+
+- Different preprocessing (stopwords, filtering)
+- Different k values (number of topics)
+- Different random initializations (LDA is stochastic)
+
+Systematic evaluation helps us assess:
+
+1. **Stability**: Do topics remain consistent across runs?
+2. **Coherence**: Do topics make semantic sense?
+3. **Validity**: Do topics align with human interpretation?
+4. **Generalizability**: Do findings hold across different subsets of data?
+
+This lab covers methods for evaluating topic models rigorously.
+
+## Setup and data
+
+We use the same Animal Crossing reviews dataset from Part 1. Let's reload and preprocess:
+
+```{python}
+#| label: setup
+
+import pandas as pd
+import numpy as np
+import spacy
+import gensim
+import gensim.corpora as corpora
+from gensim.models import CoherenceModel
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import mannwhitneyu
+
+# Set visualization style
+sns.set_style("whitegrid")
+plt.rcParams['figure.dpi'] = 100
+
+print("Libraries loaded successfully")
+```
+
+```{python}
+#| label: load-preprocess
+
+# NOTE: This preprocessing code duplicates Part 1 for standalone use.
+# In practice, you would save the corpus and model from Part 1 and load them here.
+# We repeat for pedagogical clarity.
+
+# Load data
+df = pd.read_csv('data/animal-crossing/user_reviews.tsv', sep='\t')
+
+# Filter and deduplicate
+df['word_count'] = df['text'].str.split().str.len()
+df_filtered = df[df['word_count'] >= 50].copy()
+df_filtered = df_filtered.drop_duplicates(subset=['text'])
+
+# Add sentiment categories
+df_filtered['sentiment'] = pd.cut(
+    df_filtered['grade'],
+    bins=[-1, 3, 7, 10],
+    labels=['negative', 'neutral', 'positive']
+)
+
+print(f"Filtered corpus: {len(df_filtered):,} reviews")
+
+# Preprocess
+nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
+
+def process_text(texts):
+    """Clean and tokenize texts for topic modeling."""
+    processed_docs = []
+    
+    # Custom stopwords (consistent with Part 1)
+    custom_stops = {'game', 'play', 'nintendo', 'switch', 'island'}
+    
+    for doc in nlp.pipe(texts, batch_size=50):
+        tokens = [token.lemma_.lower() for token in doc 
+                  if not token.is_stop 
+                  and not token.is_punct 
+                  and token.is_alpha 
+                  and len(token) > 3
+                  and token.lemma_.lower() not in custom_stops]
+        processed_docs.append(tokens)
+    return processed_docs
+
+print("Processing reviews...")
+texts_processed = process_text(df_filtered['text'].tolist())
+
+# Build dictionary and corpus
+id2word = corpora.Dictionary(texts_processed)
+id2word.filter_extremes(no_below=5, no_above=0.8)
+corpus = [id2word.doc2bow(text) for text in texts_processed]
+
+print(f"Vocabulary: {len(id2word):,} words")
+print(f"Corpus: {len(corpus):,} documents")
+```
+
+## Understanding topic stability
+
+Topic modeling uses probabilistic algorithms that incorporate randomness during training. This means running the same code twice with different random seeds can produce different results.
+
+For researchers, this raises an important question: how stable are our topics? If topics change substantially between runs, can we trust our findings?
+
+### The challenge of stochastic algorithms
+
+LDA uses random initialization and random sampling during training. Each run explores the space of possible topic solutions differently. While the algorithm converges to similar solutions, topics may differ slightly between runs.
+
+This is not a flaw - it reflects the nature of unsupervised learning. However, we must assess stability to ensure findings are robust.
+
+### Demonstrating topic variation
+
+Let's train two models with different random seeds and compare their results.
+
+::: {.callout-note}
+## A technical detail: `workers=1`
+In the code below, we set `workers=1`. This forces the computer to use a single processor thread. Why? When using multiple threads (`workers > 1`), the order in which different processor cores finish their tasks can introduce slight variations, even with a fixed random seed. For true reproducibility and stability testing, we must force single-threaded execution.
+:::
+
+Let's train two models with different random seeds and compare their results:
+
+```{python}
+#| label: stability-demo
+
+# Model A (seed 42)
+print("Training Model A (seed=42)...")
+lda_model_A = gensim.models.LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    num_topics=4,
+    random_state=42,
+    passes=10,
+    workers=1
+)
+
+# Model B (seed 999)
+print("Training Model B (seed=999)...")
+lda_model_B = gensim.models.LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    num_topics=4,
+    random_state=999,
+    passes=10,
+    workers=1
+)
+
+print("Models trained. Comparing Topic 0 from each model:\n")
+
+print("="*70)
+print("MODEL A - Topic 0 (top 10 words)")
+print("="*70)
+for word, prob in lda_model_A.show_topic(0, topn=10):
+    print(f"  {word}: {prob:.4f}")
+
+print("\n" + "="*70)
+print("MODEL B - Topic 0 (top 10 words)")
+print("="*70)
+for word, prob in lda_model_B.show_topic(0, topn=10):
+    print(f"  {word}: {prob:.4f}")
+```
+
+When comparing these outputs, look for:
+
+- **Word overlap**: Do the same words appear in both topics?
+- **Word order**: Are the top words ranked similarly?
+- **Semantic coherence**: Do both topics represent the same theme?
+
+If topics are stable, you should see substantial overlap (7-8 of top 10 words match) and similar rankings.
+
+### Quantifying topic stability
+
+We can calculate word overlap between corresponding topics using the Jaccard similarity coefficient:
+
+```{python}
+#| label: jaccard-stability
+
+def topic_word_overlap(model_a, model_b, topic_num, topn=10):
+    """
+    Calculate Jaccard similarity between top words in a topic across two models.
+    
+    Parameters:
+        model_a: First LDA model
+        model_b: Second LDA model
+        topic_num: Topic index to compare
+        topn: Number of top words to compare
+    
+    Returns:
+        Jaccard coefficient (0 = no overlap, 1 = perfect overlap)
+    """
+    words_a = set([w for w, p in model_a.show_topic(topic_num, topn=topn)])
+    words_b = set([w for w, p in model_b.show_topic(topic_num, topn=topn)])
+    
+    intersection = len(words_a & words_b)
+    union = len(words_a | words_b)
+    
+    return intersection / union if union > 0 else 0
+
+# Calculate overlap for all topics
+print("Topic stability (Jaccard overlap of top 10 words):")
+print("="*70)
+
+for i in range(4):
+    overlap = topic_word_overlap(lda_model_A, lda_model_B, i, topn=10)
+    interpretation = ""
+    if overlap > 0.70:
+        interpretation = "Highly stable"
+    elif overlap > 0.50:
+        interpretation = "Moderately stable"
+    elif overlap > 0.30:
+        interpretation = "Low stability"
+    else:
+        interpretation = "Unstable"
+    
+    print(f"Topic {i}: {overlap:.2f} - {interpretation}")
+```
+
+### Interpreting stability scores
+
+| Jaccard Overlap | Interpretation |
+|-----------------|----------------|
+| > 0.70 | Highly stable topic |
+| 0.50 - 0.70 | Moderately stable |
+| 0.30 - 0.50 | Low stability; interpret cautiously |
+| < 0.30 | Unstable; likely artifact |
+
+Topics with low stability should be examined closely. They may represent noise rather than meaningful themes.
+
+::: {.callout-note}
+## Ensuring reproducibility
+
+To make your results reproducible, always set `random_state` to a fixed value (e.g., `random_state=42`). This ensures the same random decisions occur each time, producing identical results.
+
+For research papers, report:
+
+- The random seed used
+- Whether you tested stability (and results)
+- Any unstable topics that were excluded
+:::
+
+## Choosing the number of topics
+
+One fundamental challenge in topic modeling: we must decide how many topics (k) exist in our corpus. There is no "correct" answer - this is a modeling choice.
+
+We can use coherence scores as a heuristic. Coherence measures how often the top words in a topic appear together in the same documents. Higher coherence suggests the topic represents a meaningful theme.
+
+### What is coherence?
+
+Coherence asks: do the top words in a topic actually co-occur in documents? If a topic has high coherence, its top words appear together frequently, suggesting they represent a real pattern.
+
+Consider two hypothetical topics:
+
+**Topic A (high coherence):**
+
+- Top words: "island", "villager", "design", "custom", "decoration"
+- These words co-occur in reviews about creative gameplay
+
+**Topic B (low coherence):**
+
+- Top words: "game", "play", "thing", "like", "get"
+- These are high-frequency words that appear everywhere but don't form a coherent theme
+
+Coherence scores quantify this intuition.
+
+### Interpreting coherence scores
+
+We use the c_v coherence metric, which ranges from 0 to 1:
+
+| Coherence (c_v) | Interpretation |
+|-----------------|----------------|
+| < 0.40 | Poor topic quality; topics likely incoherent |
+| 0.40 - 0.50 | Moderate; topics may be interpretable |
+| 0.50 - 0.60 | Good; topics generally coherent |
+| > 0.60 | Excellent; topics well-defined |
+
+These are guidelines, not rules. Always examine actual topics (words) to verify they make semantic sense.
+
+::: {.callout-note}
+## Expected coherence for this dataset
+
+Due to review bombing (many reviews focusing on one complaint), this corpus is not ideal for topic modeling. You should see coherence scores around 0.35-0.40 - lower than typical well-structured corpora.
+
+This demonstrates an important lesson: **corpus composition affects topic quality**. When most documents discuss the same theme, LDA struggles to find distinct topics.
+
+Despite low coherence, topics may still be interpretable if you examine them carefully. The low scores reflect the limitation of the data, not the method.
+:::
+
+
+### Computing coherence for different k values
+
+Let's test k from 2 to 10 topics:
+
+```{python}
+#| label: coherence-loop
+
+def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=1):
+    """
+    Compute coherence scores for different numbers of topics.
+    
+    Parameters:
+        dictionary: Gensim dictionary
+        corpus: Gensim corpus (bag-of-words)
+        texts: Tokenized texts (list of lists)
+        limit: Maximum number of topics to test
+        start: Minimum number of topics
+        step: Step size
+    
+    Returns:
+        model_list: List of trained models
+        coherence_values: List of coherence scores
+    """
+    coherence_values = []
+    model_list = []
+    
+    for num_topics in range(start, limit, step):
+        print(f"  Training model with k={num_topics}...")
+        
+        # Train LDA model
+        model = gensim.models.LdaMulticore(
+            corpus=corpus,
+            id2word=dictionary,
+            num_topics=num_topics,
+            random_state=42,
+            passes=10,
+            workers=1
+        )
+        model_list.append(model)
+        
+        # Calculate coherence
+        coherencemodel = CoherenceModel(
+            model=model,
+            texts=texts,
+            dictionary=dictionary,
+            coherence='c_v'
+        )
+        coherence_score = coherencemodel.get_coherence()
+        coherence_values.append(coherence_score)
+        
+        print(f"    k={num_topics}: coherence = {coherence_score:.4f}")
+    
+    return model_list, coherence_values
+
+# Run coherence analysis
+print("Computing coherence scores (this takes a few minutes)...")
+print("="*70)
+
+model_list, coherence_values = compute_coherence_values(
+    dictionary=id2word,
+    corpus=corpus,
+    texts=texts_processed,
+    start=2,
+    limit=11,
+    step=1
+)
+
+print("\n" + "="*70)
+print("Coherence scores summary:")
+print("="*70)
+for k, score in zip(range(2, 11), coherence_values):
+    print(f"k={k}: {score:.4f}")
+```
+
+### Visualizing the elbow method
+
+Plot coherence scores to identify the "elbow" - where adding more topics stops improving coherence significantly:
+
+```{python}
+#| label: coherence-plot
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+k_values = list(range(2, 11))
+ax.plot(k_values, coherence_values, marker='o', linewidth=2, markersize=8, color='steelblue')
+ax.set_xlabel('Number of Topics (k)', fontsize=12)
+ax.set_ylabel('Coherence Score (c_v)', fontsize=12)
+ax.set_title('Coherence Scores by Number of Topics', fontsize=14, fontweight='bold')
+ax.set_xticks(k_values)
+ax.grid(True, alpha=0.3)
+
+# Highlight maximum
+max_idx = np.argmax(coherence_values)
+max_k = k_values[max_idx]
+max_score = coherence_values[max_idx]
+ax.plot(max_k, max_score, marker='*', markersize=20, color='red', 
+        label=f'Maximum: k={max_k} ({max_score:.3f})')
+
+ax.legend(fontsize=11)
+plt.tight_layout()
+plt.show()
+
+print(f"\nMaximum coherence: k={max_k} with score {max_score:.4f}")
+```
+
+### Choosing k in practice
+
+The coherence plot helps identify reasonable k values, but the choice involves tradeoffs:
+
+**Higher coherence** suggests semantically coherent topics, but doesn't guarantee:
+
+- Topics are useful for your research question
+- Topics are interpretable by humans
+- Topics are stable across runs
+
+**Consider:**
+
+- **Elbow point**: Where does coherence plateau?
+- **Interpretability**: Can you assign meaningful labels to all topics?
+- **Coverage**: Do topics capture important themes in your corpus?
+- **Parsimony**: Fewer topics (k=4-6) are easier to interpret than many topics (k=15-20)
+
+**For this corpus specifically:**
+
+Looking at the coherence scores, they are all relatively low (0.35-0.38) with no clear peak. The highest score is k=2 (0.385), but only two topics would oversimplify the corpus. 
+
+The plot shows coherence is relatively flat across k=2 to k=10, suggesting the review bombing pattern makes it difficult for LDA to find highly distinct topics regardless of k.
+
+In this situation, we choose k=4 based on:
+
+1. **Interpretability**: Four topics are manageable to interpret and validate
+2. **Balance**: Captures main themes (complaints, gameplay, aesthetics, comparisons) without excessive granularity
+3. **Pedagogical value**: Demonstrates that topic modeling doesn't always produce high-coherence results
+
+This teaches an important lesson: **when coherence is uniformly low, examine the corpus composition**. The review bombing phenomenon limits topic diversity, which affects coherence scores.
+
+::: {.callout-warning}
+## Coherence is a heuristic, not truth
+
+High coherence does not guarantee topics are "correct" or meaningful for your research question. Always validate topics through:
+
+- Close reading of high-loading documents
+- Domain expertise
+- Alignment with theoretical expectations
+
+Use coherence to narrow options, then choose k based on interpretability.
+:::
+
+## Post-hoc metadata analysis
+
+In Part 1, we built a topic model without considering metadata (review grades). Now we analyze how topics relate to sentiment - a post-hoc analysis.
+
+This differs from Structural Topic Models (STM), which incorporate metadata during training. In gensim LDA, we extract topics first, then analyze patterns.
+
+### Hypotheses about sentiment and topics
+
+Before examining data, let's form hypotheses. Based on the Animal Crossing review bombing pattern:
+
+**Negative reviews (0-3) might focus on:**
+
+- Multiplayer limitations ("one island per console")
+- Missing features ("cloud save", "limited content")
+- Technical issues
+
+**Positive reviews (8-10) might focus on:**
+
+- Aesthetics ("beautiful", "cute", "design")
+- Gameplay ("relaxing", "fun", "enjoyable")
+- Characters and villagers
+- Escapism and stress relief
+
+Let's test these hypotheses.
+
+### Extracting topic proportions
+
+First, we need a stable model. Let's use k=4 (from Part 1) with our standard seed:
+
+```{python}
+#| label: final-model
+
+# Train final model (k=4, seed=42)
+print("Training final model (k=4)...")
+lda_final = gensim.models.LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    num_topics=4,
+    random_state=42,
+    passes=20,  # More passes for stability
+    workers=1
+)
+
+# Show topics
+print("\nFinal model topics:")
+print("="*70)
+for idx in range(4):
+    words = [word for word, prob in lda_final.show_topic(idx, topn=10)]
+    print(f"Topic {idx}: {', '.join(words)}")
+```
+
+Extract topic proportions for all documents:
+
+```{python}
+#| label: extract-proportions
+
+def get_document_topics(corpus, lda_model, num_topics):
+    """Extract topic proportions for all documents."""
+    doc_topics_list = []
+    
+    for doc_bow in corpus:
+        topic_dist = lda_model.get_document_topics(doc_bow, minimum_probability=0.0)
+        probs = [prob for topic_id, prob in topic_dist]
+        doc_topics_list.append(probs)
+    
+    topic_cols = [f'Topic_{i}' for i in range(num_topics)]
+    df_topics = pd.DataFrame(doc_topics_list, columns=topic_cols)
+    
+    return df_topics
+
+# Extract and merge
+df_topics = get_document_topics(corpus, lda_final, num_topics=4)
+df_analysis = pd.concat([df_filtered.reset_index(drop=True), df_topics], axis=1)
+
+print(f"Analysis dataframe: {len(df_analysis):,} reviews")
+print(f"Columns: {list(df_analysis.columns)}")
+```
+
+### Topic prevalence by sentiment
+
+Compare topic usage in negative vs. positive reviews:
+
+```{python}
+#| label: sentiment-analysis
+
+# Filter to negative and positive (exclude sparse neutral)
+df_sentiment = df_analysis[df_analysis['sentiment'].isin(['negative', 'positive'])].copy()
+
+# Remove unused category level
+df_sentiment['sentiment'] = df_sentiment['sentiment'].cat.remove_unused_categories()
+
+print(f"Negative reviews: {(df_sentiment['sentiment'] == 'negative').sum():,}")
+print(f"Positive reviews: {(df_sentiment['sentiment'] == 'positive').sum():,}")
+
+# Reshape for plotting
+df_melt = df_sentiment.melt(
+    id_vars=['sentiment', 'grade'],
+    value_vars=['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3'],
+    var_name='Topic',
+    value_name='Proportion'
+)
+
+# Create horizontal boxplot (sorted by median difference)
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Calculate median difference for sorting
+topic_medians = df_sentiment.groupby('sentiment')[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].median()
+median_diff = topic_medians.loc['positive'] - topic_medians.loc['negative']
+topic_order = median_diff.abs().sort_values(ascending=True).index.tolist()
+
+# Create plot
+sns.boxplot(
+    data=df_melt,
+    y='Topic',
+    x='Proportion',
+    hue='sentiment',
+    order=topic_order,
+    ax=ax,
+    palette={'negative': 'salmon', 'positive': 'lightgreen'}
+)
+
+ax.set_ylabel('Topic')
+ax.set_xlabel('Topic Proportion')
+ax.set_title('Topic Prevalence by Review Sentiment')
+ax.legend(title='Sentiment', loc='lower right')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Interpreting the sentiment boxplot
+
+Each box shows the distribution of topic proportions across reviews:
+
+- **Box**: Contains middle 50% of values (25th to 75th percentile)
+- **Line inside box**: Median value
+- **Whiskers**: Extend to extreme values (excluding outliers)
+- **Dots**: Outlier reviews
+
+**Interpreting differences:**
+
+- **Separated boxes**: Strong sentiment difference (e.g., negative median 0.35, positive median 0.15)
+- **Overlapping boxes**: Topics used similarly across sentiments
+- **Wide boxes**: High variation within sentiment (some reviews emphasize topic, others don't)
+
+For each topic showing separation, examine the top words to understand what distinguishes negative from positive reviews.
+
+### Statistical comparison
+
+Let's test whether topic prevalence differs significantly by sentiment:
+
+```{python}
+#| label: statistical-tests
+
+print("Statistical tests (Mann-Whitney U):")
+print("="*70)
+print("Null hypothesis: Topic prevalence is the same in negative and positive reviews")
+print()
+
+for topic in ['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']:
+    negative_vals = df_sentiment[df_sentiment['sentiment'] == 'negative'][topic]
+    positive_vals = df_sentiment[df_sentiment['sentiment'] == 'positive'][topic]
+    
+    # Mann-Whitney U test (non-parametric, doesn't assume normal distribution)
+    stat, pvalue = mannwhitneyu(negative_vals, positive_vals, alternative='two-sided')
+    
+    neg_median = negative_vals.median()
+    pos_median = positive_vals.median()
+    
+    print(f"{topic}:")
+    print(f"  Negative median: {neg_median:.3f}")
+    print(f"  Positive median: {pos_median:.3f}")
+    print(f"  p-value: {pvalue:.4f} {'***' if pvalue < 0.001 else '**' if pvalue < 0.01 else '*' if pvalue < 0.05 else 'ns'}")
+    print()
+
+print("Note on p-values: With large datasets (N > 1000), even small differences can be")
+print("statistically significant. Look at the difference in medians (Effect Size) to")
+print("judge if the difference is meaningful in practice.")
+```
+
+::: {.callout-note}
+## Correlation vs causation
+
+These patterns show association between sentiment and topic usage, not causation. We cannot conclude "being negative causes using Topic X" from this analysis.
+
+Both sentiment and topic usage reflect underlying review content. The relationship is:
+
+Review content → Sentiment + Topic usage
+
+Not: Sentiment → Topic usage
+:::
+
+### Temporal analysis
+
+Do topics change over time? Let's examine whether review bombing (negative complaints) decreases as positive reviews accumulate:
+
+```{python}
+#| label: temporal-analysis
+
+# Add time variable (weeks since release)
+df_analysis['date'] = pd.to_datetime(df_filtered['date'].values)
+df_analysis['week'] = ((df_analysis['date'] - df_analysis['date'].min()).dt.days // 7)
+
+# Calculate weekly averages for each topic
+weekly_topics = df_analysis.groupby('week')[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].mean()
+
+# Plot
+fig, ax = plt.subplots(figsize=(12, 6))
+
+for topic in ['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']:
+    ax.plot(weekly_topics.index, weekly_topics[topic], 
+            marker='o', linewidth=2, label=topic)
+
+ax.set_xlabel('Weeks Since Launch (March 20, 2020)', fontsize=12)
+ax.set_ylabel('Mean Topic Proportion', fontsize=12)
+ax.set_title('Topic Prevalence Over Time', fontsize=14, fontweight='bold')
+ax.legend(loc='best')
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Print interpretation
+print("\nTemporal pattern interpretation:")
+print("="*70)
+for topic in ['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']:
+    week0 = weekly_topics.iloc[0][topic]
+    week_last = weekly_topics.iloc[-1][topic]
+    change = week_last - week0
+    
+    print(f"{topic}:")
+    print(f"  Week 0: {week0:.3f}")
+    print(f"  Week {weekly_topics.index[-1]}: {week_last:.3f}")
+    print(f"  Change: {change:+.3f}")
+    print()
+```
+
+## Topic correlations
+
+Do certain topics tend to appear together in the same reviews? Correlation analysis reveals co-occurrence patterns.
+
+```{python}
+#| label: topic-correlation
+
+# Calculate correlation matrix
+corr_matrix = df_analysis[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].corr()
+
+# Visualize heatmap
+fig, ax = plt.subplots(figsize=(8, 6))
+
+sns.heatmap(
+    corr_matrix,
+    annot=True,
+    fmt='.2f',
+    cmap='coolwarm',
+    vmin=-0.5,
+    vmax=0.5,
+    center=0,
+    square=True,
+    cbar_kws={'label': 'Correlation'},
+    ax=ax
+)
+
+ax.set_title('Topic Correlations', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.show()
+```
+
+### Interpreting correlation values
+
+| Correlation | Interpretation |
+|-------------|----------------|
+| > 0.30 | Strong positive relationship; topics often co-occur |
+| 0.10 to 0.30 | Moderate positive relationship |
+| -0.10 to 0.10 | Weak/no relationship; topics independent |
+| -0.30 to -0.10 | Moderate negative relationship |
+| < -0.30 | Strong negative relationship; topics rarely co-occur |
+
+Positive correlation suggests topics appear together (e.g., reviews discussing aesthetics also discuss relaxation). Negative correlation suggests topics are mutually exclusive (e.g., complaint-focused reviews don't discuss positive aspects).
+
+::: {.callout-note}
+## When to use correlation analysis
+
+Topic correlation is useful for:
+
+- Understanding rhetorical combinations (which themes co-occur?)
+- Identifying conceptually related topics
+- Exploring discourse patterns
+
+However, correlation does not reveal:
+
+- Causal relationships
+- Hierarchical structure (which topics are subtopics of others)
+
+For network-like relationships, see Lab 05.2 (Semantic Networks).
+:::
+
+## Validation through human coding
+
+Computational metrics (coherence, stability) assess internal consistency, but cannot tell us if topics are *meaningful*. For that, we need human judgment.
+
+### The gold standard: Inter-coder reliability
+
+When we claim "Topic 1 represents gameplay discourse," we make an interpretive claim. To validate, we ask: would other researchers agree?
+
+Inter-coder reliability measures agreement between independent human coders. If multiple people interpret a topic the same way, we have evidence the topic is coherent and meaningful.
+
+### Designing a coding study
+
+For a topic we labeled "Multiplayer Complaints" (based on top words), we could ask two independent coders to:
+
+1. Read the top 20 reviews for this topic
+2. For each review, answer: "Does this review primarily discuss multiplayer or island-sharing issues?" (Yes/No)
+3. Compare their answers
+
+Here is hypothetical coding data:
+
+```{python}
+#| label: coding-example
+
+# Hypothetical inter-coder reliability data
+coding_data = pd.DataFrame({
+    'document_id': range(1, 21),
+    'Coder_A': [1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0],
+    'Coder_B': [1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1]
+})
+
+print("Inter-coder reliability example:")
+print("(1 = review discusses multiplayer issues, 0 = does not)")
+print(coding_data.head(10))
+
+# Calculate simple agreement
+agreements = (coding_data['Coder_A'] == coding_data['Coder_B']).sum()
+total = len(coding_data)
+simple_agreement = agreements / total
+
+print(f"\nSimple agreement: {agreements}/{total} = {simple_agreement:.2f}")
+print("\nNote: Simple agreement can be misleading because some agreement")
+print("occurs by chance. We need a measure that corrects for chance agreement.")
+```
+
+### Calculating Krippendorff's alpha
+
+Simple percentage agreement can be misleading because some agreement occurs by chance. Krippendorff's alpha corrects for chance agreement.
+
+```{python}
+#| label: krippendorff
+
+# Install if needed: uv pip install simpledorff
+import simpledorff
+
+# Prepare data in long format
+coding_long = coding_data.melt(
+    id_vars='document_id',
+    var_name='coder',
+    value_name='annotation'
+)
+
+# Calculate alpha
+alpha = simpledorff.calculate_krippendorffs_alpha_for_df(
+    coding_long,
+    experiment_col='document_id',
+    annotator_col='coder',
+    class_col='annotation'
+)
+
+print("="*70)
+print("Krippendorff's Alpha")
+print("="*70)
+print(f"Alpha = {alpha:.3f}")
+print()
+```
+
+::: {.callout-note}
+## Installing simpledorff
+
+If `simpledorff` is not installed, run:
+
+```bash
+uv pip install simpledorff
+```
+
+Alternatively, for simpler cases (two coders, binary coding), you can use:
+`sklearn.metrics.cohen_kappa_score`
+:::
+
+### Interpreting alpha values
+
+| Alpha | Interpretation | Action |
+|-------|----------------|--------|
+| > 0.80 | Excellent agreement | Topic interpretation reliable |
+| 0.67 - 0.80 | Good agreement | Acceptable for most purposes |
+| 0.60 - 0.67 | Marginal agreement | Use cautiously; consider refining |
+| < 0.60 | Poor agreement | Topic interpretation unreliable; discard or redefine |
+
+In this example, alpha = {:.3f}. This suggests the topic interpretation has {} agreement.
+
+::: {.callout-warning}
+## Limitations of inter-coder reliability
+
+High agreement does not guarantee a topic is *meaningful* for your research question. It only means coders agree on the definition.
+
+Two coders could reliably identify a nonsensical category. Inter-coder reliability should complement, not replace:
+
+- Domain expertise
+- Theoretical grounding
+- Close reading of documents
+:::
+
+### Sample size for validation
+
+How many documents should be coded?
+
+**General guidelines:**
+
+- **Small topics** (< 50 documents): Code 20-30 documents
+- **Medium topics** (50-500 documents): Code 50-100 documents
+- **Large topics** (> 500 documents): Code 100-200 documents
+
+Or use proportion: 10-20% of documents assigned to topic, minimum 20.
+
+**Tradeoff**: More coding = higher precision, but more human time/cost.
+
+::: {.callout-tip}
+## Blind Coding
+To ensure valid results, use **blind coding**: do not tell your coders which topic the computer assigned to each document. If they know the computer thinks a review is about "Multiplayer", they might be biased to agree. Present the documents in random order without topic labels.
+:::
+
+## Reporting topic models in research
+
+When publishing research using topic modeling, transparency about methods and evaluation is essential.
+
+### Minimum reporting standards
+
+**Model specification:**
+
+- Algorithm (LDA, CTM, STM, etc.)
+- Number of topics (k) and how chosen
+- Preprocessing steps (lemmatization, stopwords, filtering)
+- Hyperparameters (alpha, eta/beta, passes, random_state)
+
+**Evaluation:**
+
+- Coherence scores (if used to select k)
+- Stability assessment (e.g., "top 10 words stable across 5 runs")
+- Validation approach (close reading, inter-coder reliability, expert review)
+
+**Interpretation:**
+
+- Topic labels and how assigned
+- Representative documents or quotes for each topic
+- Prevalence (proportion of corpus each topic represents)
+
+### Writing about topics
+
+Use tentative language that acknowledges topics are analytical constructs:
+
+✅ **Good examples:**
+
+- "Topic 1, which we interpret as gameplay discourse, comprises words like..."
+- "Documents assigned primarily to Topic 1 tend to discuss..."
+- "We identify a topic characterized by words such as 'island', 'villager', 'design'"
+
+❌ **Avoid:**
+
+- "Topic 1 *is* the gameplay topic" (reifies the construct)
+- "LDA discovered that 30% of reviews are about gameplay" (implies objective truth)
+- "The complaint topic shows..." (without acknowledging interpretation)
+
+### Common reporting pitfalls
+
+1. **Not reporting k selection process**: Readers need to know how you chose number of topics
+2. **Claiming topics are "discovered truths"**: Topics are model outputs, not inherent document properties
+3. **Omitting failed topics**: If some topics were incoherent, report this
+4. **Cherry-picking documents**: Show representative documents, not just best examples
+5. **Ignoring stability**: Report any stability issues encountered
+
+::: {.callout-tip}
+## Making research reproducible
+
+Share when possible:
+
+- Preprocessed corpus (if no privacy/copyright restrictions)
+- Trained model file (`lda_model.save('model.pkl')`)
+- Full preprocessing code
+- Random seed used (`random_state=42`)
+
+This allows others to verify and build on your work.
+:::
+
+## Exercises
+
+### Exercise 1: Stability assessment
+
+Run the LDA model 5 times with different random seeds (42, 100, 200, 300, 400). For each run, extract the top 10 words for Topic 0.
+
+Tasks:
+
+1. How many words appear in ALL five runs?
+2. Calculate the mean Jaccard overlap across all pairs of runs
+3. Which topic (0-3) appears most stable across runs?
+4. Would you trust conclusions based on an unstable topic? Why or why not?
+
+### Exercise 2: Sentiment hypothesis testing
+
+Hypothesis: "Negative reviews focus on multiplayer issues; positive reviews focus on aesthetics and relaxation."
+
+Tasks:
+
+1. Examine the boxplot from the sentiment analysis section
+2. Identify which topic(s) represent "multiplayer issues" (look at top words)
+3. Identify which topic(s) represent "aesthetics/relaxation"
+4. Do the data support the hypothesis? Provide evidence
+5. What alternative explanations could account for the patterns you observe?
+
+### Exercise 3: Choosing k
+
+Using the coherence analysis results:
+
+1. What value of k has the highest coherence score?
+2. Does the plot show a clear "elbow" point? Where?
+3. Compare k=3 vs k=6: examine the topics for each (you'll need to retrain models)
+4. Which k value is more interpretable? Why?
+5. Does highest coherence always mean best interpretability?
+
+### Exercise 4: HCI application
+
+Imagine you are a UX researcher at Nintendo analyzing user feedback:
+
+1. Identify the "UX complaint" topic in your model (based on top words)
+2. Extract the top 20 reviews for this topic
+3. Read them and note:
+   - What specific design decision is criticized?
+   - How do users describe the impact on their experience?
+   - Do users suggest solutions?
+4. Based on this analysis, what would you recommend to the design team?
+5. Reflect: How does topic modeling help vs. hurt in UX research?
+
+### Exercise 5: Temporal patterns
+
+Looking at the temporal analysis plot:
+
+1. Which topic(s) decrease over time?
+2. Which topic(s) increase over time?
+3. What explains these patterns? (Hint: consider review bombing phenomenon)
+4. Does topic modeling help understand how public discourse evolves?
+5. What are limitations of this temporal analysis?
+
+### Exercise 6: Validation design
+
+Design an inter-coder reliability study for your topic model:
+
+1. Choose one topic to validate
+2. How many documents would you have coders read?
+3. What specific question would you ask coders?
+4. What Krippendorff's alpha threshold would you accept for publication?
+5. Besides inter-coder reliability, what other validation steps would you take?
+
+---
+
+**Congratulations!** You have completed the topic modeling sequence. You now know how to:
+
+- Build LDA models systematically
+- Evaluate stability and coherence
+- Choose number of topics
+- Analyze topics by metadata
+- Validate findings through human coding
+- Report results appropriately
+
+These skills apply to any text analysis research using topic modeling.
