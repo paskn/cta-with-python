@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Topic modeling II: Evaluation and validation – Computational Text Analysis with Python</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-960d9d362f81d399278ec3e29b622b37.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Computational Text Analysis with Python</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./basic-python.html"> 
+<span class="menu-text">Python Basics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#why-evaluation-matters" id="toc-why-evaluation-matters" class="nav-link active" data-scroll-target="#why-evaluation-matters"><span class="header-section-number">1</span> Why evaluation matters</a></li>
+  <li><a href="#setup-and-data" id="toc-setup-and-data" class="nav-link" data-scroll-target="#setup-and-data"><span class="header-section-number">2</span> Setup and data</a></li>
+  <li><a href="#choosing-the-number-of-topics" id="toc-choosing-the-number-of-topics" class="nav-link" data-scroll-target="#choosing-the-number-of-topics"><span class="header-section-number">3</span> Choosing the number of topics</a>
+  <ul>
+  <li><a href="#what-is-coherence" id="toc-what-is-coherence" class="nav-link" data-scroll-target="#what-is-coherence"><span class="header-section-number">3.1</span> What is coherence?</a></li>
+  <li><a href="#interpreting-coherence-scores" id="toc-interpreting-coherence-scores" class="nav-link" data-scroll-target="#interpreting-coherence-scores"><span class="header-section-number">3.2</span> Interpreting coherence scores</a></li>
+  <li><a href="#computing-coherence-for-different-k-values" id="toc-computing-coherence-for-different-k-values" class="nav-link" data-scroll-target="#computing-coherence-for-different-k-values"><span class="header-section-number">3.3</span> Computing coherence for different k values</a></li>
+  <li><a href="#visualizing-the-elbow-method" id="toc-visualizing-the-elbow-method" class="nav-link" data-scroll-target="#visualizing-the-elbow-method"><span class="header-section-number">3.4</span> Visualizing the elbow method</a></li>
+  <li><a href="#choosing-k-in-practice" id="toc-choosing-k-in-practice" class="nav-link" data-scroll-target="#choosing-k-in-practice"><span class="header-section-number">3.5</span> Choosing k in practice</a></li>
+  </ul></li>
+  <li><a href="#understanding-topic-stability" id="toc-understanding-topic-stability" class="nav-link" data-scroll-target="#understanding-topic-stability"><span class="header-section-number">4</span> Understanding topic stability</a>
+  <ul>
+  <li><a href="#the-challenge-of-stochastic-algorithms" id="toc-the-challenge-of-stochastic-algorithms" class="nav-link" data-scroll-target="#the-challenge-of-stochastic-algorithms"><span class="header-section-number">4.1</span> The challenge of stochastic algorithms</a></li>
+  <li><a href="#the-topic-labeling-problem" id="toc-the-topic-labeling-problem" class="nav-link" data-scroll-target="#the-topic-labeling-problem"><span class="header-section-number">4.2</span> The topic labeling problem</a></li>
+  <li><a href="#training-multiple-models" id="toc-training-multiple-models" class="nav-link" data-scroll-target="#training-multiple-models"><span class="header-section-number">4.3</span> Training multiple models</a></li>
+  <li><a href="#cross-model-topic-matching" id="toc-cross-model-topic-matching" class="nav-link" data-scroll-target="#cross-model-topic-matching"><span class="header-section-number">4.4</span> Cross-model topic matching</a></li>
+  <li><a href="#interpreting-stability-results" id="toc-interpreting-stability-results" class="nav-link" data-scroll-target="#interpreting-stability-results"><span class="header-section-number">4.5</span> Interpreting stability results</a></li>
+  <li><a href="#summary-which-topics-are-stable" id="toc-summary-which-topics-are-stable" class="nav-link" data-scroll-target="#summary-which-topics-are-stable"><span class="header-section-number">4.6</span> Summary: Which topics are stable?</a></li>
+  </ul></li>
+  <li><a href="#post-hoc-metadata-analysis" id="toc-post-hoc-metadata-analysis" class="nav-link" data-scroll-target="#post-hoc-metadata-analysis"><span class="header-section-number">5</span> Post-hoc metadata analysis</a>
+  <ul>
+  <li><a href="#hypotheses-about-sentiment-and-topics" id="toc-hypotheses-about-sentiment-and-topics" class="nav-link" data-scroll-target="#hypotheses-about-sentiment-and-topics"><span class="header-section-number">5.1</span> Hypotheses about sentiment and topics</a></li>
+  <li><a href="#extracting-topic-proportions" id="toc-extracting-topic-proportions" class="nav-link" data-scroll-target="#extracting-topic-proportions"><span class="header-section-number">5.2</span> Extracting topic proportions</a></li>
+  <li><a href="#topic-prevalence-by-sentiment" id="toc-topic-prevalence-by-sentiment" class="nav-link" data-scroll-target="#topic-prevalence-by-sentiment"><span class="header-section-number">5.3</span> Topic prevalence by sentiment</a></li>
+  <li><a href="#interpreting-the-sentiment-boxplot" id="toc-interpreting-the-sentiment-boxplot" class="nav-link" data-scroll-target="#interpreting-the-sentiment-boxplot"><span class="header-section-number">5.4</span> Interpreting the sentiment boxplot</a></li>
+  <li><a href="#statistical-comparison" id="toc-statistical-comparison" class="nav-link" data-scroll-target="#statistical-comparison"><span class="header-section-number">5.5</span> Statistical comparison</a></li>
+  <li><a href="#temporal-analysis" id="toc-temporal-analysis" class="nav-link" data-scroll-target="#temporal-analysis"><span class="header-section-number">5.6</span> Temporal analysis</a></li>
+  </ul></li>
+  <li><a href="#topic-correlations" id="toc-topic-correlations" class="nav-link" data-scroll-target="#topic-correlations"><span class="header-section-number">6</span> Topic correlations</a>
+  <ul>
+  <li><a href="#interpreting-correlation-values" id="toc-interpreting-correlation-values" class="nav-link" data-scroll-target="#interpreting-correlation-values"><span class="header-section-number">6.1</span> Interpreting correlation values</a></li>
+  </ul></li>
+  <li><a href="#validation-through-human-coding" id="toc-validation-through-human-coding" class="nav-link" data-scroll-target="#validation-through-human-coding"><span class="header-section-number">7</span> Validation through human coding</a>
+  <ul>
+  <li><a href="#the-gold-standard-inter-coder-reliability" id="toc-the-gold-standard-inter-coder-reliability" class="nav-link" data-scroll-target="#the-gold-standard-inter-coder-reliability"><span class="header-section-number">7.1</span> The gold standard: Inter-coder reliability</a></li>
+  <li><a href="#designing-a-coding-study" id="toc-designing-a-coding-study" class="nav-link" data-scroll-target="#designing-a-coding-study"><span class="header-section-number">7.2</span> Designing a coding study</a></li>
+  <li><a href="#calculating-krippendorffs-alpha" id="toc-calculating-krippendorffs-alpha" class="nav-link" data-scroll-target="#calculating-krippendorffs-alpha"><span class="header-section-number">7.3</span> Calculating Krippendorff’s alpha</a></li>
+  <li><a href="#interpreting-alpha-values" id="toc-interpreting-alpha-values" class="nav-link" data-scroll-target="#interpreting-alpha-values"><span class="header-section-number">7.4</span> Interpreting alpha values</a></li>
+  <li><a href="#sample-size-for-validation" id="toc-sample-size-for-validation" class="nav-link" data-scroll-target="#sample-size-for-validation"><span class="header-section-number">7.5</span> Sample size for validation</a></li>
+  </ul></li>
+  <li><a href="#reporting-topic-models-in-research" id="toc-reporting-topic-models-in-research" class="nav-link" data-scroll-target="#reporting-topic-models-in-research"><span class="header-section-number">8</span> Reporting topic models in research</a>
+  <ul>
+  <li><a href="#minimum-reporting-standards" id="toc-minimum-reporting-standards" class="nav-link" data-scroll-target="#minimum-reporting-standards"><span class="header-section-number">8.1</span> Minimum reporting standards</a></li>
+  <li><a href="#writing-about-topics" id="toc-writing-about-topics" class="nav-link" data-scroll-target="#writing-about-topics"><span class="header-section-number">8.2</span> Writing about topics</a></li>
+  <li><a href="#common-reporting-pitfalls" id="toc-common-reporting-pitfalls" class="nav-link" data-scroll-target="#common-reporting-pitfalls"><span class="header-section-number">8.3</span> Common reporting pitfalls</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">9</span> Exercises</a>
+  <ul>
+  <li><a href="#exercise-1-stability-assessment" id="toc-exercise-1-stability-assessment" class="nav-link" data-scroll-target="#exercise-1-stability-assessment"><span class="header-section-number">9.1</span> Exercise 1: Stability assessment</a></li>
+  <li><a href="#exercise-2-sentiment-hypothesis-testing" id="toc-exercise-2-sentiment-hypothesis-testing" class="nav-link" data-scroll-target="#exercise-2-sentiment-hypothesis-testing"><span class="header-section-number">9.2</span> Exercise 2: Sentiment hypothesis testing</a></li>
+  <li><a href="#exercise-3-choosing-k" id="toc-exercise-3-choosing-k" class="nav-link" data-scroll-target="#exercise-3-choosing-k"><span class="header-section-number">9.3</span> Exercise 3: Choosing k</a></li>
+  <li><a href="#exercise-4-hci-application" id="toc-exercise-4-hci-application" class="nav-link" data-scroll-target="#exercise-4-hci-application"><span class="header-section-number">9.4</span> Exercise 4: HCI application</a></li>
+  <li><a href="#exercise-5-temporal-patterns" id="toc-exercise-5-temporal-patterns" class="nav-link" data-scroll-target="#exercise-5-temporal-patterns"><span class="header-section-number">9.5</span> Exercise 5: Temporal patterns</a></li>
+  <li><a href="#exercise-6-validation-design" id="toc-exercise-6-validation-design" class="nav-link" data-scroll-target="#exercise-6-validation-design"><span class="header-section-number">9.6</span> Exercise 6: Validation design</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Topic modeling II: Evaluation and validation</h1>
+<p class="subtitle lead">Stability, coherence, and human validation</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2025-11-30 18:40:17</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Prerequisites
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This notebook assumes you have completed Part 1 (Introduction to Topic Modeling). You should be familiar with:</p>
+<ul>
+<li>LDA conceptual model (documents as mixtures of topics)</li>
+<li>Preprocessing for topic modeling</li>
+<li>Interpreting topic-word distributions</li>
+<li>Using pyLDAvis visualization</li>
+</ul>
+<p>If you have not completed Part 1, start there first.</p>
+</div>
+</div>
+<section id="why-evaluation-matters" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="why-evaluation-matters"><span class="header-section-number">1</span> Why evaluation matters</h2>
+<p>In Part 1, you built a topic model and interpreted its results. But how do you know if your topics are reliable? How do you choose the number of topics (k)? How do you validate that topics represent meaningful patterns rather than statistical artifacts?</p>
+<p>Topic models are analytical constructs. Different choices produce different results:</p>
+<ul>
+<li>Different preprocessing (stopwords, filtering)</li>
+<li>Different k values (number of topics)</li>
+<li>Different random initializations (LDA is stochastic)</li>
+</ul>
+<p>Systematic evaluation helps us assess:</p>
+<ol type="1">
+<li><strong>Stability</strong>: Do topics remain consistent across runs?</li>
+<li><strong>Coherence</strong>: Do topics make semantic sense?</li>
+<li><strong>Validity</strong>: Do topics align with human interpretation?</li>
+<li><strong>Generalizability</strong>: Do findings hold across different subsets of data?</li>
+</ol>
+<p>This lab covers methods for evaluating topic models rigorously.</p>
+</section>
+<section id="setup-and-data" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="setup-and-data"><span class="header-section-number">2</span> Setup and data</h2>
+<p>We use the same Animal Crossing reviews dataset from Part 1. Let’s reload and preprocess:</p>
+<div id="setup" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> spacy</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gensim</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gensim.corpora <span class="im">as</span> corpora</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> gensim.models <span class="im">import</span> CoherenceModel</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> mannwhitneyu</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Set visualization style</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>sns.set_style(<span class="st">"whitegrid"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.dpi'</span>] <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Libraries loaded successfully"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Libraries loaded successfully</code></pre>
+</div>
+</div>
+<div id="load-preprocess" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: This preprocessing code duplicates Part 1 for standalone use.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># In practice, you would save the corpus and model from Part 1 and load them here.</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># We repeat for pedagogical clarity.</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">'data/animal-crossing/user_reviews.tsv'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter and deduplicate</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'word_count'</span>] <span class="op">=</span> df[<span class="st">'text'</span>].<span class="bu">str</span>.split().<span class="bu">str</span>.<span class="bu">len</span>()</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>df_filtered <span class="op">=</span> df[df[<span class="st">'word_count'</span>] <span class="op">&gt;=</span> <span class="dv">50</span>].copy()</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>df_filtered <span class="op">=</span> df_filtered.drop_duplicates(subset<span class="op">=</span>[<span class="st">'text'</span>])</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Add sentiment categories</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>df_filtered[<span class="st">'sentiment'</span>] <span class="op">=</span> pd.cut(</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    df_filtered[<span class="st">'grade'</span>],</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    bins<span class="op">=</span>[<span class="op">-</span><span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">7</span>, <span class="dv">10</span>],</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>[<span class="st">'negative'</span>, <span class="st">'neutral'</span>, <span class="st">'positive'</span>]</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Filtered corpus: </span><span class="sc">{</span><span class="bu">len</span>(df_filtered)<span class="sc">:,}</span><span class="ss"> reviews"</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Preprocess</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>nlp <span class="op">=</span> spacy.load(<span class="st">"en_core_web_sm"</span>, disable<span class="op">=</span>[<span class="st">'parser'</span>, <span class="st">'ner'</span>])</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> process_text(texts):</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Clean and tokenize texts for topic modeling."""</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    processed_docs <span class="op">=</span> []</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Custom stopwords (consistent with Part 1)</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    custom_stops <span class="op">=</span> {<span class="st">'game'</span>, <span class="st">'play'</span>, <span class="st">'nintendo'</span>, <span class="st">'switch'</span>, <span class="st">'island'</span>}</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> doc <span class="kw">in</span> nlp.pipe(texts, batch_size<span class="op">=</span><span class="dv">50</span>):</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        tokens <span class="op">=</span> [token.lemma_.lower() <span class="cf">for</span> token <span class="kw">in</span> doc </span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>                  <span class="cf">if</span> <span class="kw">not</span> token.is_stop </span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">and</span> <span class="kw">not</span> token.is_punct </span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">and</span> token.is_alpha </span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">and</span> <span class="bu">len</span>(token) <span class="op">&gt;</span> <span class="dv">3</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">and</span> token.lemma_.lower() <span class="kw">not</span> <span class="kw">in</span> custom_stops]</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>        processed_docs.append(tokens)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> processed_docs</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Processing reviews..."</span>)</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>texts_processed <span class="op">=</span> process_text(df_filtered[<span class="st">'text'</span>].tolist())</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Build dictionary and corpus</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>id2word <span class="op">=</span> corpora.Dictionary(texts_processed)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>id2word.filter_extremes(no_below<span class="op">=</span><span class="dv">5</span>, no_above<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>corpus <span class="op">=</span> [id2word.doc2bow(text) <span class="cf">for</span> text <span class="kw">in</span> texts_processed]</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Vocabulary: </span><span class="sc">{</span><span class="bu">len</span>(id2word)<span class="sc">:,}</span><span class="ss"> words"</span>)</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Corpus: </span><span class="sc">{</span><span class="bu">len</span>(corpus)<span class="sc">:,}</span><span class="ss"> documents"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Filtered corpus: 1,735 reviews
+Processing reviews...
+Vocabulary: 1,671 words
+Corpus: 1,735 documents</code></pre>
+</div>
+</div>
+</section>
+<section id="choosing-the-number-of-topics" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="choosing-the-number-of-topics"><span class="header-section-number">3</span> Choosing the number of topics</h2>
+<p>One fundamental challenge in topic modeling: we must decide how many topics (k) exist in our corpus. There is no “correct” answer - this is a modeling choice.</p>
+<p>We can use coherence scores as a heuristic. Coherence measures how often the top words in a topic appear together in the same documents. Higher coherence suggests the topic represents a meaningful theme.</p>
+<section id="what-is-coherence" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="what-is-coherence"><span class="header-section-number">3.1</span> What is coherence?</h3>
+<p>Coherence asks: do the top words in a topic actually co-occur in documents? If a topic has high coherence, its top words appear together frequently, suggesting they represent a real pattern.</p>
+<p>Consider two hypothetical topics:</p>
+<p><strong>Topic A (high coherence):</strong></p>
+<ul>
+<li>Top words: “island”, “villager”, “design”, “custom”, “decoration”</li>
+<li>These words co-occur in reviews about creative gameplay</li>
+</ul>
+<p><strong>Topic B (low coherence):</strong></p>
+<ul>
+<li>Top words: “game”, “play”, “thing”, “like”, “get”</li>
+<li>These are high-frequency words that appear everywhere but don’t form a coherent theme</li>
+</ul>
+<p>Coherence scores quantify this intuition.</p>
+</section>
+<section id="interpreting-coherence-scores" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="interpreting-coherence-scores"><span class="header-section-number">3.2</span> Interpreting coherence scores</h3>
+<p>We use the c_v coherence metric, which ranges from 0 to 1:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Coherence (c_v)</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>&lt; 0.40</td>
+<td>Poor topic quality; topics likely incoherent</td>
+</tr>
+<tr class="even">
+<td>0.40 - 0.50</td>
+<td>Moderate; topics may be interpretable</td>
+</tr>
+<tr class="odd">
+<td>0.50 - 0.60</td>
+<td>Good; topics generally coherent</td>
+</tr>
+<tr class="even">
+<td>&gt; 0.60</td>
+<td>Excellent; topics well-defined</td>
+</tr>
+</tbody>
+</table>
+<p>These are guidelines, not rules. Always examine actual topics (words) to verify they make semantic sense.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Expected coherence for this dataset
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Due to review bombing (many reviews focusing on one complaint), this corpus is not ideal for topic modeling. You should see coherence scores around 0.35-0.40 - lower than typical well-structured corpora.</p>
+<p>This demonstrates an important lesson: <strong>corpus composition affects topic quality</strong>. When most documents discuss the same theme, LDA struggles to find distinct topics.</p>
+<p>Despite low coherence, topics may still be interpretable if you examine them carefully. The low scores reflect the limitation of the data, not the method.</p>
+</div>
+</div>
+</section>
+<section id="computing-coherence-for-different-k-values" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="computing-coherence-for-different-k-values"><span class="header-section-number">3.3</span> Computing coherence for different k values</h3>
+<p>Let’s test k from 2 to 10 topics:</p>
+<div id="coherence-loop" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_coherence_values(dictionary, corpus, texts, limit, start<span class="op">=</span><span class="dv">2</span>, step<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute coherence scores for different numbers of topics.</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">        dictionary: Gensim dictionary</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">        corpus: Gensim corpus (bag-of-words)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">        texts: Tokenized texts (list of lists)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">        limit: Maximum number of topics to test</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">        start: Minimum number of topics</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">        step: Step size</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">        model_list: List of trained models</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">        coherence_values: List of coherence scores</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    coherence_values <span class="op">=</span> []</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    model_list <span class="op">=</span> []</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> num_topics <span class="kw">in</span> <span class="bu">range</span>(start, limit, step):</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Training model with k=</span><span class="sc">{</span>num_topics<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Train LDA model</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> gensim.models.LdaMulticore(</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>            corpus<span class="op">=</span>corpus,</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>            id2word<span class="op">=</span>dictionary,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>            num_topics<span class="op">=</span>num_topics,</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>            random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>            passes<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>            workers<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>        model_list.append(model)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Calculate coherence</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>        coherencemodel <span class="op">=</span> CoherenceModel(</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>            model<span class="op">=</span>model,</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>            texts<span class="op">=</span>texts,</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>            dictionary<span class="op">=</span>dictionary,</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>            coherence<span class="op">=</span><span class="st">'c_v'</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>        coherence_score <span class="op">=</span> coherencemodel.get_coherence()</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>        coherence_values.append(coherence_score)</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"    k=</span><span class="sc">{</span>num_topics<span class="sc">}</span><span class="ss">: coherence = </span><span class="sc">{</span>coherence_score<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> model_list, coherence_values</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Run coherence analysis</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Computing coherence scores (this takes a few minutes)..."</span>)</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>model_list, coherence_values <span class="op">=</span> compute_coherence_values(</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    dictionary<span class="op">=</span>id2word,</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    corpus<span class="op">=</span>corpus,</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    texts<span class="op">=</span>texts_processed,</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    start<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    limit<span class="op">=</span><span class="dv">11</span>,</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    step<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Coherence scores summary:"</span>)</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k, score <span class="kw">in</span> <span class="bu">zip</span>(<span class="bu">range</span>(<span class="dv">2</span>, <span class="dv">11</span>), coherence_values):</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"k=</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>score<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Computing coherence scores (this takes a few minutes)...
+======================================================================
+  Training model with k=2...
+    k=2: coherence = 0.3569
+  Training model with k=3...
+    k=3: coherence = 0.3949
+  Training model with k=4...
+    k=4: coherence = 0.3939
+  Training model with k=5...
+    k=5: coherence = 0.4081
+  Training model with k=6...
+    k=6: coherence = 0.3944
+  Training model with k=7...
+    k=7: coherence = 0.3888
+  Training model with k=8...
+    k=8: coherence = 0.3942
+  Training model with k=9...
+    k=9: coherence = 0.3888
+  Training model with k=10...
+    k=10: coherence = 0.3704
+
+======================================================================
+Coherence scores summary:
+======================================================================
+k=2: 0.3569
+k=3: 0.3949
+k=4: 0.3939
+k=5: 0.4081
+k=6: 0.3944
+k=7: 0.3888
+k=8: 0.3942
+k=9: 0.3888
+k=10: 0.3704</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-the-elbow-method" class="level3" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="visualizing-the-elbow-method"><span class="header-section-number">3.4</span> Visualizing the elbow method</h3>
+<p>Plot coherence scores to identify the “elbow” - where adding more topics stops improving coherence significantly:</p>
+<div id="cell-coherence-plot" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>k_values <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">2</span>, <span class="dv">11</span>))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>ax.plot(k_values, coherence_values, marker<span class="op">=</span><span class="st">'o'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, markersize<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Number of Topics (k)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Coherence Score (c_v)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Coherence Scores by Number of Topics'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(k_values)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight maximum</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>max_idx <span class="op">=</span> np.argmax(coherence_values)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>max_k <span class="op">=</span> k_values[max_idx]</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>max_score <span class="op">=</span> coherence_values[max_idx]</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>ax.plot(max_k, max_score, marker<span class="op">=</span><span class="st">'*'</span>, markersize<span class="op">=</span><span class="dv">20</span>, color<span class="op">=</span><span class="st">'red'</span>, </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        label<span class="op">=</span><span class="ss">f'Maximum: k=</span><span class="sc">{</span>max_k<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>max_score<span class="sc">:.3f}</span><span class="ss">)'</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Maximum coherence: k=</span><span class="sc">{</span>max_k<span class="sc">}</span><span class="ss"> with score </span><span class="sc">{</span>max_score<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/coherence-plot-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="lab_06.2_files/figure-html/coherence-plot-output-1.svg" id="coherence-plot" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Maximum coherence: k=5 with score 0.4081</code></pre>
+</div>
+</div>
+</section>
+<section id="choosing-k-in-practice" class="level3" data-number="3.5">
+<h3 data-number="3.5" class="anchored" data-anchor-id="choosing-k-in-practice"><span class="header-section-number">3.5</span> Choosing k in practice</h3>
+<p>The coherence plot helps identify reasonable k values, but the choice involves tradeoffs:</p>
+<p><strong>Higher coherence</strong> suggests semantically coherent topics, but doesn’t guarantee:</p>
+<ul>
+<li>Topics are useful for your research question</li>
+<li>Topics are interpretable by humans</li>
+<li>Topics are stable across runs</li>
+</ul>
+<p><strong>Consider:</strong></p>
+<ul>
+<li><strong>Elbow point</strong>: Where does coherence plateau?</li>
+<li><strong>Interpretability</strong>: Can you assign meaningful labels to all topics?</li>
+<li><strong>Coverage</strong>: Do topics capture important themes in your corpus?</li>
+<li><strong>Parsimony</strong>: Fewer topics (k=4-6) are easier to interpret than many topics (k=15-20)</li>
+</ul>
+<p><strong>For this corpus specifically:</strong></p>
+<p>Looking at the coherence scores, they are all relatively low (0.35-0.38) with no clear peak. The highest score is k=2 (0.385), but only two topics would oversimplify the corpus.</p>
+<p>The plot shows coherence is relatively flat across k=2 to k=10, suggesting the review bombing pattern makes it difficult for LDA to find highly distinct topics regardless of k.</p>
+<p>In this situation, we choose k=4 based on:</p>
+<ol type="1">
+<li><strong>Interpretability</strong>: Four topics are manageable to interpret and validate</li>
+<li><strong>Balance</strong>: Captures main themes (complaints, gameplay, aesthetics, comparisons) without excessive granularity</li>
+<li><strong>Pedagogical value</strong>: Demonstrates that topic modeling doesn’t always produce high-coherence results</li>
+</ol>
+<p>This teaches an important lesson: <strong>when coherence is uniformly low, examine the corpus composition</strong>. The review bombing phenomenon limits topic diversity, which affects coherence scores.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Coherence is a heuristic, not truth
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>High coherence does not guarantee topics are “correct” or meaningful for your research question. Always validate topics through:</p>
+<ul>
+<li>Close reading of high-loading documents</li>
+<li>Domain expertise</li>
+<li>Alignment with theoretical expectations</li>
+</ul>
+<p>Use coherence to narrow options, then choose k based on interpretability.</p>
+<p>Consider other coherence metrics on Palmetto: <a href="https://palmetto.demos.dice-research.org/">https://palmetto.demos.dice-research.org/</a></p>
+</div>
+</div>
+</section>
+</section>
+<section id="understanding-topic-stability" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="understanding-topic-stability"><span class="header-section-number">4</span> Understanding topic stability</h2>
+<p>Topic modeling uses probabilistic algorithms that incorporate randomness during training. This means running the same code twice on the same data can produce different results.</p>
+<p>For researchers, this raises an important question: how stable are our topics? If topics change substantially between runs, can we trust our findings?</p>
+<p>You start worrying about topic stability once you have decided on the number of topics for your model. Although our results above suggest that 5 topics is a better choice, we will stick to 4 topics for the demonstration purposes. The scale of you model (the number of topics) quadratically increases the amount of computation needed to find stable topics because we will have to do pair-wise comparisons between a number of models (at least 5) and each found topic inside a model: for 4 topics we will need to do 160 comparisons and for 5 topics - 250. Her is a plot showing how the number of comparisons increases:</p>
+<div id="cell-show-change-in-comparisons" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Define Parameters</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>num_models <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>model_pairs <span class="op">=</span> (num_models <span class="op">*</span> (num_models <span class="op">-</span> <span class="dv">1</span>)) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Generate Data (Topics 2 to 100)</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>topics_range <span class="op">=</span> <span class="bu">range</span>(<span class="dv">2</span>, <span class="dv">101</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> []</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> topics_range:</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    total_comparisons <span class="op">=</span> model_pairs <span class="op">*</span> (t <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    data.append({<span class="st">"Topics"</span>: t, <span class="st">"Comparisons"</span>: total_comparisons})</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Plot</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>sns.set_theme(style<span class="op">=</span><span class="st">"whitegrid"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>sns.lineplot(data<span class="op">=</span>df, x<span class="op">=</span><span class="st">"Topics"</span>, y<span class="op">=</span><span class="st">"Comparisons"</span>, linewidth<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f"Growth of Comparisons for </span><span class="sc">{</span>num_models<span class="sc">}</span><span class="ss"> Models ($10 </span><span class="ch">\\</span><span class="ss">times T^2$)"</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Total Comparisons"</span>)</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Number of Topics per Model"</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/show-change-in-comparisons-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="lab_06.2_files/figure-html/show-change-in-comparisons-output-1.svg" id="show-change-in-comparisons" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>You may ignore topic stability if you use a topic model to reduce your data for other purposes - like training a classifier or doing a preliminary exploration. In the industry, topic stability is less of an issue because topic modeling is often used as a routine procedure powering up a feature such as a recommendation of similar text (or product). These models are constantly updated with new data and there is no reasonable way to keep track of stable topics. Yet, you should care about stability if you plan on making conclusions based on discovered topics.</p>
+<section id="the-challenge-of-stochastic-algorithms" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="the-challenge-of-stochastic-algorithms"><span class="header-section-number">4.1</span> The challenge of stochastic algorithms</h3>
+<p>LDA uses random initialization and random sampling during training. Each run explores the space of possible topic solutions differently. While the algorithm converges to similar solutions, topics may differ slightly between runs.</p>
+<p>This is not a flaw - it reflects the nature of unsupervised learning. However, we must assess stability to ensure findings are robust.</p>
+</section>
+<section id="the-topic-labeling-problem" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="the-topic-labeling-problem"><span class="header-section-number">4.2</span> The topic labeling problem</h3>
+<p>Here’s a crucial insight: <strong>topic IDs are arbitrary labels</strong>. When you train a topic model, the algorithm assigns numeric IDs (0, 1, 2, 3) to topics, but these numbers have no inherent meaning.</p>
+<p>What this means:</p>
+<ul>
+<li>In Model A, “gameplay mechanics” might be labeled Topic 0</li>
+<li>In Model B, the same semantic topic might be labeled Topic 2</li>
+<li>The numeric IDs are just arbitrary labels assigned during training</li>
+</ul>
+<p>This creates a challenge: to assess stability, we cannot simply compare Topic 0 vs Topic 0 across models. We must find which topics from Model A correspond to which topics in Model B by comparing their content (top words).</p>
+</section>
+<section id="training-multiple-models" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="training-multiple-models"><span class="header-section-number">4.3</span> Training multiple models</h3>
+<p>To properly assess stability, we need multiple models (typically 5) trained with different random seeds:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Technical detail: <code>workers=1</code>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We set <code>workers=1</code> to force single-threaded execution. When using multiple threads (<code>workers &gt; 1</code>), the order in which processor cores finish tasks can introduce variations even with a fixed random seed. For reproducibility and stability testing, single-threaded execution is essential.</p>
+</div>
+</div>
+<div id="train-multiple-models" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Training 5 models with different random seeds..."</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"This will take several minutes.</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> []</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>seeds <span class="op">=</span> [<span class="dv">42</span>, <span class="dv">100</span>, <span class="dv">999</span>, <span class="dv">2023</span>, <span class="dv">5555</span>]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, seed <span class="kw">in</span> <span class="bu">enumerate</span>(seeds):</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Training model </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">/5 (seed=</span><span class="sc">{</span>seed<span class="sc">}</span><span class="ss">)..."</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> gensim.models.LdaMulticore(</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        corpus<span class="op">=</span>corpus,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>        id2word<span class="op">=</span>id2word,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        num_topics<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span>seed,</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>        passes<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>        workers<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    models.append(model)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">All models trained!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training 5 models with different random seeds...
+This will take several minutes.
+
+Training model 1/5 (seed=42)...
+Training model 2/5 (seed=100)...
+Training model 3/5 (seed=999)...
+Training model 4/5 (seed=2023)...
+Training model 5/5 (seed=5555)...
+
+All models trained!</code></pre>
+</div>
+</div>
+<p>Let’s examine how topic labels differ across runs by looking at the top words:</p>
+<div id="compare-topic-labels" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare Topic 0 across first two models</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Comparing 'Topic 0' across two different models"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">MODEL 1 - Topic 0:"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word, prob <span class="kw">in</span> models[<span class="dv">0</span>].show_topic(<span class="dv">0</span>, topn<span class="op">=</span><span class="dv">10</span>):</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>word<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>prob<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">MODEL 2 - Topic 0:"</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> word, prob <span class="kw">in</span> models[<span class="dv">1</span>].show_topic(<span class="dv">0</span>, topn<span class="op">=</span><span class="dv">10</span>):</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>word<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>prob<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"OBSERVATION"</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Notice: Topic 0 in Model 1 may represent a DIFFERENT semantic theme"</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"than Topic 0 in Model 2. The numeric IDs are arbitrary!"</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">To find stable topics, we must compare EVERY topic from Model 1"</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"against EVERY topic from Model 2 to find the best matches."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>======================================================================
+Comparing 'Topic 0' across two different models
+======================================================================
+
+MODEL 1 - Topic 0:
+  player: 0.0210
+  people: 0.0192
+  experience: 0.0163
+  expand: 0.0143
+  console: 0.0138
+  animal: 0.0125
+  thing: 0.0123
+  review: 0.0122
+  like: 0.0121
+  crossing: 0.0118
+
+MODEL 2 - Topic 0:
+  player: 0.0459
+  console: 0.0186
+  second: 0.0166
+  progress: 0.0137
+  expand: 0.0128
+  like: 0.0116
+  start: 0.0105
+  want: 0.0103
+  multiplayer: 0.0092
+  person: 0.0089
+
+======================================================================
+OBSERVATION
+======================================================================
+Notice: Topic 0 in Model 1 may represent a DIFFERENT semantic theme
+than Topic 0 in Model 2. The numeric IDs are arbitrary!
+
+To find stable topics, we must compare EVERY topic from Model 1
+against EVERY topic from Model 2 to find the best matches.</code></pre>
+</div>
+</div>
+</section>
+<section id="cross-model-topic-matching" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="cross-model-topic-matching"><span class="header-section-number">4.4</span> Cross-model topic matching</h3>
+<p>To properly assess stability, we need to:</p>
+<ol type="1">
+<li>Compare every topic from Model A against every topic from Model B</li>
+<li>Calculate Jaccard similarity for all pairs</li>
+<li>Find which topics match across models (Jaccard &gt; 0.7)</li>
+<li>Count how many times each semantic topic appears across all 5 models</li>
+<li>Topics appearing in 3+ models are considered “stable”</li>
+</ol>
+<p>Here’s the implementation:</p>
+<div id="stability-functions" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> jaccard_similarity(topic_words_a, topic_words_b):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate Jaccard similarity between two sets of words.</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">        topic_words_a: Set of words from topic A</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">        topic_words_b: Set of words from topic B</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">        Jaccard coefficient (intersection / union)</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    intersection <span class="op">=</span> <span class="bu">len</span>(topic_words_a <span class="op">&amp;</span> topic_words_b)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    union <span class="op">=</span> <span class="bu">len</span>(topic_words_a <span class="op">|</span> topic_words_b)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> intersection <span class="op">/</span> union <span class="cf">if</span> union <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_top_words(model, topic_id, topn<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">    Extract top N words for a topic as a set.</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co">        model: LDA model</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co">        topic_id: Topic index</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co">        topn: Number of top words</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="co">        Set of top words</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">set</span>([word <span class="cf">for</span> word, prob <span class="kw">in</span> model.show_topic(topic_id, topn<span class="op">=</span>topn)])</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compare_model_pair(model_a, model_b, num_topics<span class="op">=</span><span class="dv">4</span>, topn<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a><span class="co">    Compare all topics between two models.</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a><span class="co">        model_a: First LDA model</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a><span class="co">        model_b: Second LDA model  </span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="co">        num_topics: Number of topics (k)</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="co">        topn: Number of top words to compare</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a><span class="co">        DataFrame with Jaccard similarities for all topic pairs</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span> []</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> topic_a <span class="kw">in</span> <span class="bu">range</span>(num_topics):</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>        words_a <span class="op">=</span> get_top_words(model_a, topic_a, topn)</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> topic_b <span class="kw">in</span> <span class="bu">range</span>(num_topics):</span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>            words_b <span class="op">=</span> get_top_words(model_b, topic_b, topn)</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>            jaccard <span class="op">=</span> jaccard_similarity(words_a, words_b)</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>            results.append({</span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>                <span class="st">'topic_a'</span>: topic_a,</span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>                <span class="st">'topic_b'</span>: topic_b,</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>                <span class="st">'jaccard'</span>: jaccard</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(results)</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyze_stability(models, threshold<span class="op">=</span><span class="fl">0.7</span>, topn<span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a><span class="co">    Analyze topic stability across multiple models.</span></span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a><span class="co">        models: List of LDA models</span></span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a><span class="co">        threshold: Jaccard threshold for considering topics "matched"</span></span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a><span class="co">        topn: Number of top words to compare</span></span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="co">        DataFrame summarizing stability findings</span></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a>    num_topics <span class="op">=</span> models[<span class="dv">0</span>].num_topics</span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a>    all_comparisons <span class="op">=</span> []</span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compare each pair of consecutive models</span></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a>        model_a_id <span class="op">=</span> i</span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a>        model_b_id <span class="op">=</span> i <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a>        comparison <span class="op">=</span> compare_model_pair(models[i], models[i<span class="op">+</span><span class="dv">1</span>], num_topics, topn)</span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a>        comparison[<span class="st">'model_a_id'</span>] <span class="op">=</span> model_a_id</span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>        comparison[<span class="st">'model_b_id'</span>] <span class="op">=</span> model_b_id</span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>        all_comparisons.append(comparison)</span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine all comparisons</span></span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a>    all_results <span class="op">=</span> pd.concat(all_comparisons, ignore_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find strong matches (Jaccard &gt; threshold)</span></span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a>    strong_matches <span class="op">=</span> all_results[all_results[<span class="st">'jaccard'</span>] <span class="op">&gt;=</span> threshold]</span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> all_results, strong_matches</span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Stability analysis functions defined."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Stability analysis functions defined.</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Smarter use of Jaccard similarity
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Jaccard similarity is very simple and - importantly for us - transitive. Jaccard similarity allows us to use a common link to skip calculations. If we know how Topic A relates to Topic B, and we already know how Topic A relates to Topic C, we can use Topic A as a “bridge.” This allows us to automatically deduce the relationship between B and C without having to compare them directly.</p>
+<p>Unfortunately, the Python ecosystem still lacks a package for this. And to keep the Python code simpler, we were using Jaccard similarity the ‘dumb’ way.</p>
+</div>
+</div>
+<p>Now let’s run the stability analysis:</p>
+<div id="run-stability-analysis" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Analyzing topic stability across 5 models..."</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Comparing each model with the next one (4 comparisons total)</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>all_results, strong_matches <span class="op">=</span> analyze_stability(models, threshold<span class="op">=</span><span class="fl">0.7</span>, topn<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"STRONG TOPIC MATCHES (Jaccard &gt;= 0.7)"</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Found </span><span class="sc">{</span><span class="bu">len</span>(strong_matches)<span class="sc">}</span><span class="ss"> strong matches across 4 model pairs:</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(strong_matches) <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Group by model comparison</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (model_a, model_b), group <span class="kw">in</span> strong_matches.groupby([<span class="st">'model_a_id'</span>, <span class="st">'model_b_id'</span>]):</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Model </span><span class="sc">{</span>model_a<span class="sc">}</span><span class="ss"> vs Model </span><span class="sc">{</span>model_b<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _, row <span class="kw">in</span> group.iterrows():</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"  Topic </span><span class="sc">{</span>row[<span class="st">'topic_a'</span>]<span class="sc">}</span><span class="ss"> → Topic </span><span class="sc">{</span>row[<span class="st">'topic_b'</span>]<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>row[<span class="st">'jaccard'</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"No strong matches found. This suggests low topic stability."</span>)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Consider: more preprocessing, different k, or acknowledging instability."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analyzing topic stability across 5 models...
+Comparing each model with the next one (4 comparisons total)
+
+======================================================================
+STRONG TOPIC MATCHES (Jaccard &gt;= 0.7)
+======================================================================
+
+Found 2 strong matches across 4 model pairs:
+
+
+Model 2 vs Model 3:
+  Topic 2.0 → Topic 3.0: 0.869
+
+Model 3 vs Model 4:
+  Topic 3.0 → Topic 0.0: 0.770</code></pre>
+</div>
+</div>
+</section>
+<section id="interpreting-stability-results" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="interpreting-stability-results"><span class="header-section-number">4.5</span> Interpreting stability results</h3>
+<p>The analysis shows which topics match across different model runs. Here’s how to interpret the findings:</p>
+<p><strong>What constitutes a stable topic?</strong></p>
+<p>A topic is considered stable if it appears consistently across multiple models (typically 3 out of 5) with high Jaccard similarity (&gt;0.7).</p>
+<p>For example, if we find:</p>
+<ul>
+<li>Model 0 vs Model 1: Topic 2 → Topic 0 (Jaccard = 0.75)</li>
+<li>Model 1 vs Model 2: Topic 0 → Topic 3 (Jaccard = 0.78)<br>
+</li>
+<li>Model 2 vs Model 3: Topic 3 → Topic 1 (Jaccard = 0.72)</li>
+<li>Model 3 vs Model 4: Topic 1 → Topic 2 (Jaccard = 0.76)</li>
+</ul>
+<p>This suggests one stable semantic topic that appears in all 5 models, though it gets different numeric IDs in each run.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Defining stability
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>There is no agreed-upon definition of what is a stable topic. In my own work, I follow this principle. If a given pair of topics has Jaccard of 0.9 and higher, then it is the same topic. If this topic appears at least in 3 models out of 5, then it is a stable topic. If a topic is not stable, I discard it from the analysis.</p>
+<p>Practice shows that this rule is strict and does not work with every dataset. It shows the best results on clean and easily distinguishable data like news items. It’s too strict for text like short social media posts or product reviews.</p>
+<p>Although the approach is general, it was designed to work with LDA-type of topic models. For example, it becomes useless in the case of STM with shadow initialization.</p>
+</div>
+</div>
+<p><strong>Jaccard similarity thresholds:</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Jaccard Score</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>≥ 0.70</td>
+<td>Strong match - topics are essentially the same</td>
+</tr>
+<tr class="even">
+<td>0.50 - 0.69</td>
+<td>Moderate match - topics share core themes</td>
+</tr>
+<tr class="odd">
+<td>0.30 - 0.49</td>
+<td>Weak match - some overlap but different topics</td>
+</tr>
+<tr class="even">
+<td>&lt; 0.30</td>
+<td>No meaningful match</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What if few or no matches are found?</strong></p>
+<p>If the analysis reveals few strong matches (Jaccard ≥ 0.7), this indicates low topic stability. Possible reasons:</p>
+<ol type="1">
+<li><strong>k is too high</strong>: Too many topics for the corpus, causing artificial splits</li>
+<li><strong>Corpus is too homogeneous</strong>: Reviews discuss the same issues (review bombing)</li>
+<li><strong>Preprocessing needs refinement</strong>: Add custom stopwords, adjust filters</li>
+<li><strong>Small corpus</strong>: Not enough documents for stable patterns</li>
+</ol>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>What to do with unstable topics
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If stability analysis shows poor results, you have two options:</p>
+<ol type="1">
+<li><strong>Refine the model</strong>: Try different k values, improve preprocessing, filter corpus</li>
+<li><strong>Acknowledge instability</strong>: Report findings honestly and interpret cautiously</li>
+<li>Consider other topic models: LDA is just one widely used implementation of the idea; for example, one promising new model is BERTopic https://maartengr.github.io/BERTopic/</li>
+</ol>
+<p>Don’t ignore instability. If topics change substantially between runs, your findings are not robust.</p>
+</div>
+</div>
+<p>Let’s visualize the stability patterns across all model pairs:</p>
+<div id="cell-visualize-stability" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create heatmap showing Jaccard similarities for one model pair</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>comparison_01 <span class="op">=</span> all_results[</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    (all_results[<span class="st">'model_a_id'</span>] <span class="op">==</span> <span class="dv">0</span>) <span class="op">&amp;</span> </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    (all_results[<span class="st">'model_b_id'</span>] <span class="op">==</span> <span class="dv">1</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot to matrix form</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>similarity_matrix <span class="op">=</span> comparison_01.pivot(</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    index<span class="op">=</span><span class="st">'topic_a'</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span><span class="st">'topic_b'</span>, </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    values<span class="op">=</span><span class="st">'jaccard'</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create heatmap</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    similarity_matrix,</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">'.3f'</span>,</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'YlOrRd'</span>,</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Jaccard Similarity'</span>},</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Model 1 Topics'</span>)</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Model 0 Topics'</span>)</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Topic Similarity: Model 0 vs Model 1</span><span class="ch">\n</span><span class="st">(Higher values = better match)'</span>)</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/visualize-stability-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="lab_06.2_files/figure-html/visualize-stability-output-1.svg" id="visualize-stability" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>How to read this heatmap:</p>
+<ul>
+<li>Each cell shows Jaccard similarity between topic pairs</li>
+<li>Darker red = stronger match</li>
+<li>Look for high values (&gt;0.7) to identify matching topics</li>
+<li>The highest value in each ROW shows the best match for that topic</li>
+</ul>
+</section>
+<section id="summary-which-topics-are-stable" class="level3" data-number="4.6">
+<h3 data-number="4.6" class="anchored" data-anchor-id="summary-which-topics-are-stable"><span class="header-section-number">4.6</span> Summary: Which topics are stable?</h3>
+<p>To determine which semantic topics are truly stable, we need to trace topic chains across all 5 models:</p>
+<div id="track-topic-chains" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each model pair, find the best match for each topic</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"TOPIC MATCHING CHAINS ACROSS 5 MODELS"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">For each topic in each model, showing its best match in the next model:</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    comparison <span class="op">=</span> all_results[</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        (all_results[<span class="st">'model_a_id'</span>] <span class="op">==</span> i) <span class="op">&amp;</span> </span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>        (all_results[<span class="st">'model_b_id'</span>] <span class="op">==</span> i <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Model </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> → Model </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># For each topic in model A, find best match in model B</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> topic_a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>        matches <span class="op">=</span> comparison[comparison[<span class="st">'topic_a'</span>] <span class="op">==</span> topic_a].sort_values(<span class="st">'jaccard'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>        best_match <span class="op">=</span> matches.iloc[<span class="dv">0</span>]</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> best_match[<span class="st">'jaccard'</span>] <span class="op">&gt;=</span> <span class="fl">0.7</span>:</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>            marker <span class="op">=</span> <span class="st">"✓ STRONG"</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> best_match[<span class="st">'jaccard'</span>] <span class="op">&gt;=</span> <span class="fl">0.5</span>:</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>            marker <span class="op">=</span> <span class="st">"~ moderate"</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>            marker <span class="op">=</span> <span class="st">"✗ weak"</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Topic </span><span class="sc">{</span>topic_a<span class="sc">}</span><span class="ss"> → Topic </span><span class="sc">{</span>best_match[<span class="st">'topic_b'</span>]<span class="sc">:.0f}</span><span class="ss"> "</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>              <span class="ss">f"(Jaccard=</span><span class="sc">{</span>best_match[<span class="st">'jaccard'</span>]<span class="sc">:.3f}</span><span class="ss">) </span><span class="sc">{</span>marker<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>======================================================================
+TOPIC MATCHING CHAINS ACROSS 5 MODELS
+======================================================================
+
+For each topic in each model, showing its best match in the next model:
+
+Model 0 → Model 1:
+  Topic 0 → Topic 0 (Jaccard=0.504) ~ moderate
+  Topic 1 → Topic 0 (Jaccard=0.550) ~ moderate
+  Topic 2 → Topic 1 (Jaccard=0.681) ~ moderate
+  Topic 3 → Topic 3 (Jaccard=0.562) ~ moderate
+
+Model 1 → Model 2:
+  Topic 0 → Topic 2 (Jaccard=0.562) ~ moderate
+  Topic 1 → Topic 0 (Jaccard=0.667) ~ moderate
+  Topic 2 → Topic 2 (Jaccard=0.538) ~ moderate
+  Topic 3 → Topic 2 (Jaccard=0.681) ~ moderate
+
+Model 2 → Model 3:
+  Topic 0 → Topic 1 (Jaccard=0.587) ~ moderate
+  Topic 1 → Topic 1 (Jaccard=0.562) ~ moderate
+  Topic 2 → Topic 3 (Jaccard=0.869) ✓ STRONG
+  Topic 3 → Topic 1 (Jaccard=0.493) ✗ weak
+
+Model 3 → Model 4:
+  Topic 0 → Topic 2 (Jaccard=0.471) ✗ weak
+  Topic 1 → Topic 3 (Jaccard=0.626) ~ moderate
+  Topic 2 → Topic 2 (Jaccard=0.587) ~ moderate
+  Topic 3 → Topic 0 (Jaccard=0.770) ✓ STRONG
+</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Identifying stable topics manually
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To trace a stable topic across all 5 models:</p>
+<ol type="1">
+<li>Start with Topic X in Model 0</li>
+<li>Find its best match in Model 1 (e.g., Topic Y)</li>
+<li>Find Topic Y’s best match in Model 2 (e.g., Topic Z)</li>
+<li>Continue through all models</li>
+<li>If a chain exists with Jaccard &gt; 0.7 at each step, that’s a stable topic</li>
+</ol>
+<p>For example, if you see:</p>
+<ul>
+<li>Model 0 Topic 2 → Model 1 Topic 0 (0.75)</li>
+<li>Model 1 Topic 0 → Model 2 Topic 3 (0.78)</li>
+<li>Model 2 Topic 3 → Model 3 Topic 1 (0.72)</li>
+<li>Model 3 Topic 1 → Model 4 Topic 2 (0.76)</li>
+</ul>
+<p>This represents ONE stable semantic topic appearing in all 5 models (despite having different numeric IDs in each).</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Ensuring reproducibility
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To make your results reproducible, always set <code>random_state</code> to a fixed value (e.g., <code>random_state=42</code>). This ensures the same random decisions occur each time, producing identical results.</p>
+<p>For research papers, report:</p>
+<ul>
+<li>The random seed used</li>
+<li>Whether you tested stability (and results)</li>
+<li>Any unstable topics that were excluded</li>
+</ul>
+</div>
+</div>
+</section>
+</section>
+<section id="post-hoc-metadata-analysis" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="post-hoc-metadata-analysis"><span class="header-section-number">5</span> Post-hoc metadata analysis</h2>
+<p>In Part 1, we built a topic model without considering metadata (review grades). Now we analyze how topics relate to sentiment - a post-hoc analysis.</p>
+<p>This differs from Structural Topic Models (STM), which incorporate metadata during training. In gensim LDA, we extract topics first, then analyze patterns.</p>
+<section id="hypotheses-about-sentiment-and-topics" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="hypotheses-about-sentiment-and-topics"><span class="header-section-number">5.1</span> Hypotheses about sentiment and topics</h3>
+<p>Before examining data, let’s form hypotheses. Based on the Animal Crossing review bombing pattern:</p>
+<p><strong>Negative reviews (0-3) might focus on:</strong></p>
+<ul>
+<li>Multiplayer limitations (“one island per console”)</li>
+<li>Missing features (“cloud save”, “limited content”)</li>
+<li>Technical issues</li>
+</ul>
+<p><strong>Positive reviews (8-10) might focus on:</strong></p>
+<ul>
+<li>Aesthetics (“beautiful”, “cute”, “design”)</li>
+<li>Gameplay (“relaxing”, “fun”, “enjoyable”)</li>
+<li>Characters and villagers</li>
+<li>Escapism and stress relief</li>
+</ul>
+<p>Let’s test these hypotheses.</p>
+</section>
+<section id="extracting-topic-proportions" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="extracting-topic-proportions"><span class="header-section-number">5.2</span> Extracting topic proportions</h3>
+<p>First, we need a stable model. Let’s use k=4 (from Part 1) with our standard seed:</p>
+<div id="final-model" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Train final model (k=4, seed=42)</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Training final model (k=4)..."</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>lda_final <span class="op">=</span> gensim.models.LdaMulticore(</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    corpus<span class="op">=</span>corpus,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    id2word<span class="op">=</span>id2word,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    num_topics<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    passes<span class="op">=</span><span class="dv">20</span>,  <span class="co"># More passes for stability</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    workers<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show topics</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Final model topics:"</span>)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> [word <span class="cf">for</span> word, prob <span class="kw">in</span> lda_final.show_topic(idx, topn<span class="op">=</span><span class="dv">10</span>)]</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Topic </span><span class="sc">{</span>idx<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="st">', '</span><span class="sc">.</span>join(words)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training final model (k=4)...
+
+Final model topics:
+======================================================================
+Topic 0: people, review, experience, player, console, expand, animal, crossing, like, thing
+Topic 1: player, second, progress, console, expand, want, person, start, get, multiplayer
+Topic 2: time, animal, crossing, like, expand, thing, good, feel, want, series
+Topic 3: console, save, share, expand, want, multiple, animal, account, experience, buy</code></pre>
+</div>
+</div>
+<p>Extract topic proportions for all documents:</p>
+<div id="extract-proportions" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_document_topics(corpus, lda_model, num_topics):</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Extract topic proportions for all documents."""</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    doc_topics_list <span class="op">=</span> []</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> doc_bow <span class="kw">in</span> corpus:</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>        topic_dist <span class="op">=</span> lda_model.get_document_topics(doc_bow, minimum_probability<span class="op">=</span><span class="fl">0.0</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>        probs <span class="op">=</span> [prob <span class="cf">for</span> topic_id, prob <span class="kw">in</span> topic_dist]</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>        doc_topics_list.append(probs)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    topic_cols <span class="op">=</span> [<span class="ss">f'Topic_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_topics)]</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    df_topics <span class="op">=</span> pd.DataFrame(doc_topics_list, columns<span class="op">=</span>topic_cols)</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df_topics</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract and merge</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>df_topics <span class="op">=</span> get_document_topics(corpus, lda_final, num_topics<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>df_analysis <span class="op">=</span> pd.concat([df_filtered.reset_index(drop<span class="op">=</span><span class="va">True</span>), df_topics], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Analysis dataframe: </span><span class="sc">{</span><span class="bu">len</span>(df_analysis)<span class="sc">:,}</span><span class="ss"> reviews"</span>)</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Columns: </span><span class="sc">{</span><span class="bu">list</span>(df_analysis.columns)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis dataframe: 1,735 reviews
+Columns: ['grade', 'user_name', 'text', 'date', 'word_count', 'sentiment', 'Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']</code></pre>
+</div>
+</div>
+</section>
+<section id="topic-prevalence-by-sentiment" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="topic-prevalence-by-sentiment"><span class="header-section-number">5.3</span> Topic prevalence by sentiment</h3>
+<p>Compare topic usage in negative vs.&nbsp;positive reviews:</p>
+<div id="cell-sentiment-analysis" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter to negative and positive (exclude sparse neutral)</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>df_sentiment <span class="op">=</span> df_analysis[df_analysis[<span class="st">'sentiment'</span>].isin([<span class="st">'negative'</span>, <span class="st">'positive'</span>])].copy()</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove unused category level</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>df_sentiment[<span class="st">'sentiment'</span>] <span class="op">=</span> df_sentiment[<span class="st">'sentiment'</span>].cat.remove_unused_categories()</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Negative reviews: </span><span class="sc">{</span>(df_sentiment[<span class="st">'sentiment'</span>] <span class="op">==</span> <span class="st">'negative'</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Positive reviews: </span><span class="sc">{</span>(df_sentiment[<span class="st">'sentiment'</span>] <span class="op">==</span> <span class="st">'positive'</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Reshape for plotting</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>df_melt <span class="op">=</span> df_sentiment.melt(</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    id_vars<span class="op">=</span>[<span class="st">'sentiment'</span>, <span class="st">'grade'</span>],</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    value_vars<span class="op">=</span>[<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>],</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    var_name<span class="op">=</span><span class="st">'Topic'</span>,</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    value_name<span class="op">=</span><span class="st">'Proportion'</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Create horizontal boxplot (sorted by median difference)</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate median difference for sorting</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>topic_medians <span class="op">=</span> df_sentiment.groupby(<span class="st">'sentiment'</span>)[[<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]].median()</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>median_diff <span class="op">=</span> topic_medians.loc[<span class="st">'positive'</span>] <span class="op">-</span> topic_medians.loc[<span class="st">'negative'</span>]</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort by signed difference (Negative -&gt; Positive) rather than absolute</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>topic_order <span class="op">=</span> median_diff.sort_values(ascending<span class="op">=</span><span class="va">True</span>).index.tolist()</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Create plot</span></span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>sns.boxplot(</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_melt,</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'Topic'</span>,</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'Proportion'</span>,</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'sentiment'</span>,</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    order<span class="op">=</span>topic_order,</span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax,</span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span>{<span class="st">'negative'</span>: <span class="st">'salmon'</span>, <span class="st">'positive'</span>: <span class="st">'lightgreen'</span>},</span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>    showfliers<span class="op">=</span><span class="va">False</span>            <span class="co"># we hide outliers for this notebook</span></span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>                                <span class="co"># for simplicity; but you should</span></span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>                                <span class="co"># always check them out in you work</span></span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Topic'</span>)</span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Topic Proportion'</span>)</span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Topic Prevalence by Review Sentiment'</span>)</span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>ax.legend(title<span class="op">=</span><span class="st">'Sentiment'</span>, loc<span class="op">=</span><span class="st">'lower right'</span>)</span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb25-48"><a href="#cb25-48" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Negative reviews: 1,003
+Positive reviews: 531</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_3326108/2677725862.py:22: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+  topic_medians = df_sentiment.groupby('sentiment')[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].median()</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/sentiment-analysis-output-3.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="lab_06.2_files/figure-html/sentiment-analysis-output-3.svg" id="sentiment-analysis" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="interpreting-the-sentiment-boxplot" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="interpreting-the-sentiment-boxplot"><span class="header-section-number">5.4</span> Interpreting the sentiment boxplot</h3>
+<p>Each box shows the distribution of topic proportions across reviews:</p>
+<ul>
+<li><strong>Box</strong>: Contains middle 50% of values (25th to 75th percentile)</li>
+<li><strong>Line inside box</strong>: Median value</li>
+<li><strong>Whiskers</strong>: Extend to extreme values (excluding outliers)</li>
+<li><strong>Dots</strong>: Outlier reviews</li>
+</ul>
+<p><strong>Interpreting differences:</strong></p>
+<ul>
+<li><strong>Separated boxes</strong>: Strong sentiment difference (e.g., negative median 0.35, positive median 0.15)</li>
+<li><strong>Overlapping boxes</strong>: Topics used similarly across sentiments</li>
+<li><strong>Wide boxes</strong>: High variation within sentiment (some reviews emphasize topic, others don’t)</li>
+</ul>
+<p>For each topic showing separation, examine the top words to understand what distinguishes negative from positive reviews.</p>
+</section>
+<section id="statistical-comparison" class="level3" data-number="5.5">
+<h3 data-number="5.5" class="anchored" data-anchor-id="statistical-comparison"><span class="header-section-number">5.5</span> Statistical comparison</h3>
+<p>Let’s test whether topic prevalence differs significantly by sentiment:</p>
+<div id="statistical-tests" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Statistical tests (Mann-Whitney U):"</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Null hypothesis: Topic prevalence is the same in negative and positive reviews"</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> topic <span class="kw">in</span> [<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]:</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    negative_vals <span class="op">=</span> df_sentiment[df_sentiment[<span class="st">'sentiment'</span>] <span class="op">==</span> <span class="st">'negative'</span>][topic]</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    positive_vals <span class="op">=</span> df_sentiment[df_sentiment[<span class="st">'sentiment'</span>] <span class="op">==</span> <span class="st">'positive'</span>][topic]</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mann-Whitney U test (non-parametric, doesn't assume normal distribution)</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    stat, pvalue <span class="op">=</span> mannwhitneyu(negative_vals, positive_vals, alternative<span class="op">=</span><span class="st">'two-sided'</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    neg_median <span class="op">=</span> negative_vals.median()</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    pos_median <span class="op">=</span> positive_vals.median()</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>topic<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Negative median: </span><span class="sc">{</span>neg_median<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Positive median: </span><span class="sc">{</span>pos_median<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  p-value: </span><span class="sc">{</span>pvalue<span class="sc">:.4f}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'***'</span> <span class="cf">if</span> pvalue <span class="op">&lt;</span> <span class="fl">0.001</span> <span class="cf">else</span> <span class="st">'**'</span> <span class="cf">if</span> pvalue <span class="op">&lt;</span> <span class="fl">0.01</span> <span class="cf">else</span> <span class="st">'*'</span> <span class="cf">if</span> pvalue <span class="op">&lt;</span> <span class="fl">0.05</span> <span class="cf">else</span> <span class="st">'ns'</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Note on p-values: With large datasets (N &gt; 1000), even small differences can be"</span>)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"statistically significant. Look at the difference in medians (Effect Size) to"</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"judge if the difference is meaningful in practice."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Statistical tests (Mann-Whitney U):
+======================================================================
+Null hypothesis: Topic prevalence is the same in negative and positive reviews
+
+Topic_0:
+  Negative median: 0.015
+  Positive median: 0.098
+  p-value: 0.0000 ***
+
+Topic_1:
+  Negative median: 0.273
+  Positive median: 0.009
+  p-value: 0.0000 ***
+
+Topic_2:
+  Negative median: 0.013
+  Positive median: 0.638
+  p-value: 0.0000 ***
+
+Topic_3:
+  Negative median: 0.185
+  Positive median: 0.012
+  p-value: 0.0000 ***
+
+Note on p-values: With large datasets (N &gt; 1000), even small differences can be
+statistically significant. Look at the difference in medians (Effect Size) to
+judge if the difference is meaningful in practice.</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Correlation vs causation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>These patterns show association between sentiment and topic usage, not causation. We cannot conclude “being negative causes using Topic X” from this analysis.</p>
+<p>Both sentiment and topic usage reflect underlying review content. The relationship is:</p>
+<p>Review content → Sentiment + Topic usage</p>
+<p>Not: Sentiment → Topic usage</p>
+</div>
+</div>
+<p>In our case, the p-value is 0.000, but look at the medians: Topic 0 jumps from 0.015 (Negative) to 0.098 (Positive). This is a substantial shift in prevalence.</p>
+</section>
+<section id="temporal-analysis" class="level3" data-number="5.6">
+<h3 data-number="5.6" class="anchored" data-anchor-id="temporal-analysis"><span class="header-section-number">5.6</span> Temporal analysis</h3>
+<p>Do topics change over time? Let’s examine whether review bombing (negative complaints) decreases as positive reviews accumulate:</p>
+<div id="cell-temporal-analysis" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add time variable (weeks since release)</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>df_analysis[<span class="st">'date'</span>] <span class="op">=</span> pd.to_datetime(df_filtered[<span class="st">'date'</span>].values)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>df_analysis[<span class="st">'week'</span>] <span class="op">=</span> ((df_analysis[<span class="st">'date'</span>] <span class="op">-</span> df_analysis[<span class="st">'date'</span>].<span class="bu">min</span>()).dt.days <span class="op">//</span> <span class="dv">7</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate weekly averages for each topic</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>weekly_topics <span class="op">=</span> df_analysis.groupby(<span class="st">'week'</span>)[[<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]].mean()</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> topic <span class="kw">in</span> [<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]:</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    ax.plot(weekly_topics.index, weekly_topics[topic], </span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="st">'o'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span>topic)</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Weeks Since Launch (March 20, 2020)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Mean Topic Proportion'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Topic Prevalence Over Time'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">'best'</span>)</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Print interpretation</span></span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Temporal pattern interpretation:"</span>)</span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> topic <span class="kw">in</span> [<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]:</span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>    week0 <span class="op">=</span> weekly_topics.iloc[<span class="dv">0</span>][topic]</span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>    week_last <span class="op">=</span> weekly_topics.iloc[<span class="op">-</span><span class="dv">1</span>][topic]</span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>    change <span class="op">=</span> week_last <span class="op">-</span> week0</span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>topic<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Week 0: </span><span class="sc">{</span>week0<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Week </span><span class="sc">{</span>weekly_topics<span class="sc">.</span>index[<span class="op">-</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>week_last<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Change: </span><span class="sc">{</span>change<span class="sc">:+.3f}</span><span class="ss">"</span>)</span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/temporal-analysis-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="lab_06.2_files/figure-html/temporal-analysis-output-1.svg" id="temporal-analysis" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Temporal pattern interpretation:
+======================================================================
+Topic_0:
+  Week 0: 0.207
+  Week 6: 0.188
+  Change: -0.018
+
+Topic_1:
+  Week 0: 0.255
+  Week 6: 0.204
+  Change: -0.051
+
+Topic_2:
+  Week 0: 0.320
+  Week 6: 0.331
+  Change: +0.010
+
+Topic_3:
+  Week 0: 0.218
+  Week 6: 0.277
+  Change: +0.059
+</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="topic-correlations" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="topic-correlations"><span class="header-section-number">6</span> Topic correlations</h2>
+<p>Do certain topics tend to appear together in the same reviews? Correlation analysis reveals co-occurrence patterns.</p>
+<div id="cell-topic-correlation" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate correlation matrix</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="op">=</span> df_analysis[[<span class="st">'Topic_0'</span>, <span class="st">'Topic_1'</span>, <span class="st">'Topic_2'</span>, <span class="st">'Topic_3'</span>]].corr()</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize heatmap</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>sns.heatmap(</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    corr_matrix,</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    annot<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">=</span><span class="st">'.2f'</span>,</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span><span class="st">'coolwarm'</span>,</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=-</span><span class="fl">0.5</span>,</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>    center<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>    square<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>    cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Correlation'</span>},</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>    ax<span class="op">=</span>ax</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Topic Correlations'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><a href="lab_06.2_files/figure-html/topic-correlation-output-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="lab_06.2_files/figure-html/topic-correlation-output-1.svg" id="topic-correlation" class="img-fluid figure-img"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="interpreting-correlation-values" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="interpreting-correlation-values"><span class="header-section-number">6.1</span> Interpreting correlation values</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Correlation</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>&gt; 0.30</td>
+<td>Strong positive relationship; topics often co-occur</td>
+</tr>
+<tr class="even">
+<td>0.10 to 0.30</td>
+<td>Moderate positive relationship</td>
+</tr>
+<tr class="odd">
+<td>-0.10 to 0.10</td>
+<td>Weak/no relationship; topics independent</td>
+</tr>
+<tr class="even">
+<td>-0.30 to -0.10</td>
+<td>Moderate negative relationship</td>
+</tr>
+<tr class="odd">
+<td>&lt; -0.30</td>
+<td>Strong negative relationship; topics rarely co-occur</td>
+</tr>
+</tbody>
+</table>
+<p>Positive correlation suggests topics appear together (e.g., reviews discussing aesthetics also discuss relaxation). Negative correlation suggests topics are mutually exclusive (e.g., complaint-focused reviews don’t discuss positive aspects).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>When to use correlation analysis
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Topic correlation is useful for:</p>
+<ul>
+<li>Understanding rhetorical combinations (which themes co-occur?)</li>
+<li>Identifying conceptually related topics</li>
+<li>Exploring discourse patterns</li>
+</ul>
+<p>However, correlation does not reveal:</p>
+<ul>
+<li>Causal relationships</li>
+<li>Hierarchical structure (which topics are subtopics of others)</li>
+</ul>
+<p>For network-like relationships, see Lab 05.2 (Semantic Networks).</p>
+</div>
+</div>
+</section>
+</section>
+<section id="validation-through-human-coding" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="validation-through-human-coding"><span class="header-section-number">7</span> Validation through human coding</h2>
+<p>Computational metrics (coherence, stability) assess internal consistency, but cannot tell us if topics are <em>meaningful</em>. For that, we need human judgment.</p>
+<section id="the-gold-standard-inter-coder-reliability" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="the-gold-standard-inter-coder-reliability"><span class="header-section-number">7.1</span> The gold standard: Inter-coder reliability</h3>
+<p>When we claim “Topic 1 represents gameplay discourse,” we make an interpretive claim. To validate, we ask: would other researchers agree?</p>
+<p>Inter-coder reliability measures agreement between independent human coders. If multiple people interpret a topic the same way, we have evidence the topic is coherent and meaningful.</p>
+</section>
+<section id="designing-a-coding-study" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="designing-a-coding-study"><span class="header-section-number">7.2</span> Designing a coding study</h3>
+<p>For a topic we labeled “Multiplayer Complaints” (based on top words), we could ask two independent coders to:</p>
+<ol type="1">
+<li>Read the top 20 reviews for this topic</li>
+<li>For each review, answer: “Does this review primarily discuss multiplayer or island-sharing issues?” (Yes/No)</li>
+<li>Compare their answers</li>
+</ol>
+<p>Here is hypothetical coding data:</p>
+<div id="coding-example" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Hypothetical inter-coder reliability data</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>coding_data <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'document_id'</span>: <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">21</span>),</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Coder_A'</span>: [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>],</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Coder_B'</span>: [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>]</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Inter-coder reliability example:"</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"(1 = review discusses multiplayer issues, 0 = does not)"</span>)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(coding_data.head(<span class="dv">10</span>))</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate simple agreement</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>agreements <span class="op">=</span> (coding_data[<span class="st">'Coder_A'</span>] <span class="op">==</span> coding_data[<span class="st">'Coder_B'</span>]).<span class="bu">sum</span>()</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="bu">len</span>(coding_data)</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>simple_agreement <span class="op">=</span> agreements <span class="op">/</span> total</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Simple agreement: </span><span class="sc">{</span>agreements<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>total<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>simple_agreement<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Note: Simple agreement can be misleading because some agreement"</span>)</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"occurs by chance. We need a measure that corrects for chance agreement."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Inter-coder reliability example:
+(1 = review discusses multiplayer issues, 0 = does not)
+   document_id  Coder_A  Coder_B
+0            1        1        1
+1            2        1        1
+2            3        1        1
+3            4        0        0
+4            5        1        0
+5            6        0        0
+6            7        1        1
+7            8        1        1
+8            9        0        1
+9           10        1        1
+
+Simple agreement: 15/20 = 0.75
+
+Note: Simple agreement can be misleading because some agreement
+occurs by chance. We need a measure that corrects for chance agreement.</code></pre>
+</div>
+</div>
+</section>
+<section id="calculating-krippendorffs-alpha" class="level3" data-number="7.3">
+<h3 data-number="7.3" class="anchored" data-anchor-id="calculating-krippendorffs-alpha"><span class="header-section-number">7.3</span> Calculating Krippendorff’s alpha</h3>
+<p>Simple percentage agreement can be misleading because some agreement occurs by chance. Krippendorff’s alpha corrects for chance agreement.</p>
+<div id="krippendorff" class="cell" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install if needed: uv pip install simpledorff</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> simpledorff</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare data in long format</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>coding_long <span class="op">=</span> coding_data.melt(</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    id_vars<span class="op">=</span><span class="st">'document_id'</span>,</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    var_name<span class="op">=</span><span class="st">'coder'</span>,</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    value_name<span class="op">=</span><span class="st">'annotation'</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate alpha</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>alpha <span class="op">=</span> simpledorff.calculate_krippendorffs_alpha_for_df(</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    coding_long,</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    experiment_col<span class="op">=</span><span class="st">'document_id'</span>,</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    annotator_col<span class="op">=</span><span class="st">'coder'</span>,</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    class_col<span class="op">=</span><span class="st">'annotation'</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Krippendorff's Alpha"</span>)</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">70</span>)</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Alpha = </span><span class="sc">{</span>alpha<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>======================================================================
+Krippendorff's Alpha
+======================================================================
+Alpha = 0.389
+</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Installing simpledorff
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If <code>simpledorff</code> is not installed, run:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install simpledorff</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Alternatively, for simpler cases (two coders, binary coding), you can use: <code>sklearn.metrics.cohen_kappa_score</code></p>
+</div>
+</div>
+</section>
+<section id="interpreting-alpha-values" class="level3" data-number="7.4">
+<h3 data-number="7.4" class="anchored" data-anchor-id="interpreting-alpha-values"><span class="header-section-number">7.4</span> Interpreting alpha values</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 51%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Alpha</th>
+<th>Interpretation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>&gt; 0.80</td>
+<td>Excellent agreement</td>
+<td>Topic interpretation reliable</td>
+</tr>
+<tr class="even">
+<td>0.67 - 0.80</td>
+<td>Good agreement</td>
+<td>Acceptable for most purposes</td>
+</tr>
+<tr class="odd">
+<td>0.60 - 0.67</td>
+<td>Marginal agreement</td>
+<td>Use cautiously; consider refining</td>
+</tr>
+<tr class="even">
+<td>&lt; 0.60</td>
+<td>Poor agreement</td>
+<td>Topic interpretation unreliable; discard or redefine</td>
+</tr>
+</tbody>
+</table>
+<p>In this example, alpha = 0.389. This suggests the topic interpretation has poor agreement.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Limitations of inter-coder reliability
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>High agreement does not guarantee a topic is <em>meaningful</em> for your research question. It only means coders agree on the definition.</p>
+<p>Two coders could reliably identify a nonsensical category. Inter-coder reliability should complement, not replace:</p>
+<ul>
+<li>Domain expertise</li>
+<li>Theoretical grounding</li>
+<li>Close reading of documents</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="sample-size-for-validation" class="level3" data-number="7.5">
+<h3 data-number="7.5" class="anchored" data-anchor-id="sample-size-for-validation"><span class="header-section-number">7.5</span> Sample size for validation</h3>
+<p>How many documents should be coded?</p>
+<p><strong>General guidelines:</strong></p>
+<ul>
+<li><strong>Small topics</strong> (&lt; 50 documents): Code 20-30 documents</li>
+<li><strong>Medium topics</strong> (50-500 documents): Code 50-100 documents</li>
+<li><strong>Large topics</strong> (&gt; 500 documents): Code 100-200 documents</li>
+</ul>
+<p>Or use proportion: 10-20% of documents assigned to topic, minimum 20.</p>
+<p><strong>Tradeoff</strong>: More coding = higher precision, but more human time/cost.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Blind Coding
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To ensure valid results, use <strong>blind coding</strong>: do not tell your coders which topic the computer assigned to each document. If they know the computer thinks a review is about “Multiplayer”, they might be biased to agree. Present the documents in random order without topic labels.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="reporting-topic-models-in-research" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="reporting-topic-models-in-research"><span class="header-section-number">8</span> Reporting topic models in research</h2>
+<p>When publishing research using topic modeling, transparency about methods and evaluation is essential.</p>
+<section id="minimum-reporting-standards" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="minimum-reporting-standards"><span class="header-section-number">8.1</span> Minimum reporting standards</h3>
+<p><strong>Model specification:</strong></p>
+<ul>
+<li>Algorithm (LDA, CTM, STM, etc.)</li>
+<li>Number of topics (k) and how chosen</li>
+<li>Preprocessing steps (lemmatization, stopwords, filtering)</li>
+<li>Hyperparameters (alpha, eta/beta, passes, random_state)</li>
+</ul>
+<p><strong>Evaluation:</strong></p>
+<ul>
+<li>Coherence scores (if used to select k)</li>
+<li>Stability assessment (e.g., “top 10 words stable across 5 runs”)</li>
+<li>Validation approach (close reading, inter-coder reliability, expert review)</li>
+</ul>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li>Topic labels and how assigned</li>
+<li>Representative documents or quotes for each topic</li>
+<li>Prevalence (proportion of corpus each topic represents)</li>
+</ul>
+</section>
+<section id="writing-about-topics" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="writing-about-topics"><span class="header-section-number">8.2</span> Writing about topics</h3>
+<p>Use tentative language that acknowledges topics are analytical constructs:</p>
+<p><strong>Good examples:</strong></p>
+<ul>
+<li>“Topic 1, which we interpret as gameplay discourse, comprises words like…”</li>
+<li>“Documents assigned primarily to Topic 1 tend to discuss…”</li>
+<li>“We identify a topic characterized by words such as ‘island’, ‘villager’, ‘design’”</li>
+</ul>
+<p><strong>Avoid:</strong></p>
+<ul>
+<li>“Topic 1 <em>is</em> the gameplay topic” (reifies the construct)</li>
+<li>“LDA discovered that 30% of reviews are about gameplay” (implies objective truth)</li>
+<li>“The complaint topic shows…” (without acknowledging interpretation)</li>
+</ul>
+</section>
+<section id="common-reporting-pitfalls" class="level3" data-number="8.3">
+<h3 data-number="8.3" class="anchored" data-anchor-id="common-reporting-pitfalls"><span class="header-section-number">8.3</span> Common reporting pitfalls</h3>
+<ol type="1">
+<li><strong>Not reporting k selection process</strong>: Readers need to know how you chose number of topics</li>
+<li><strong>Claiming topics are “discovered truths”</strong>: Topics are model outputs, not inherent document properties</li>
+<li><strong>Omitting failed topics</strong>: If some topics were incoherent, report this</li>
+<li><strong>Cherry-picking documents</strong>: Show representative documents, not just best examples</li>
+<li><strong>Ignoring stability</strong>: Report any stability issues encountered</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Making research reproducible
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Share when possible:</p>
+<ul>
+<li>Preprocessed corpus (if no privacy/copyright restrictions)</li>
+<li>Trained model file (<code>lda_model.save('model.pkl')</code>)</li>
+<li>Full preprocessing code</li>
+<li>Random seed used (<code>random_state=42</code>)</li>
+</ul>
+<p>This allows others to verify and build on your work.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="exercises"><span class="header-section-number">9</span> Exercises</h2>
+<section id="exercise-1-stability-assessment" class="level3" data-number="9.1">
+<h3 data-number="9.1" class="anchored" data-anchor-id="exercise-1-stability-assessment"><span class="header-section-number">9.1</span> Exercise 1: Stability assessment</h3>
+<p>Using the 5 models already trained in this lab, conduct a deeper stability analysis.</p>
+<p>Tasks:</p>
+<ol type="1">
+<li><p>Examine the <code>strong_matches</code> dataframe. Identify chains of matching topics across models (e.g., Topic 2 in Model 0 → Topic 0 in Model 1 → Topic 3 in Model 2). How many such chains can you find?</p></li>
+<li><p>For the best-matching chain (highest average Jaccard), extract the top 20 words from each model’s version of that topic. How many words appear in all 5 versions?</p></li>
+<li><p>Compare the stability heatmap (Model 0 vs Model 1) to a different pair (e.g., Model 2 vs Model 3). Do the same topics match, or do patterns differ?</p></li>
+<li><p>Reflect: If a topic appears in only 2 out of 5 models with Jaccard &gt; 0.7, would you trust research conclusions based on that topic? Why or why not?</p></li>
+<li><p>What does low stability tell you about this corpus? (Hint: recall the “review bombing” note about this dataset)</p></li>
+</ol>
+</section>
+<section id="exercise-2-sentiment-hypothesis-testing" class="level3" data-number="9.2">
+<h3 data-number="9.2" class="anchored" data-anchor-id="exercise-2-sentiment-hypothesis-testing"><span class="header-section-number">9.2</span> Exercise 2: Sentiment hypothesis testing</h3>
+<p>Hypothesis: “Negative reviews focus on multiplayer issues; positive reviews focus on aesthetics and relaxation.”</p>
+<p>Tasks:</p>
+<ol type="1">
+<li>Examine the boxplot from the sentiment analysis section</li>
+<li>Identify which topic(s) represent “multiplayer issues” (look at top words)</li>
+<li>Identify which topic(s) represent “aesthetics/relaxation”</li>
+<li>Do the data support the hypothesis? Provide evidence</li>
+<li>What alternative explanations could account for the patterns you observe?</li>
+</ol>
+</section>
+<section id="exercise-3-choosing-k" class="level3" data-number="9.3">
+<h3 data-number="9.3" class="anchored" data-anchor-id="exercise-3-choosing-k"><span class="header-section-number">9.3</span> Exercise 3: Choosing k</h3>
+<p>Using the coherence analysis results:</p>
+<ol type="1">
+<li>What value of k has the highest coherence score?</li>
+<li>Does the plot show a clear “elbow” point? Where?</li>
+<li>Compare k=3 vs k=6: examine the topics for each (you’ll need to retrain models)</li>
+<li>Which k value is more interpretable? Why?</li>
+<li>Does highest coherence always mean best interpretability?</li>
+</ol>
+</section>
+<section id="exercise-4-hci-application" class="level3" data-number="9.4">
+<h3 data-number="9.4" class="anchored" data-anchor-id="exercise-4-hci-application"><span class="header-section-number">9.4</span> Exercise 4: HCI application</h3>
+<p>Imagine you are a UX researcher at Nintendo analyzing user feedback:</p>
+<ol type="1">
+<li>Identify the “UX complaint” topic in your model (based on top words)</li>
+<li>Extract the top 20 reviews for this topic</li>
+<li>Read them and note:
+<ul>
+<li>What specific design decision is criticized?</li>
+<li>How do users describe the impact on their experience?</li>
+<li>Do users suggest solutions?</li>
+</ul></li>
+<li>Based on this analysis, what would you recommend to the design team?</li>
+<li>Reflect: How does topic modeling help vs.&nbsp;hurt in UX research?</li>
+</ol>
+</section>
+<section id="exercise-5-temporal-patterns" class="level3" data-number="9.5">
+<h3 data-number="9.5" class="anchored" data-anchor-id="exercise-5-temporal-patterns"><span class="header-section-number">9.5</span> Exercise 5: Temporal patterns</h3>
+<p>Looking at the temporal analysis plot:</p>
+<ol type="1">
+<li>Which topic(s) decrease over time?</li>
+<li>Which topic(s) increase over time?</li>
+<li>What explains these patterns? (Hint: consider review bombing phenomenon)</li>
+<li>Does topic modeling help understand how public discourse evolves?</li>
+<li>What are limitations of this temporal analysis?</li>
+</ol>
+</section>
+<section id="exercise-6-validation-design" class="level3" data-number="9.6">
+<h3 data-number="9.6" class="anchored" data-anchor-id="exercise-6-validation-design"><span class="header-section-number">9.6</span> Exercise 6: Validation design</h3>
+<p>Design an inter-coder reliability study for your topic model:</p>
+<ol type="1">
+<li>Choose one topic to validate</li>
+<li>How many documents would you have coders read?</li>
+<li>What specific question would you ask coders?</li>
+<li>What Krippendorff’s alpha threshold would you accept for publication?</li>
+<li>Besides inter-coder reliability, what other validation steps would you take?</li>
+</ol>
+<hr>
+<p><strong>Congratulations!</strong> You have completed the topic modeling sequence. You now know how to:</p>
+<ul>
+<li>Build LDA models systematically</li>
+<li>Evaluate stability and coherence</li>
+<li>Choose number of topics</li>
+<li>Analyze topics by metadata</li>
+<li>Validate findings through human coding</li>
+<li>Report results appropriately</li>
+</ul>
+<p>These skills apply to any text analysis research using topic modeling.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/paskn\.github\.io\/cta-with-python\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
