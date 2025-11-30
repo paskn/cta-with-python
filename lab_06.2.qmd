@@ -125,147 +125,6 @@ print(f"Vocabulary: {len(id2word):,} words")
 print(f"Corpus: {len(corpus):,} documents")
 ```
 
-## Understanding topic stability
-
-Topic modeling uses probabilistic algorithms that incorporate randomness during training. This means running the same code twice with different random seeds can produce different results.
-
-For researchers, this raises an important question: how stable are our topics? If topics change substantially between runs, can we trust our findings?
-
-### The challenge of stochastic algorithms
-
-LDA uses random initialization and random sampling during training. Each run explores the space of possible topic solutions differently. While the algorithm converges to similar solutions, topics may differ slightly between runs.
-
-This is not a flaw - it reflects the nature of unsupervised learning. However, we must assess stability to ensure findings are robust.
-
-### Demonstrating topic variation
-
-Let's train two models with different random seeds and compare their results.
-
-::: {.callout-note}
-## A technical detail: `workers=1`
-In the code below, we set `workers=1`. This forces the computer to use a single processor thread. Why? When using multiple threads (`workers > 1`), the order in which different processor cores finish their tasks can introduce slight variations, even with a fixed random seed. For true reproducibility and stability testing, we must force single-threaded execution.
-:::
-
-Let's train two models with different random seeds and compare their results:
-
-```{python}
-#| label: stability-demo
-
-# Model A (seed 42)
-print("Training Model A (seed=42)...")
-lda_model_A = gensim.models.LdaMulticore(
-    corpus=corpus,
-    id2word=id2word,
-    num_topics=4,
-    random_state=42,
-    passes=10,
-    workers=1
-)
-
-# Model B (seed 999)
-print("Training Model B (seed=999)...")
-lda_model_B = gensim.models.LdaMulticore(
-    corpus=corpus,
-    id2word=id2word,
-    num_topics=4,
-    random_state=999,
-    passes=10,
-    workers=1
-)
-
-print("Models trained. Comparing Topic 0 from each model:\n")
-
-print("="*70)
-print("MODEL A - Topic 0 (top 10 words)")
-print("="*70)
-for word, prob in lda_model_A.show_topic(0, topn=10):
-    print(f"  {word}: {prob:.4f}")
-
-print("\n" + "="*70)
-print("MODEL B - Topic 0 (top 10 words)")
-print("="*70)
-for word, prob in lda_model_B.show_topic(0, topn=10):
-    print(f"  {word}: {prob:.4f}")
-```
-
-When comparing these outputs, look for:
-
-- **Word overlap**: Do the same words appear in both topics?
-- **Word order**: Are the top words ranked similarly?
-- **Semantic coherence**: Do both topics represent the same theme?
-
-If topics are stable, you should see substantial overlap (7-8 of top 10 words match) and similar rankings.
-
-### Quantifying topic stability
-
-We can calculate word overlap between corresponding topics using the Jaccard similarity coefficient:
-
-```{python}
-#| label: jaccard-stability
-
-def topic_word_overlap(model_a, model_b, topic_num, topn=10):
-    """
-    Calculate Jaccard similarity between top words in a topic across two models.
-    
-    Parameters:
-        model_a: First LDA model
-        model_b: Second LDA model
-        topic_num: Topic index to compare
-        topn: Number of top words to compare
-    
-    Returns:
-        Jaccard coefficient (0 = no overlap, 1 = perfect overlap)
-    """
-    words_a = set([w for w, p in model_a.show_topic(topic_num, topn=topn)])
-    words_b = set([w for w, p in model_b.show_topic(topic_num, topn=topn)])
-    
-    intersection = len(words_a & words_b)
-    union = len(words_a | words_b)
-    
-    return intersection / union if union > 0 else 0
-
-# Calculate overlap for all topics
-print("Topic stability (Jaccard overlap of top 10 words):")
-print("="*70)
-
-for i in range(4):
-    overlap = topic_word_overlap(lda_model_A, lda_model_B, i, topn=10)
-    interpretation = ""
-    if overlap > 0.70:
-        interpretation = "Highly stable"
-    elif overlap > 0.50:
-        interpretation = "Moderately stable"
-    elif overlap > 0.30:
-        interpretation = "Low stability"
-    else:
-        interpretation = "Unstable"
-    
-    print(f"Topic {i}: {overlap:.2f} - {interpretation}")
-```
-
-### Interpreting stability scores
-
-| Jaccard Overlap | Interpretation |
-|-----------------|----------------|
-| > 0.70 | Highly stable topic |
-| 0.50 - 0.70 | Moderately stable |
-| 0.30 - 0.50 | Low stability; interpret cautiously |
-| < 0.30 | Unstable; likely artifact |
-
-Topics with low stability should be examined closely. They may represent noise rather than meaningful themes.
-
-::: {.callout-note}
-## Ensuring reproducibility
-
-To make your results reproducible, always set `random_state` to a fixed value (e.g., `random_state=42`). This ensures the same random decisions occur each time, producing identical results.
-
-For research papers, report:
-
-- The random seed used
-- Whether you tested stability (and results)
-- Any unstable topics that were excluded
-:::
-
 ## Choosing the number of topics
 
 One fundamental challenge in topic modeling: we must decide how many topics (k) exist in our corpus. There is no "correct" answer - this is a modeling choice.
@@ -459,7 +318,496 @@ High coherence does not guarantee topics are "correct" or meaningful for your re
 - Domain expertise
 - Alignment with theoretical expectations
 
-Use coherence to narrow options, then choose k based on interpretability.
+Use coherence to narrow options, then choose k based on
+interpretability.
+
+Consider other coherence metrics on Palmetto:
+[https://palmetto.demos.dice-research.org/](https://palmetto.demos.dice-research.org/)
+:::
+
+## Understanding topic stability
+
+Topic modeling uses probabilistic algorithms that incorporate
+randomness during training. This means running the same code twice on
+the same data can produce different results.
+
+For researchers, this raises an important question: how stable are our
+topics? If topics change substantially between runs, can we trust our
+findings?
+
+You start worrying about topic stability once you have decided on the
+number of topics for your model. Although our results above suggest
+that 5 topics is a better choice, we will stick to 4 topics for the
+demonstration purposes. The scale of you model (the number of topics)
+quadratically increases the amount of computation needed to find
+stable topics because we will have to do pair-wise comparisons between
+a number of models (at least 5) and each found topic inside a model:
+for 4 topics we will need to do 160 comparisons and for 5 topics -
+250. Her is a plot showing how the number of comparisons increases:
+
+```{python}
+#| label: show-change-in-comparisons
+# 1. Define Parameters
+num_models = 5
+model_pairs = (num_models * (num_models - 1)) / 2
+
+# 2. Generate Data (Topics 2 to 100)
+topics_range = range(2, 101)
+data = []
+
+for t in topics_range:
+    total_comparisons = model_pairs * (t ** 2)
+    data.append({"Topics": t, "Comparisons": total_comparisons})
+
+df = pd.DataFrame(data)
+
+# 3. Plot
+plt.figure(figsize=(10, 6))
+sns.set_theme(style="whitegrid")
+
+sns.lineplot(data=df, x="Topics", y="Comparisons", linewidth=2.5)
+
+plt.title(f"Growth of Comparisons for {num_models} Models ($10 \\times T^2$)", fontsize=14)
+plt.ylabel("Total Comparisons")
+plt.xlabel("Number of Topics per Model")
+plt.show()
+```
+
+You may ignore topic stability if you use a topic model to reduce your
+data for other purposes - like training a classifier or doing a
+preliminary exploration. In the industry, topic stability is less of
+an issue because topic modeling is often used as a routine procedure
+powering up a feature such as a recommendation of similar text (or
+product). These models are constantly updated with new data and there
+is no reasonable way to keep track of stable topics. Yet, you should
+care about stability if you plan on making conclusions based on
+discovered topics.
+
+### The challenge of stochastic algorithms
+
+LDA uses random initialization and random sampling during training. Each run explores the space of possible topic solutions differently. While the algorithm converges to similar solutions, topics may differ slightly between runs.
+
+This is not a flaw - it reflects the nature of unsupervised learning. However, we must assess stability to ensure findings are robust.
+
+### The topic labeling problem
+
+Here's a crucial insight: **topic IDs are arbitrary labels**. When you train a topic model, the algorithm assigns numeric IDs (0, 1, 2, 3) to topics, but these numbers have no inherent meaning. 
+
+What this means:
+
+- In Model A, "gameplay mechanics" might be labeled Topic 0
+- In Model B, the same semantic topic might be labeled Topic 2
+- The numeric IDs are just arbitrary labels assigned during training
+
+This creates a challenge: to assess stability, we cannot simply compare Topic 0 vs Topic 0 across models. We must find which topics from Model A correspond to which topics in Model B by comparing their content (top words).
+
+### Training multiple models
+
+To properly assess stability, we need multiple models (typically 5) trained with different random seeds:
+
+::: {.callout-note}
+## Technical detail: `workers=1`
+
+We set `workers=1` to force single-threaded execution. When using multiple threads (`workers > 1`), the order in which processor cores finish tasks can introduce variations even with a fixed random seed. For reproducibility and stability testing, single-threaded execution is essential.
+:::
+
+```{python}
+#| label: train-multiple-models
+
+print("Training 5 models with different random seeds...")
+print("This will take several minutes.\n")
+
+models = []
+seeds = [42, 100, 999, 2023, 5555]
+
+for i, seed in enumerate(seeds):
+    print(f"Training model {i+1}/5 (seed={seed})...")
+    model = gensim.models.LdaMulticore(
+        corpus=corpus,
+        id2word=id2word,
+        num_topics=4,
+        random_state=seed,
+        passes=10,
+        workers=1
+    )
+    models.append(model)
+
+print("\nAll models trained!")
+```
+
+Let's examine how topic labels differ across runs by looking at the top words:
+
+```{python}
+#| label: compare-topic-labels
+
+# Compare Topic 0 across first two models
+print("="*70)
+print("Comparing 'Topic 0' across two different models")
+print("="*70)
+print("\nMODEL 1 - Topic 0:")
+for word, prob in models[0].show_topic(0, topn=10):
+    print(f"  {word}: {prob:.4f}")
+
+print("\nMODEL 2 - Topic 0:")
+for word, prob in models[1].show_topic(0, topn=10):
+    print(f"  {word}: {prob:.4f}")
+
+print("\n" + "="*70)
+print("OBSERVATION")
+print("="*70)
+print("Notice: Topic 0 in Model 1 may represent a DIFFERENT semantic theme")
+print("than Topic 0 in Model 2. The numeric IDs are arbitrary!")
+print("\nTo find stable topics, we must compare EVERY topic from Model 1")
+print("against EVERY topic from Model 2 to find the best matches.")
+```
+
+### Cross-model topic matching
+
+To properly assess stability, we need to:
+
+1. Compare every topic from Model A against every topic from Model B
+2. Calculate Jaccard similarity for all pairs
+3. Find which topics match across models (Jaccard > 0.7)
+4. Count how many times each semantic topic appears across all 5 models
+5. Topics appearing in 3+ models are considered "stable"
+
+Here's the implementation:
+
+```{python}
+#| label: stability-functions
+
+def jaccard_similarity(topic_words_a, topic_words_b):
+    """
+    Calculate Jaccard similarity between two sets of words.
+    
+    Parameters:
+        topic_words_a: Set of words from topic A
+        topic_words_b: Set of words from topic B
+    
+    Returns:
+        Jaccard coefficient (intersection / union)
+    """
+    intersection = len(topic_words_a & topic_words_b)
+    union = len(topic_words_a | topic_words_b)
+    return intersection / union if union > 0 else 0
+
+
+def get_top_words(model, topic_id, topn=100):
+    """
+    Extract top N words for a topic as a set.
+    
+    Parameters:
+        model: LDA model
+        topic_id: Topic index
+        topn: Number of top words
+    
+    Returns:
+        Set of top words
+    """
+    return set([word for word, prob in model.show_topic(topic_id, topn=topn)])
+
+
+def compare_model_pair(model_a, model_b, num_topics=4, topn=100):
+    """
+    Compare all topics between two models.
+    
+    Parameters:
+        model_a: First LDA model
+        model_b: Second LDA model  
+        num_topics: Number of topics (k)
+        topn: Number of top words to compare
+    
+    Returns:
+        DataFrame with Jaccard similarities for all topic pairs
+    """
+    results = []
+    
+    for topic_a in range(num_topics):
+        words_a = get_top_words(model_a, topic_a, topn)
+        
+        for topic_b in range(num_topics):
+            words_b = get_top_words(model_b, topic_b, topn)
+            
+            jaccard = jaccard_similarity(words_a, words_b)
+            
+            results.append({
+                'topic_a': topic_a,
+                'topic_b': topic_b,
+                'jaccard': jaccard
+            })
+    
+    return pd.DataFrame(results)
+
+
+def analyze_stability(models, threshold=0.7, topn=100):
+    """
+    Analyze topic stability across multiple models.
+    
+    Parameters:
+        models: List of LDA models
+        threshold: Jaccard threshold for considering topics "matched"
+        topn: Number of top words to compare
+    
+    Returns:
+        DataFrame summarizing stability findings
+    """
+    num_topics = models[0].num_topics
+    all_comparisons = []
+    
+    # Compare each pair of consecutive models
+    for i in range(len(models) - 1):
+        model_a_id = i
+        model_b_id = i + 1
+        
+        comparison = compare_model_pair(models[i], models[i+1], num_topics, topn)
+        comparison['model_a_id'] = model_a_id
+        comparison['model_b_id'] = model_b_id
+        
+        all_comparisons.append(comparison)
+    
+    # Combine all comparisons
+    all_results = pd.concat(all_comparisons, ignore_index=True)
+    
+    # Find strong matches (Jaccard > threshold)
+    strong_matches = all_results[all_results['jaccard'] >= threshold]
+    
+    return all_results, strong_matches
+
+
+print("Stability analysis functions defined.")
+```
+
+::: {.callout-note}
+## Smarter use of Jaccard similarity
+
+Jaccard similarity is very simple and - importantly for us -
+transitive. Jaccard similarity allows us to use a common link to skip
+calculations. If we know how Topic A relates to Topic B, and we
+already know how Topic A relates to Topic C, we can use Topic A as a
+"bridge." This allows us to automatically deduce the relationship
+between B and C without having to compare them directly.
+
+Unfortunately, the Python ecosystem still lacks a package for this.
+And to keep the Python code simpler, we were using Jaccard similarity
+the 'dumb' way.
+
+:::
+
+
+Now let's run the stability analysis:
+
+```{python}
+#| label: run-stability-analysis
+
+print("Analyzing topic stability across 5 models...")
+print("Comparing each model with the next one (4 comparisons total)\n")
+
+all_results, strong_matches = analyze_stability(models, threshold=0.7, topn=100)
+
+print("="*70)
+print("STRONG TOPIC MATCHES (Jaccard >= 0.7)")
+print("="*70)
+print(f"\nFound {len(strong_matches)} strong matches across 4 model pairs:\n")
+
+if len(strong_matches) > 0:
+    # Group by model comparison
+    for (model_a, model_b), group in strong_matches.groupby(['model_a_id', 'model_b_id']):
+        print(f"\nModel {model_a} vs Model {model_b}:")
+        for _, row in group.iterrows():
+            print(f"  Topic {row['topic_a']} → Topic {row['topic_b']}: {row['jaccard']:.3f}")
+else:
+    print("No strong matches found. This suggests low topic stability.")
+    print("Consider: more preprocessing, different k, or acknowledging instability.")
+```
+
+### Interpreting stability results
+
+The analysis shows which topics match across different model runs. Here's how to interpret the findings:
+
+**What constitutes a stable topic?**
+
+A topic is considered stable if it appears consistently across multiple models (typically 3 out of 5) with high Jaccard similarity (>0.7).
+
+For example, if we find:
+
+- Model 0 vs Model 1: Topic 2 → Topic 0 (Jaccard = 0.75)
+- Model 1 vs Model 2: Topic 0 → Topic 3 (Jaccard = 0.78)  
+- Model 2 vs Model 3: Topic 3 → Topic 1 (Jaccard = 0.72)
+- Model 3 vs Model 4: Topic 1 → Topic 2 (Jaccard = 0.76)
+
+This suggests one stable semantic topic that appears in all 5 models,
+though it gets different numeric IDs in each run.
+
+::: {.callout-note}
+## Defining stability
+
+There is no agreed-upon definition of what is a stable topic. In my
+own work, I follow this principle. If a given pair of topics has
+Jaccard of 0.9 and higher, then it is the same topic. If this topic
+appears at least in 3 models out of 5, then it is a stable topic. If a
+topic is not stable, I discard it from the analysis.
+
+Practice shows that this rule is strict and does not work with every
+dataset. It shows the best results on clean and easily distinguishable
+data like news items. It's too strict for text like short social media
+posts or product reviews.
+
+Although the approach is general, it was designed to work with
+LDA-type of topic models. For example, it becomes useless in the case
+of STM with shadow initialization.
+:::
+
+**Jaccard similarity thresholds:**
+
+| Jaccard Score | Interpretation |
+|---------------|----------------|
+| ≥ 0.70 | Strong match - topics are essentially the same |
+| 0.50 - 0.69 | Moderate match - topics share core themes |
+| 0.30 - 0.49 | Weak match - some overlap but different topics |
+| < 0.30 | No meaningful match |
+
+**What if few or no matches are found?**
+
+If the analysis reveals few strong matches (Jaccard ≥ 0.7), this indicates low topic stability. Possible reasons:
+
+1. **k is too high**: Too many topics for the corpus, causing artificial splits
+2. **Corpus is too homogeneous**: Reviews discuss the same issues (review bombing)
+3. **Preprocessing needs refinement**: Add custom stopwords, adjust filters
+4. **Small corpus**: Not enough documents for stable patterns
+
+::: {.callout-important}
+## What to do with unstable topics
+
+If stability analysis shows poor results, you have two options:
+
+1. **Refine the model**: Try different k values, improve preprocessing, filter corpus
+2. **Acknowledge instability**: Report findings honestly and interpret
+   cautiously
+3. Consider other topic models: LDA is just one widely used
+   implementation of the idea; for example, one promising new model is
+   BERTopic https://maartengr.github.io/BERTopic/
+
+Don't ignore instability. If topics change substantially between runs,
+your findings are not robust. 
+:::
+
+Let's visualize the stability patterns across all model pairs:
+
+```{python}
+#| label: visualize-stability
+
+# Create heatmap showing Jaccard similarities for one model pair
+comparison_01 = all_results[
+    (all_results['model_a_id'] == 0) & 
+    (all_results['model_b_id'] == 1)
+]
+
+# Pivot to matrix form
+similarity_matrix = comparison_01.pivot(
+    index='topic_a',
+    columns='topic_b', 
+    values='jaccard'
+)
+
+# Create heatmap
+fig, ax = plt.subplots(figsize=(8, 6))
+sns.heatmap(
+    similarity_matrix,
+    annot=True,
+    fmt='.3f',
+    cmap='YlOrRd',
+    vmin=0,
+    vmax=1,
+    cbar_kws={'label': 'Jaccard Similarity'},
+    ax=ax
+)
+
+ax.set_xlabel('Model 1 Topics')
+ax.set_ylabel('Model 0 Topics')
+ax.set_title('Topic Similarity: Model 0 vs Model 1\n(Higher values = better match)')
+
+plt.tight_layout()
+plt.show()
+```
+
+
+How to read this heatmap:
+
+- Each cell shows Jaccard similarity between topic pairs
+- Darker red = stronger match
+- Look for high values (>0.7) to identify matching topics
+- The highest value in each ROW shows the best match for that topic
+
+### Summary: Which topics are stable?
+
+To determine which semantic topics are truly stable, we need to trace topic chains across all 5 models:
+
+```{python}
+#| label: track-topic-chains
+
+# For each model pair, find the best match for each topic
+print("="*70)
+print("TOPIC MATCHING CHAINS ACROSS 5 MODELS")
+print("="*70)
+print("\nFor each topic in each model, showing its best match in the next model:\n")
+
+for i in range(len(models) - 1):
+    comparison = all_results[
+        (all_results['model_a_id'] == i) & 
+        (all_results['model_b_id'] == i + 1)
+    ]
+    
+    print(f"Model {i} → Model {i+1}:")
+    
+    # For each topic in model A, find best match in model B
+    for topic_a in range(4):
+        matches = comparison[comparison['topic_a'] == topic_a].sort_values('jaccard', ascending=False)
+        best_match = matches.iloc[0]
+        
+        if best_match['jaccard'] >= 0.7:
+            marker = "✓ STRONG"
+        elif best_match['jaccard'] >= 0.5:
+            marker = "~ moderate"
+        else:
+            marker = "✗ weak"
+        
+        print(f"  Topic {topic_a} → Topic {best_match['topic_b']:.0f} "
+              f"(Jaccard={best_match['jaccard']:.3f}) {marker}")
+    
+    print()
+```
+
+::: {.callout-tip}
+## Identifying stable topics manually
+
+To trace a stable topic across all 5 models:
+
+1. Start with Topic X in Model 0
+2. Find its best match in Model 1 (e.g., Topic Y)
+3. Find Topic Y's best match in Model 2 (e.g., Topic Z)
+4. Continue through all models
+5. If a chain exists with Jaccard > 0.7 at each step, that's a stable topic
+
+For example, if you see:
+
+- Model 0 Topic 2 → Model 1 Topic 0 (0.75)
+- Model 1 Topic 0 → Model 2 Topic 3 (0.78)
+- Model 2 Topic 3 → Model 3 Topic 1 (0.72)
+- Model 3 Topic 1 → Model 4 Topic 2 (0.76)
+
+This represents ONE stable semantic topic appearing in all 5 models (despite having different numeric IDs in each).
+:::
+
+::: {.callout-note}
+## Ensuring reproducibility
+
+To make your results reproducible, always set `random_state` to a fixed value (e.g., `random_state=42`). This ensures the same random decisions occur each time, producing identical results.
+
+For research papers, report:
+
+- The random seed used
+- Whether you tested stability (and results)
+- Any unstable topics that were excluded
 :::
 
 ## Post-hoc metadata analysis
@@ -570,7 +918,9 @@ fig, ax = plt.subplots(figsize=(10, 6))
 # Calculate median difference for sorting
 topic_medians = df_sentiment.groupby('sentiment')[['Topic_0', 'Topic_1', 'Topic_2', 'Topic_3']].median()
 median_diff = topic_medians.loc['positive'] - topic_medians.loc['negative']
-topic_order = median_diff.abs().sort_values(ascending=True).index.tolist()
+
+# Sort by signed difference (Negative -> Positive) rather than absolute
+topic_order = median_diff.sort_values(ascending=True).index.tolist()
 
 # Create plot
 sns.boxplot(
@@ -580,7 +930,10 @@ sns.boxplot(
     hue='sentiment',
     order=topic_order,
     ax=ax,
-    palette={'negative': 'salmon', 'positive': 'lightgreen'}
+    palette={'negative': 'salmon', 'positive': 'lightgreen'},
+    showfliers=False            # we hide outliers for this notebook
+                                # for simplicity; but you should
+                                # always check them out in you work
 )
 
 ax.set_ylabel('Topic')
@@ -653,6 +1006,10 @@ Review content → Sentiment + Topic usage
 
 Not: Sentiment → Topic usage
 :::
+
+In our case, the p-value is 0.000, but look at the medians: Topic 0
+jumps from 0.015 (Negative) to 0.098 (Positive). This is a substantial
+shift in prevalence.
 
 ### Temporal analysis
 
@@ -857,7 +1214,7 @@ Alternatively, for simpler cases (two coders, binary coding), you can use:
 | 0.60 - 0.67 | Marginal agreement | Use cautiously; consider refining |
 | < 0.60 | Poor agreement | Topic interpretation unreliable; discard or redefine |
 
-In this example, alpha = {:.3f}. This suggests the topic interpretation has {} agreement.
+In this example, alpha = 0.389. This suggests the topic interpretation has poor agreement.
 
 ::: {.callout-warning}
 ## Limitations of inter-coder reliability
@@ -919,13 +1276,13 @@ When publishing research using topic modeling, transparency about methods and ev
 
 Use tentative language that acknowledges topics are analytical constructs:
 
-✅ **Good examples:**
+**Good examples:**
 
 - "Topic 1, which we interpret as gameplay discourse, comprises words like..."
 - "Documents assigned primarily to Topic 1 tend to discuss..."
 - "We identify a topic characterized by words such as 'island', 'villager', 'design'"
 
-❌ **Avoid:**
+**Avoid:**
 
 - "Topic 1 *is* the gameplay topic" (reifies the construct)
 - "LDA discovered that 30% of reviews are about gameplay" (implies objective truth)
@@ -956,14 +1313,19 @@ This allows others to verify and build on your work.
 
 ### Exercise 1: Stability assessment
 
-Run the LDA model 5 times with different random seeds (42, 100, 200, 300, 400). For each run, extract the top 10 words for Topic 0.
+Using the 5 models already trained in this lab, conduct a deeper stability analysis.
 
 Tasks:
 
-1. How many words appear in ALL five runs?
-2. Calculate the mean Jaccard overlap across all pairs of runs
-3. Which topic (0-3) appears most stable across runs?
-4. Would you trust conclusions based on an unstable topic? Why or why not?
+1. Examine the `strong_matches` dataframe. Identify chains of matching topics across models (e.g., Topic 2 in Model 0 → Topic 0 in Model 1 → Topic 3 in Model 2). How many such chains can you find?
+
+2. For the best-matching chain (highest average Jaccard), extract the top 20 words from each model's version of that topic. How many words appear in all 5 versions?
+
+3. Compare the stability heatmap (Model 0 vs Model 1) to a different pair (e.g., Model 2 vs Model 3). Do the same topics match, or do patterns differ?
+
+4. Reflect: If a topic appears in only 2 out of 5 models with Jaccard > 0.7, would you trust research conclusions based on that topic? Why or why not?
+
+5. What does low stability tell you about this corpus? (Hint: recall the "review bombing" note about this dataset)
 
 ### Exercise 2: Sentiment hypothesis testing
 
