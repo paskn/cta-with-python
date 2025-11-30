@@ -1384,13 +1384,3 @@ Design an inter-coder reliability study for your topic model:
 
 ---
 
-**Congratulations!** You have completed the topic modeling sequence. You now know how to:
-
-- Build LDA models systematically
-- Evaluate stability and coherence
-- Choose number of topics
-- Analyze topics by metadata
-- Validate findings through human coding
-- Report results appropriately
-
-These skills apply to any text analysis research using topic modeling.
