@@ -788,19 +788,20 @@ Use topic modeling to:
 - Identify prevalent discourses
 - Guide close reading (which documents to examine)
 
-Do NOT use topic modeling to:
+Topic modeling (LDA) is is not good for:
 
 - Test hypotheses (it's exploratory, not confirmatory)
 - Prove theories (findings need validation)
 - Replace close reading (computers cannot replace human interpretation)
 
-### When NOT to use topic modeling
+### When not to use topic modeling
 
 Topic modeling is inappropriate when:
 
 - **Corpus is very small** (< 100 documents typically)
 - **Documents are very short** (tweets, reviews < 50 words)
-- **Topics are pre-defined** (use dictionary methods from Lab 03 instead)
+- **Topics are pre-defined** (use dictionary methods from Lab 03
+  instead or another topic modeling algorithm)
 - **You need precise classifications** (use supervised learning instead)
 
 ::: {.callout-note}
@@ -885,5 +886,3 @@ Write a brief reflection (250-500 words) addressing:
 4. How might you apply topic modeling to your own research interests?
 
 ---
-
-**Next:** In Part 2, you will learn how to evaluate topic models systematically, choose the optimal number of topics, analyze topics by metadata (sentiment), and validate findings through human coding.
