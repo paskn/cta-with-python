@@ -437,7 +437,20 @@ for idx in range(4):
 
 ### Labeling topics
 
-Based on the top words, we can assign interpretive labels to each topic. This requires domain judgment - what themes do these words represent?
+Based on the top words, we can assign interpretive labels to each
+topic. This requires domain judgment - what themes do these words
+represent?
+
+To get a sense of a topic, you will need two things:
+
+1. A list of top words ranked by their probability to be in a topic;
+2. A list of top documents ranked by their probability to be in a
+   topic.
+   
+For each topic, you read the word list to get an initial sense of a
+subject. Then you start reading the documents to test your initial
+ideas. About a 100 of words and documents seems to be good enough to
+get a confident idea how to label a topic. 
 
 Let's analyze each topic:
 
@@ -529,6 +542,10 @@ Slide lambda to ~0.6 to see words that are both frequent AND distinctive for eac
 Topics describe word patterns, but we also need to understand how topics appear in documents. Each document has a distribution over topics.
 
 ### Extracting topic proportions
+
+Here's how we can get document-topic proportions. For labeling, add
+the column with unprocessed text instead of grade (or along with), as
+shown below. 
 
 ```{python}
 #| label: doc-topics
@@ -644,6 +661,14 @@ for i, (count, topic) in enumerate(zip(dominant_counts_sorted.values, topic_name
 plt.tight_layout()
 plt.show()
 ```
+
+This is just one way to showing topic prevalence: for each topic we
+counted in how many documents it has the highers probability value.
+Another way is to to sum all probabilities of a topic. If you sum
+together topic probabilities over a document (or a word), you will
+always get 1 (100%). But if you sum over all documents, the cumulative
+values will give you a similar rank of topic prevalence in the entire
+corpus.
 
 ## Close reading validation
 
