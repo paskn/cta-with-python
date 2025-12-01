@@ -90,7 +90,9 @@ The mathematics involves Dirichlet distributions (hence the name), but understan
 
 ## Setup and data
 
-We will use the Animal Crossing: New Horizons user reviews dataset. This dataset contains reviews from Metacritic posted in March-May 2020 following the game's release.
+We will use the Animal Crossing: New Horizons user reviews dataset.
+This dataset contains reviews from Metacritic posted in March-May 2020
+following the game's release. You can find the dataset here: [https://github.com/rfordatascience/tidytuesday/tree/main/data/2020/2020-05-05](https://github.com/rfordatascience/tidytuesday/tree/main/data/2020/2020-05-05)
 
 ::: {.callout-note}
 ## About this dataset
@@ -106,8 +108,10 @@ This reflects "review bombing" - coordinated negative reviews about a specific i
 
 **Important caveat:** Because many reviews discuss the same complaint, this corpus is not ideal for topic modeling. You will see lower coherence scores (Part 2) than you would with a more diverse corpus. This is a feature, not a bug - it teaches you to recognize when topic modeling struggles due to data characteristics.
 
-Remember: our goal is learning the METHOD (topic modeling), not researching Animal Crossing. The accessibility of this contemporary dataset helps us focus on computational techniques rather than requiring specialized domain knowledge.
 :::
+
+We will use Python's genism library to use topic modeling:
+[https://radimrehurek.com/gensim/](https://radimrehurek.com/gensim/).
 
 Let's load the necessary libraries and data:
 
@@ -213,6 +217,11 @@ Our preprocessing handles these automatically:
 - `len(token) > 3` removes most abbreviations and slang
 - Lemmatization normalizes informal spellings
 
+Although we will not do it right now, with this kind of data it is also
+useful to run spellchecking before doing lemmatization. However, since
+automatic spellchecking is not error-free, you risk loosing the
+community-specific language.
+
 ::: {.callout-tip}
 ## A note on "Gamerspeak"
 We use `token.is_alpha` to remove numbers and emojis for simplicity. However, in a specialized study of gaming culture, you might want to keep alphanumeric terms like "PS4", "3DS", or "10/10". In that case, you would adjust the filtering logic to allow mixed alphanumeric tokens.
@@ -223,7 +232,10 @@ This pattern works for analyzing social media posts, product reviews, forum disc
 
 ### Calculating text length
 
-Before preprocessing, let's filter reviews by length. Very short reviews (< 50 words) often lack substance for topic modeling:
+Before preprocessing, let's filter reviews by length. Very short
+reviews (< 50 words) often lack substance for topic modeling. LDA
+specifically is also not very good with shorter texts like twits
+(search 'twitterLDA').
 
 ```{python}
 #| label: text-length
@@ -245,7 +257,13 @@ print(f"\nFiltered corpus: {len(df_filtered):,} reviews")
 
 ### Deduplication
 
-Check for and remove duplicate reviews:
+Check for and remove duplicate reviews. Although we did not use it
+before, when working with data originated online it is also useful to
+check for duplication. It is a widespread problem with online text and
+many sophisticated tools exist to find duplicates. If we keep
+duplicates in our topic model, they can bias the algorithms - we will
+not find smaller and more interesting topics. Duplicates can also tell
+you something about the data generating process.
 
 ```{python}
 #| label: deduplicate
