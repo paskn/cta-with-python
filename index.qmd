@@ -10,3 +10,4 @@ title: "Computational Text Analysis with Python"
 7. [Lab 05: Collocations](lab_05.1.qmd)
 8. [Lab 06: Topic modeling I](lab_06.1.qmd)
 9. [Lab 06: Topic modeling II](lab_06.2.qmd)
+10. [Lab 10: Embeddings and Clustering](lab_07.1.qmd)
