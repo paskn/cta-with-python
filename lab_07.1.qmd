@@ -1288,7 +1288,6 @@ Key takeaways:
 
 ::: {.callout-note collapse="true"}
 ## For the curious: How FastText is trained
-
 FastText uses the skipgram or CBOW (Continuous Bag of Words) architecture. The model learns by predicting context words from a target word (skipgram) or predicting a target word from context (CBOW).
 
 Training process:
@@ -1298,7 +1297,7 @@ Training process:
 3. Adjust vectors to improve predictions
 4. After millions of examples, similar words end up with similar vectors
 
-FastText extends this by representing words as combinations of character n-grams. "running" = ["ru", "un", "nn", "ni", "in", "ing", "run", "unn", "nni", "nin", "ing"]. This allows handling of unknown words and morphological relationships.
+FastText extends this by representing words as bags of character n-grams (by default, 3–6 characters). Boundary markers `<` and `>` distinguish prefixes and suffixes. For example, "where" becomes: `<wh`, `whe`, `her`, `ere`, `re>`, plus the whole word `<where>`. This allows handling unknown words and captures morphological relationships.
 
-Learn more: [FastText: Enriching Word Vectors with Subword Information](https://arxiv.org/abs/1607.01759)
+Learn more: [Enriching Word Vectors with Subword Information](https://arxiv.org/abs/1607.04606)
 :::
