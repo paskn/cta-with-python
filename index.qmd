@@ -2,12 +2,13 @@
 title: "Computational Text Analysis with Python"
 ---
 
-1. Start here: [Python Basics](basic-python.qmd)
-3. [Lab 01: Words as data points I](lab_01.qmd)
-4. [Lab 02: Words as data points II](lab_02.qmd)
-5. [Lab 03: Dictionary methods](lab_03.qmd)
-6. [Lab 04: Comparing documents](lab_04.qmd)
-7. [Lab 05: Collocations](lab_05.1.qmd)
-8. [Lab 06: Topic modeling I](lab_06.1.qmd)
-9. [Lab 06: Topic modeling II](lab_06.2.qmd)
-10. [Lab 10: Embeddings and Clustering](lab_07.1.qmd)
+- Start here: [Python Basics](basic-python.qmd)
+- [Lab 01: Words as data points I](lab_01.qmd)
+- [Lab 02: Words as data points II](lab_02.qmd)
+- [Lab 03: Dictionary methods](lab_03.qmd)
+- [Lab 04: Comparing documents](lab_04.qmd)
+- [Lab 05: Collocations](lab_05.1.qmd)
+- [Lab 06: Topic modeling I](lab_06.1.qmd)
+- [Lab 06: Topic modeling II](lab_06.2.qmd)
+- [Lab 07: Embeddings and Clustering](lab_07.1.qmd)
+- [Lab 08: Text classification with machine learning](lab_08.qmd)
